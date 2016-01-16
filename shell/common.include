@@ -33,9 +33,6 @@ export GOPATH=$HOME/cpp/go
 #...um, at least until I can figure out distutil. >_>
 #export PYTHONPATH=$HOME/asd/class/research/circuit:$PYTHONPATH
 
-# goodbye and good riddance, interactive mode
-alias pdflatex="pdflatex --interaction=nonstopmode -halt-on-error"
-
 alias min="vim -u NONE"
 
 
