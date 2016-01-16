@@ -1,0 +1,55 @@
+
+# This file is intended to be sourced by both .bashrc and .zshrc.
+# It contains environment variables, aliases, and other shell-agnostic things.
+
+# !!! BEGIN TWEAK SCRIPT: Custom Includes !!!
+# !!! rev 2
+export LIBRARY_PATH=$LIBRARY_PATH:~/scripts/cpp-lib
+export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:~/scripts/cpp-include
+# !!! END TWEAK SCRIPT: Custom Includes !!!
+
+
+# for my lame-ass script that I gave up on
+export VASP_POTCAR_DIR="/home/lampam/asd/VASP DATA/potentials"
+
+# for pymatgen, written by people who actually know what they're doing
+export VASP_PSP_DIR="/home/lampam/asd/pymatgen_res"
+
+# this incredibly-descriptively named variable is for phonon
+export ISODATA=/usr/local/phon610/isobyu/
+
+
+#----------------------------------------------
+
+# phonopy
+alias sym-pos="phonopy --sym -c POSCAR > symmetry"
+alias sym-con="phonopy --sym -c CONTCAR > symmetry"
+
+# set p4vasp environment variables
+export PATH=$PATH:/home/lampam/app/p4vasp/bin
+
+export GOPATH=$HOME/cpp/go
+
+#...um, at least until I can figure out distutil. >_>
+#export PYTHONPATH=$HOME/asd/class/research/circuit:$PYTHONPATH
+
+# goodbye and good riddance, interactive mode
+alias pdflatex="pdflatex --interaction=nonstopmode -halt-on-error"
+
+alias min="vim -u NONE"
+
+
+function swap()
+{
+    local TMPFILE=tmp.$$
+    mv "$1" $TMPFILE
+    mv "$2" "$1"
+    mv $TMPFILE "$2"
+}
+
+# no more.
+# please. no more.
+PATH=~/syncbin:$PATH
+alias cp=sane-cp
+alias mv=sane-mv
+

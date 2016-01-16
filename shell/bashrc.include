@@ -1,0 +1,35 @@
+
+# To be source'd in .bashrc
+
+# Wrap in a function so that `local` can be used.
+# Awkwardly long name to avoid collision.
+function doTheSpecialPromptyThing {
+  local none='\[\033[00m\]'
+  local bold='\[\033[01m\]'
+  local red='\[\033[01;31m\]'
+  local blue='\[\033[01;34m\]'
+  local white='\[\033[01;37m\]'
+  local green='\[\033[01;32m\]'
+  local purple='\[\033[01;35m\]'
+
+  # A desparate attempt to break a complicated expression up...
+  PS1=""`
+     `"${white}["`              # White opening brace
+     `" "`                      #  (literal space)
+     `"${blue}\\u@\\h"`         # Colored username & host
+     `" "`                      #  (literal space)
+     `"${white}]"`              # White closing brace
+     `" "`                      #  (literal space)
+     `"\$(if [[ \$? != 0 ]]; "` # If last command returned non-zero
+       `"then echo \"(${red}!!!${white}) \"; "` # Error indicator (w/ space)
+     `"fi)"`
+     `"${green}\w${none}"`      # Current directory
+     `"\n"`                     # --- LINE BREAK ---
+     `"${white}\\\$${none}"`    # Prompt char (\$)
+     `" "                       #  (literal space)
+}
+
+doTheSpecialPromptyThing
+
+# cleanup
+unset -f doTheSpecialPromptyThing

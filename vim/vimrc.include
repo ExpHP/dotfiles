@@ -1,0 +1,427 @@
+
+" Disable pathogen plugins I don't really use
+let tmp = []
+let tmp += ["command-t"]      " (I really SHOULD start using this...)
+let tmp += ["powerline"]      " (just here to remind me that I use airline; powerline doesn't
+                              "  actually have pathogen support, so this does nothing!)
+let tmp += ["vim-easymotion"] " (has trouble with files over a few hundred megs)
+let g:pathogen_disabled = tmp
+unlet tmp
+
+" Pathogen plugin manager; this allows plugins to be installed to
+" subdirectories under ~/.vim/bundle (the point being to allow you to simply
+" git clone a plugin's repo)
+execute pathogen#infect()
+
+""""""""""""""""""""""""
+" Customization
+
+" Pick between tabs and buffers.
+" 't': Tab-centric settings (when you open several files with -p)
+" 'b': Buffer-centric settings (when you open several files normally)
+let s:mdi_mode = 'b'
+
+" Pick between tabs ('t') and spaces ('s')
+let s:tab_mode = 't'
+
+" Pylint is both really useful, and REALLY GODDAMN SLOW
+let s:use_pylint = 0
+
+" A flag which I check in ~/.vim/after/ftplugin/rust.vim before setting an autocommand for
+"  rusty tags (which can be maddeningly slow at times depending on what dependencies your
+"  crate has)
+let g:auto_rusty_tags = 0
+
+""""""""""""""""""""""""
+" The Canonical build sets this option automatically but I have no clue where.
+" It's kind of tough to live without...
+
+set backspace=indent,eol,start
+
+""""""""""""""""""""""""
+" Did you know vim lets you set vim options via comments in a code file?
+" Now that you do know, do you care? Good. Neither do I.
+set modelines=0
+
+""""""""""""""""""""""""
+" Powerline/airline/whatever crazy status bar I'm using today
+
+" Enable Powerline  (eh, airline is easier to set up)
+"set rtp+=/usr/local/lib/python2.7/dist-packages/powerline/bindings/vim/
+
+" Show buffer list
+if s:mdi_mode == 'b'
+	let g:airline#extensions#tabline#enabled = 1
+endif
+
+" 256 Colors. Powerline is *nothing* without this...
+set t_Co=256
+
+" Gives the status bar for inactive split windows a neat effect with Powerline
+set fillchars+=stl:\ ,stlnc:\
+
+" Lets airline find special characters if you have the powerline modified fonts.
+" IMPORTANT: in order for this to do you any good, you need to install the powerline
+"  fonts from here: https://github.com/powerline/fonts  and you must set one of them
+"  as your terminal font
+" (future me: in case you forgot which one you were using, try Meslo LG S DZ...)
+let g:airline_powerline_fonts = 1
+
+
+"""""""""""""""""""""""""
+" Exuberant ctags
+
+nmap <F6> :TagbarToggle<CR>
+nmap T <Plug>TaskList
+
+let g:tagbar_left = 1 " Put ctags window on left
+let g:tagbar_sort = 0 " Organize ctags by definition in file
+
+"""""""""""""""""""""""""
+" EasyMotion
+
+if index(g:pathogen_disabled, "vim-easymotion") == -1
+	" easymotion's n-character motion search
+	map  / <Plug>(easymotion-sn)
+	omap / <Plug>(easymotion-tn)
+
+	" 'a' in pattern matches 'A'. 'A' in pattern does not match 'a'.
+	let g:EasyMotion_smartcase = 1
+
+	" make EasyMotion use one <Leader> instead of two
+	map <Leader> <Plug>(easymotion-prefix)
+
+" improve the standard search functionality instead
+else
+
+	" Auto-append the 'very magic' flag. Replaces vim's crazy search syntax with something closer
+	"  to Perl-compatible regular expressions
+	nnoremap / /\v
+	vnoremap / /\v
+
+	" Smart case: 'a' matches 'A'. 'A' does not match 'a'.
+	set ignorecase " required for smartcase, bizarrely
+	set smartcase
+
+	" Makes all replace expressions act as though they have /g
+	set gdefault
+
+	" incremental search
+	set incsearch
+
+	set hlsearch  " Highlight results after search is performed (:noh to clear)
+"	set showmatch " Don't do this because it's COMPLETELY UNRELATED to searching;
+	              " It's for brace matching (which the pi_paren plugin does much better)
+
+endif
+
+"""""""""""""""""""""""""
+
+" highlight a word under the cursor, but WITHOUT jumping to it
+" basically this is done by just setting the search register `@/` and turning
+"  on hlsearch
+nnoremap <Leader>/ :let @/='\<<C-R>=expand("<cword>")<CR>\>'<CR>:set hls<CR>
+
+"""""""""""""""""""""""""
+" um.... disable the enter key from moving down in normal mode because I got used to it doing
+"  nothing when it was bound to a nonfunctional installation of NERD commenter
+
+" don't judge me
+nnoremap <C-M> :<CR>
+
+"""""""""""""""""""""""""
+" Enables loading of ftplugin files based on filetype
+" (note: syntax highlighting and file detection still work even without this)
+filetype plugin on
+
+" bleh
+"autocmd FileType python set omnifunc=pythoncomplete#Complete
+
+" enable ^X^O, which is bizarrely disabled by default
+" (a shame it's two keystrokes, because I keep forgetting it exists and end up using ^N)
+set omnifunc=syntaxcomplete#Complete
+
+"""""""""""""""""""""""""
+" rust syntax highlighting (rust/etc/vim/syntax/rust.vim must be in .vim/syntax)
+au BufNewFile,BufRead *.rs set filetype=rust
+
+"""""""""""""""""""""""""
+" (((((((((((((((((())))))))))))))))))
+autocmd VimEnter * RainbowParenthesesActivate
+autocmd Syntax * RainbowParenthesesLoadRound
+
+"""""""""""""""""""""""""
+" Show partially-typed commands in status bar
+set showcmd
+
+" timeout is 'mapping timeout', ttimeout is 'terminal timeout'
+" Make it so that key codes time out, but not key mappings (like <Leader>)
+set ttimeout
+set notimeout
+" Make <Esc> time out very quickly (it's annoying to see it hang around with showcmd on)
+set ttimeoutlen=10  "milliseconds
+
+" Always make status bar visible
+set laststatus=2
+
+"""""""""""""""""""""""""
+" Jump between tabs or buffers
+
+if s:mdi_mode == 't'     " TABS
+	noremap <Leader>] :tabn<CR>
+	noremap <Leader>[ :tabp<CR>
+
+elseif s:mdi_mode == 'b' " BUFFERS
+	noremap <Leader>] :bn!<CR>
+	noremap <Leader>[ :bp!<CR>
+endif
+
+"""""""""""""""""""""""""
+" Shift-less shortcuts to close everything
+
+noremap <Leader>qw :wqa<CR>
+noremap <Leader>q<Tab> :qa<CR>
+noremap <Leader>q<Backspace> :qa!<CR>
+
+"""""""""""""""""""""""""
+" C/C++ indent options
+"  +0  : (forgot) (appears related to line continuation?)
+"  N-s : Do not indent inside namespace { }.
+"  i-s : Allows C++ initializer lists broken over lines (start first line with
+"        colon, then start rest with commas)
+set cino=+0,N-s,i-s
+
+"""""""""""""""""""""""""
+
+if s:tab_mode == 't'
+	" fuck the police
+	set tabstop=4
+	set shiftwidth=4
+	set noexpandtab
+
+	" omg stahp
+	filetype plugin indent off
+
+elseif s:tab_mode == 's'
+	" alright alright alright I'll TRY it
+	" my apologies to the police
+
+	" TODO other spacing settings
+	set tabstop=4
+	set softtabstop=4
+	set smarttab
+
+endif
+
+"""""""""""""""""""""""""
+" Make Y consistent with C, D.
+nnoremap Y yg_
+
+"""""""""""""""""""""""""
+" Arrow keys moving along display lines
+" (i.e. wrapped lines behave as they would in most other editors)
+nnoremap <down> gj
+nnoremap <up>   gk
+inoremap <down> <C-O>gj
+inoremap <up>   <C-O>gk
+nnoremap j gj
+nnoremap k gk
+
+"""""""""""""""""""""""""
+" makes :set list (visible whitespace) better
+set listchars=tab:>\ ,trail:-,extends:>,precedes:<,nbsp:+
+
+" Aw hell, :set list looks so nice now I'll just keep it on
+set list
+
+" Draw a vertical bar for managing line length
+set colorcolumn=100
+
+"""""""""""""""""""""""""
+" !!! BEGIN TWEAK SCRIPT: Vim Keybinds !!!
+" !!! rev 1
+
+" Window jumping
+map <C-J> <C-W>j<C-W>_
+map <C-K> <C-W>k<C-W>_
+map <C-H> <C-W>h<C-W>_
+map <C-L> <C-W>l<C-W>_
+
+" Window resizing
+map <C--> <C-W>-
+map <C-=> <C-W>+
+
+" Number of lines to keep visible around cursor
+set scrolloff=10
+
+" !!! END TWEAK SCRIPT: Vim Keybinds !!!
+
+"""""""""""""""""""""""""
+" Remove line limit for yanking between files by redefining viminfo without the '<' option
+set viminfo='100,s10,h
+
+"""""""""""""""""""""""""
+" Disable auto-comments for all filetypes, so I can actually copy and paste code from the internet
+"  once in a goddamn while like geeze
+autocmd FileType * setlocal formatoptions=
+
+" OMG STOP IT GAIZE
+" Who is setting formatoptions+=q now? WHO IS IT?!
+" ffs I've grepped the entire .vim directory and can't find anything...
+" Screw it. AUTOCOMMAND ALL OF THE EVENTS!
+autocmd BufRead,BufNewFile,BufWinEnter * setlocal formatoptions=
+
+" NOTE: if absolute worst comes to absolute worst, there is the... ahem, 'final solution' to
+"   automatic formatting...
+"autocmd BufRead,BufNewFile,BufWinEnter * setlocal paste
+
+"""""""""""""""""""""""""
+" diff a .swp file from recovery
+" To use it properly, select [R]ecover on the recovery screen and then type :DiffOrig
+" (think you can remember that?)
+command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis | wincmd p | diffthis
+
+"""""""""""""""""""""""""
+" syntastic settings (automatic script analysis)
+" https://github.com/scrooloose/syntastic
+
+" From the syntastic docs...?  I believe this causes the status line to display the error
+"  message when the cursor is on a line with an error.
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+"" syntastic has separate commands for open and close.  gross!
+"function! ToggleErrors()
+"    let old_last_winnr = winnr('$')
+"    lclose
+"    if old_last_winnr == winnr('$')
+"        " Nothing was closed, open syntastic error location panel
+"        Errors
+"    endif
+"endfunction
+
+"noremap <silent> <Leader>' :<C-u>call ToggleErrors()<CR>
+
+" Set filetypes for syntastic
+let s:passive = []
+let s:passive += ["python"] " Use pymode instead
+let s:passive += ["asm"]    " I use Intel syntax; no idea what this is using
+let s:active = []
+let g:syntastic_mode_map = {
+        \ "mode": "active",
+        \ "active_filetypes": s:active,
+        \ "passive_filetypes": s:passive}
+unlet s:active
+unlet s:passive
+
+let g:syntastic_loc_list_height = 5
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1 " 0-no auto-toggle  1-auto-toggle   2-auto-close only
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
+" both syntastic and vim-go pop up a list for errors in go;
+" disable the one from vim-go
+let g:go_fmt_fail_silently=1
+
+"""""""""""""""""""""""""
+
+" The python-mode plugin sets a whole bunch of various folds which I could care less about
+set nofoldenable
+
+" Pymode comes with its own syntax definitions.
+" Strictly a matter of preference, but I prefer the built-in one. (it does better doctests)
+" TODO: highlighting for format strings in the default .vim would be awwwwfully nice, though
+let g:pymode_syntax = 0
+
+"let g:pymode_python = 'python'
+let g:pymode_python = 'python3'
+
+" Disable a number of things that pymode tries to enable:
+"  - line numbers
+"  - text width
+let g:pymode_options = 0
+
+" These seem innocent enough. I think both are just setting fold labels?
+"setlocal commentstring=#%s
+"setlocal define=^\s*\\(def\\\\|class\\)
+
+" This shit's dangerous.
+"   1. Edit a python file while in your home directory and save.
+"   2. ~/.ropeproject is silently created.
+"   3. Try editing your file some more.
+"   4. Watch as your entire computer locks up and begins disk thrashing while
+"      rope RECURSIVELY SEARCHES YOUR ENTIRE HOME DIRECTORY for modules because
+"      that's totally how the `import` mechanism in python works don'tcha know.
+let g:pymode_rope = 0
+
+"let g:pymode_lint_checkers = ['pyflakes', 'pep8', 'mccabe' ] " default
+
+" pep8 nags.
+if s:use_pylint
+	" pylint already does mccabe complexity.
+	let g:pymode_lint_checkers = ['pyflakes', 'pylint']
+else
+	let g:pymode_lint_checkers = ['pyflakes', 'mccabe']
+endif
+
+" IGNORES
+" Itemized line by line to remind myself of all of my sins
+let tmp=''
+let tmp.='C0111,' " Missing (module|function) docstring
+let tmp.='C0330,' " Bad line continuation. (e.g. wrong hanging indentation)
+let tmp.='C0326,' " Spacing around operators (seems mostly picky about assigment)
+let tmp.='W0312,' " Found indentation with tabs instead of spaces
+let tmp.='C0301,' " Line too long
+let tmp.='C0321,' " More than a single statement on one line.
+let g:pymode_lint_ignore = tmp
+unlet tmp
+
+" EXTRA LINTS WHITELIST
+" Itemized line by line so I can feel better about myself
+let tmp=''
+let tmp.='W0613,' " Unused argument
+let tmp.='E1111,' " Assigning result of function that doesn't return.
+let tmp.='W1111,' " Assigning result of function that only returns None.
+let g:pymode_lint_select = tmp
+unlet tmp
+
+"""""""""""""""""""""""""
+
+" Let's see:
+"   * In 'vimdiff', `do` gets and `dp` puts.
+"   * These are context sensitive; you must be aware of which window the cursor is in.
+"   * On american keyboards, `o` is right next to `p`.
+"   * At no point do you see the end result of `do` or `dp` because the text is folded immediately.
+" Sounds like a recipe for trouble.  Let's fix one of those issues.
+
+" FilterWritePost is the only event I managed to find that would affect both windows...
+autocmd FilterWritePost * set foldmethod=manual
+
+"""""""""""""""""""""""""
+" Rust ctags
+
+" At this time I use two different taglist-gen methods for ctags for rust.
+
+" Method 1: https://github.com/dan-t/rusty-tags
+"  * These tags are ONLY used for goto definition (Ctrl-], Ctrl-t)
+"  * Setup involves generating tags for the rust source, and making ~/.vim/after/ftplugin/rust.vim
+
+" Method 2: https://github.com/majutsushi/tagbar/wiki (under Rust)
+"  * These tags are ONLY used for the tagbar (F6)
+"  * Setup involves adding syntax defs to ~/.ctags, and this:
+
+let g:tagbar_type_rust = {
+    \ 'ctagstype' : 'rust',
+    \ 'kinds' : [
+        \'T:types,type definitions',
+        \'f:functions,function definitions',
+        \'g:enum,enumeration names',
+        \'s:structure names',
+        \'m:modules,module names',
+        \'c:consts,static constants',
+        \'t:traits,traits',
+        \'i:impls,trait implementations',
+    \]
+    \}
