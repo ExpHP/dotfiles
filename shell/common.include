@@ -2,11 +2,13 @@
 # This file is intended to be sourced by both .bashrc and .zshrc.
 # It contains environment variables, aliases, and other shell-agnostic things.
 
-# !!! BEGIN TWEAK SCRIPT: Custom Includes !!!
-# !!! rev 2
-export LIBRARY_PATH=$LIBRARY_PATH:~/scripts/cpp-lib
-export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:~/scripts/cpp-include
-# !!! END TWEAK SCRIPT: Custom Includes !!!
+# commented out because LERN 2 DIST BRO
+# also it causes me shit when trying to build a cross-compiler
+## !!! BEGIN TWEAK SCRIPT: Custom Includes !!!
+## !!! rev 2
+#export LIBRARY_PATH=$LIBRARY_PATH:~/scripts/cpp-lib
+#export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:~/scripts/cpp-include
+## !!! END TWEAK SCRIPT: Custom Includes !!!
 
 
 # for my lame-ass script that I gave up on
@@ -50,3 +52,18 @@ PATH=~/syncbin:$PATH
 alias cp=sane-cp
 alias mv=sane-mv
 
+# So it turns out that simply invoking `unity` -- without arguments! -- will
+#  kill your entire session immediately and without question.
+#
+# The man page for unity seems to suggest that the default behavior used
+#  to be far more reasonable:
+#
+#        --replace
+#              Deprecated option for backwards compatibility.  Has no effect.
+#
+alias unity='echo "no.  (use /usr/bin/unity if you really want do to this)"; false'
+
+# cross compiler install location
+# NOTE: don't get your hopes up, I've still yet to successfully make one that can
+#  actually produce an executable.
+export PATH=/opt/cross/bin:$PATH
