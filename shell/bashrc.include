@@ -33,3 +33,18 @@ doTheSpecialPromptyThing
 
 # cleanup
 unset -f doTheSpecialPromptyThing
+
+shopt -s globstar
+shopt -s extglob
+#shopt -s failglob  # Wrecks with some tab-completions...
+
+#------------------------------------------------------
+# replicate zsh's inc_append_history. Or at least, try to.
+
+export HISTCONTROL=ignoredups:erasedups
+export HISTSIZE=100000
+export HISTFILESIZE=100000
+shopt -s histappend
+
+# Add to the history after each command finishes
+export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
