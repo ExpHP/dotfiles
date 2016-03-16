@@ -33,6 +33,12 @@ let s:use_pylint = 0
 let g:auto_rusty_tags = 0
 
 """"""""""""""""""""""""
+" Because I keep breaking my backslash key otherwise, set leader to the spacebar.
+" Also, TIL there is a second leader key, intended for filetype-specific stuff.
+let mapleader=" "
+let maplocalleader=" "
+
+""""""""""""""""""""""""
 " The Canonical build sets this option automatically but I have no clue where.
 " It's kind of tough to live without...
 
@@ -165,23 +171,28 @@ set ttimeoutlen=10  "milliseconds
 set laststatus=2
 
 """""""""""""""""""""""""
-" Jump between tabs or buffers
+" Shift-less shortcuts
+" These are designed with QWERTY layout in mind.
 
+" Jump between tabs or buffers
 if s:mdi_mode == 't'     " TABS
-	noremap <Leader>] :tabn<CR>
-	noremap <Leader>[ :tabp<CR>
+	noremap <Leader>' :tabn<CR>
+	noremap <Leader>; :tabp<CR>
 
 elseif s:mdi_mode == 'b' " BUFFERS
-	noremap <Leader>] :bn!<CR>
-	noremap <Leader>[ :bp!<CR>
+	noremap <Leader>' :bn!<CR>
+	noremap <Leader>; :bp!<CR>
 endif
 
-"""""""""""""""""""""""""
-" Shift-less shortcuts to close everything
-
+" Operations on all buffers
 noremap <Leader>qw :wqa<CR>
 noremap <Leader>q<Tab> :qa<CR>
 noremap <Leader>q<Backspace> :qa!<CR>
+
+" Operations on a single buffer/window
+noremap <Leader>qq :bd<CR>
+noremap <Leader>q` :bd!<CR>
+noremap <Leader>w  :w<CR>
 
 """""""""""""""""""""""""
 " C/C++ indent options
@@ -216,6 +227,10 @@ endif
 """""""""""""""""""""""""
 " Make Y consistent with C, D.
 nnoremap Y yg_
+
+"""""""""""""""""""""""""
+" Q by default activates Ex-mode, also known as "the bane of my existence"
+nnoremap Q :<cr>
 
 """""""""""""""""""""""""
 " Arrow keys moving along display lines
@@ -274,6 +289,11 @@ autocmd BufRead,BufNewFile,BufWinEnter * setlocal formatoptions=
 " NOTE: if absolute worst comes to absolute worst, there is the... ahem, 'final solution' to
 "   automatic formatting...
 "autocmd BufRead,BufNewFile,BufWinEnter * setlocal paste
+
+" UPDATE: Better yet
+" FIXME now that I am aware that this option exists, perhaps it would be nice if I at some point
+"  reenabled some auto-formatting options.  Maybe I can even try getting used to spaces. (HAH!)
+set pastetoggle=<F4>
 
 """""""""""""""""""""""""
 " diff a .swp file from recovery
@@ -425,3 +445,44 @@ let g:tagbar_type_rust = {
         \'i:impls,trait implementations',
     \]
     \}
+
+"""""""""""""""""""""""""
+" Some footgun-elimination (taken from valloric's dotfiles)
+
+" CTRL-U and CTRL-W in insert mode cannot be undone.  Use CTRL-G u to first
+" break undo, so that we can undo those changes after inserting a line break.
+" For more info, see: http://vim.wikia.com/wiki/Recover_from_accidental_Ctrl-U
+inoremap <c-u> <c-g>u<c-u>
+inoremap <c-w> <c-g>u<c-w>
+
+" Using '<' and '>' in visual mode to shift code by a tab-width left/right by
+" default exits visual mode. With this mapping we remain in visual mode after
+" such an operation.
+vnoremap < <gv
+vnoremap > >gv
+
+"""""""""""""""""""""""""
+" Some nice ideas from valloric's dotfiles.
+" I wonder if I'll ever remember I added them?
+
+" This command will allow us to save a file we don't have permission to save
+" *after* we have already opened it. Super useful.
+cnoremap w!! w !sudo tee % >/dev/null
+
+" Switch to the directory of the open buffer
+noremap <leader>cd :cd %:p:h<cr>
+
+"""""""""""""""""""""""""
+" Die, shift key, die!!
+
+" WARNING: for this to work nicely you must use "noremap" religiously
+"   throughout vimrc. Never write "map <key> :command"!
+nnoremap ; :
+vnoremap ; :
+
+" Make the functionality of ";" available through different means.
+" (what does that key even do, anyways?)
+" To let ":!" remain comfortable, I keep ";" and ":" as synonyms and
+" bind semicolon to something else.
+nnoremap ;; ;
+vnoremap ;; ;
