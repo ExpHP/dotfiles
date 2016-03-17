@@ -45,9 +45,18 @@ let maplocalleader=" "
 set backspace=indent,eol,start
 
 """"""""""""""""""""""""
-" Did you know vim lets you set vim options via comments in a code file?
-" Now that you do know, do you care? Good. Neither do I.
-set modelines=0
+" Restrict modelines.
+" (mostly just don't want my indentation settings changed)
+
+if index(g:pathogen_disabled, "securemodelines") == -1
+	set modelines=5
+	let g:secure_modelines_allowed_items = [
+		\ "syntax", "filetype", "ft",
+		\ ]
+else
+	set modelines=0
+endif
+
 
 """"""""""""""""""""""""
 " Powerline/airline/whatever crazy status bar I'm using today
@@ -486,3 +495,8 @@ vnoremap ; :
 " bind semicolon to something else.
 nnoremap ;; ;
 vnoremap ;; ;
+
+
+"""""""""""""""""""""""""
+" nyuck nyuck nyuck
+" vim: ft=vim noet sts=0 nosi nosta

@@ -1,3 +1,4 @@
+# vim: ft=sh
 
 # This file is intended to be sourced by both .bashrc and .zshrc.
 # It contains environment variables, aliases, and other shell-agnostic things.
