@@ -1,17 +1,57 @@
 
+" When non-empty, the listed plugins -- and ONLY those plugins -- are
+" loaded.  Use '.' to represent the vimrc; without it, the majority
+" of this file will not be read.
+let s:debug_plugins = []
+
 " Disable pathogen plugins I don't really use
 let tmp = []
 let tmp += ["command-t"]      " (I really SHOULD start using this...)
 let tmp += ["powerline"]      " (just here to remind me that I use airline; powerline doesn't
                               "  actually have pathogen support, so this does nothing!)
 let tmp += ["vim-easymotion"] " (has trouble with files over a few hundred megs)
+let tmp += ["slimv"]          " (indirectly makes life miserable outside of lisp by
+                              "  setting 'filetype indent on' unconditionally inside
+                              "  'slimv/plugin/paredit.vim'. Perhaps I should raise an
+                              "  issue, or hack it?)
 let g:pathogen_disabled = tmp
 unlet tmp
+
+""""""""""""""""""""""""
+" debug mode machinery
+
+function s:debug_plugins__overide_pathogen()
+	if len(s:debug_plugins) == 0
+		return
+	endif
+
+	" get all pathogen plugins
+	let cmd = 'find ~/.vim/bundle/ -maxdepth 1 -mindepth 1 -type d | xargs -n1 basename'
+	let g:pathogen_disabled = split(system(cmd), '\n')
+
+	" now remove the whitelisted ones
+	for p in s:debug_plugins
+		let i = index(g:pathogen_disabled, p)
+		if i != -1
+			call remove(g:pathogen_disabled, i)
+		endif
+	endfor
+endfunction
+
+function s:debug_plugins__skip_vimrc()
+	if len(s:debug_plugins) > 0 && index(s:debug_plugins, '.') == -1
+		finish
+	endif
+endfunction
+
+""""""""""""""""""""""""
 
 " Pathogen plugin manager; this allows plugins to be installed to
 " subdirectories under ~/.vim/bundle (the point being to allow you to simply
 " git clone a plugin's repo)
+call s:debug_plugins__overide_pathogen()
 execute pathogen#infect()
+call s:debug_plugins__skip_vimrc()
 
 """"""""""""""""""""""""
 " Customization
@@ -150,6 +190,8 @@ nnoremap <C-M> :<CR>
 """""""""""""""""""""""""
 " Enables loading of ftplugin files based on filetype
 " (note: syntax highlighting and file detection still work even without this)
+
+" FIXME this is overridden later in the script
 filetype plugin on
 
 " bleh
@@ -165,8 +207,10 @@ au BufNewFile,BufRead *.rs set filetype=rust
 
 """""""""""""""""""""""""
 " (((((((((((((((((())))))))))))))))))
-autocmd VimEnter * RainbowParenthesesActivate
-autocmd Syntax * RainbowParenthesesLoadRound
+if index(g:pathogen_disabled, 'rainbow_parentheses.vim') == -1
+	autocmd VimEnter * RainbowParenthesesActivate
+	autocmd Syntax * RainbowParenthesesLoadRound
+endif
 
 """""""""""""""""""""""""
 " Show partially-typed commands in status bar
@@ -223,7 +267,12 @@ if s:tab_mode == 't'
 	set noexpandtab
 
 	" omg stahp
-	filetype plugin indent off
+	" FIXME disabling ftplugins is not really a solution.
+	" If an ftplugin is doing something so despicable as to unconditionally
+	"  change tab/autoindent settings, I should raise an issue or hack it!
+	" ...later.
+	filetype plugin off " XXX
+	filetype indent off
 
 elseif s:tab_mode == 's'
 	" alright alright alright I'll TRY it
@@ -317,23 +366,25 @@ command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis | wincmd
 " syntastic settings (automatic script analysis)
 " https://github.com/scrooloose/syntastic
 
-" From the syntastic docs...?  I believe this causes the status line to display the error
-"  message when the cursor is on a line with an error.
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
+if index(g:pathogen_disabled, 'syntastic') == -1
+	" From the syntastic docs...?  I believe this causes the status line to display the error
+	"  message when the cursor is on a line with an error.
+	set statusline+=%#warningmsg#
+	set statusline+=%{SyntasticStatuslineFlag()}
+	set statusline+=%*
 
-"" syntastic has separate commands for open and close.  gross!
-"function! ToggleErrors()
-"    let old_last_winnr = winnr('$')
-"    lclose
-"    if old_last_winnr == winnr('$')
-"        " Nothing was closed, open syntastic error location panel
-"        Errors
-"    endif
-"endfunction
+	"" syntastic has separate commands for open and close.  gross!
+	"function! ToggleErrors()
+	"    let old_last_winnr = winnr('$')
+	"    lclose
+	"    if old_last_winnr == winnr('$')
+	"        " Nothing was closed, open syntastic error location panel
+	"        Errors
+	"    endif
+	"endfunction
 
-"noremap <silent> <Leader>' :<C-u>call ToggleErrors()<CR>
+	"noremap <silent> <Leader>' :<C-u>call ToggleErrors()<CR>
+endif
 
 " Set filetypes for syntastic
 let s:passive = []
