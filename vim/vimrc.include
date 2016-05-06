@@ -33,10 +33,10 @@ let s:use_pylint = 0
 let g:auto_rusty_tags = 0
 
 """"""""""""""""""""""""
-" Because I keep breaking my backslash key otherwise, set leader to the spacebar.
+" Because I keep breaking my backslash key otherwise, set leader to Enter.
 " Also, TIL there is a second leader key, intended for filetype-specific stuff.
-let mapleader=" "
-let maplocalleader=" "
+let mapleader="\r"
+let maplocalleader="\r"
 
 """"""""""""""""""""""""
 " The Canonical build sets this option automatically but I have no clue where.
@@ -142,6 +142,9 @@ nnoremap <Leader>/ :let @/='\<<C-R>=expand("<cword>")<CR>\>'<CR>:set hls<CR>
 "  nothing when it was bound to a nonfunctional installation of NERD commenter
 
 " don't judge me
+" NOTE: Interestingly this does not prevent Enter from working as
+"  a leader, so I'll leave this around in case I change my mind on
+"  the whole Enter-as-leader thing.
 nnoremap <C-M> :<CR>
 
 """""""""""""""""""""""""
