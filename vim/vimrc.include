@@ -418,6 +418,9 @@ set nofoldenable
 " TODO: highlighting for format strings in the default .vim would be awwwwfully nice, though
 let g:pymode_syntax = 0
 
+" an /indent/ plugin you can actually disable for once; thank goodness.
+let g:pymode_indent = 0
+
 "let g:pymode_python = 'python'
 let g:pymode_python = 'python3'
 
@@ -550,6 +553,7 @@ vnoremap ; :
 nnoremap ;; ;
 vnoremap ;; ;
 
+let g:slimv_leader = "'"
 
 """""""""""""""""""""""""
 " nyuck nyuck nyuck

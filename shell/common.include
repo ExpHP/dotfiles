@@ -33,6 +33,21 @@ export PATH=$PATH:/home/lampam/app/p4vasp/bin
 
 export GOPATH=$HOME/cpp/go
 
+# binaries distributed inside haskell packages
+export PATH=$PATH:$HOME/.cabal/bin
+alias hoogle="hoogle --color --count=10"
+
+# Updated Haskell components from the hvr/ghc PPA.
+# Unfortunately it just dumps all of its junk into /opt without setting
+#  up any links, apparently so that multiple versions can be installed
+#  side-by-side without conflict.
+export PATH=$PATH:/opt/ghc/7.10.3/bin
+export PATH=$PATH:/opt/cabal/1.24/bin
+export PATH=$PATH:/opt/alex/3.1.7/bin
+export PATH=$PATH:/opt/happy/1.19.5/bin
+
+alias cabal="cabal --require-sandbox"
+
 #...um, at least until I can figure out distutil. >_>
 #export PYTHONPATH=$HOME/asd/class/research/circuit:$PYTHONPATH
 
@@ -62,7 +77,15 @@ alias mv=sane-mv
 #        --replace
 #              Deprecated option for backwards compatibility.  Has no effect.
 #
-alias unity='echo "no.  (use /usr/bin/unity if you really want do to this)"; false'
+alias unity='echo >&2 "Disabled. (use /usr/bin/unity if you truly are a madman)"; false'
+
+# I've gotten spoiled by reasonable people reasonably packing a single
+# reasonable directory into a .tar file, and, as a result, I have on more
+# than one occassion accidentally permitted a .zip file to dump 500 files
+# all over my lawn.
+if which unzip2dir >/dev/null; then
+	alias unzip='echo >&2 "Disabled. (Use unzip2dir or /usr/bin/unzip)"; false'
+fi
 
 # cross compiler install location
 # NOTE: don't get your hopes up, I've still yet to successfully make one that can
@@ -82,3 +105,4 @@ MAX_OK=$(echo "($MAX_RAM_FRACTION * $TOTAL_RAM) / 1" | bc)
 if [[ $MAX_OK -ge 10000 ]]; then
 	ulimit -v $MAX_OK
 fi
+
