@@ -10,6 +10,10 @@ repo = 'bling/vim-airline'
 
 [[plugins]]
 repo = 'kien/rainbow_parentheses.vim'
+hook_add = '''
+	autocmd VimEnter * RainbowParenthesesActivate
+	autocmd Syntax * RainbowParenthesesLoadRound
+'''
 
 [[plugins]]
 repo = 'ciaranm/securemodelines'
@@ -25,6 +29,13 @@ repo = 'mhartington/oceanic-next'
 
 [[plugins]]
 repo = 'scrooloose/syntastic'
+hook_add = '''
+	" From the syntastic docs...?  I believe this causes the status line to display the error
+	"  message when the cursor is on a line with an error.
+	set statusline+=%#warningmsg#
+	set statusline+=%{SyntasticStatuslineFlag()}
+	set statusline+=%*
+'''
 
 [[plugins]]
 repo = 'klen/python-mode'

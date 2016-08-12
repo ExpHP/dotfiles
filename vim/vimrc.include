@@ -83,12 +83,8 @@ else
 	set modelines=0
 endif
 
-
 """"""""""""""""""""""""
-" Powerline/airline/whatever crazy status bar I'm using today
-
-" Enable Powerline  (eh, airline is easier to set up)
-"set rtp+=/usr/local/lib/python2.7/dist-packages/powerline/bindings/vim/
+" Airline
 
 " Show buffer list
 if s:mdi_mode == 'b'
@@ -114,7 +110,6 @@ set fillchars+=stl:\ ,stlnc:\
 " (future me: in case you forgot which one you were using, try Meslo LG S DZ...)
 " (wait, what?!  no, try Deja Vu Sans Mono...)
 let g:airline_powerline_fonts = 1
-
 
 """""""""""""""""""""""""
 " Exuberant ctags
@@ -193,17 +188,6 @@ filetype plugin on
 " enable ^X^O, which is bizarrely disabled by default
 " (a shame it's two keystrokes, because I keep forgetting it exists and end up using ^N)
 set omnifunc=syntaxcomplete#Complete
-
-"""""""""""""""""""""""""
-" rust syntax highlighting (rust/etc/vim/syntax/rust.vim must be in .vim/syntax)
-au BufNewFile,BufRead *.rs set filetype=rust
-
-"""""""""""""""""""""""""
-" (((((((((((((((((())))))))))))))))))
-if s:enabled('rainbow_parentheses.vim')
-	autocmd VimEnter * RainbowParenthesesActivate
-	autocmd Syntax * RainbowParenthesesLoadRound
-endif
 
 """""""""""""""""""""""""
 " Show partially-typed commands in status bar
@@ -359,26 +343,6 @@ command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis | wincmd
 " syntastic settings (automatic script analysis)
 " https://github.com/scrooloose/syntastic
 
-if s:enabled('syntastic')
-	" From the syntastic docs...?  I believe this causes the status line to display the error
-	"  message when the cursor is on a line with an error.
-	set statusline+=%#warningmsg#
-	set statusline+=%{SyntasticStatuslineFlag()}
-	set statusline+=%*
-
-	"" syntastic has separate commands for open and close.  gross!
-	"function! ToggleErrors()
-	"    let old_last_winnr = winnr('$')
-	"    lclose
-	"    if old_last_winnr == winnr('$')
-	"        " Nothing was closed, open syntastic error location panel
-	"        Errors
-	"    endif
-	"endfunction
-
-	"noremap <silent> <Leader>' :<C-u>call ToggleErrors()<CR>
-endif
-
 " Set filetypes for syntastic
 let s:passive = []
 let s:passive += ["python"] " Use pymode instead
@@ -399,7 +363,9 @@ let g:syntastic_check_on_wq = 0
 
 " both syntastic and vim-go pop up a list for errors in go;
 " disable the one from vim-go
-let g:go_fmt_fail_silently=1
+if s:enabled('syntastic') && s:enabled('vim-go')
+	let g:go_fmt_fail_silently=1
+endif
 
 """""""""""""""""""""""""
 
