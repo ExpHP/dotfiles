@@ -1,10 +1,5 @@
 
-" When non-empty, the listed plugins -- and ONLY those plugins -- are
-" loaded.  Use '.' to represent the vimrc; without it, the majority
-" of this file will not be read.
-let s:debug_plugins = []
-
-" Disable pathogen plugins I don't really use
+" Disable plugins I don't really use
 let tmp = []
 let tmp += ["command-t"]      " (I really SHOULD start using this...)
 let tmp += ["powerline"]      " (just here to remind me that I use airline; powerline doesn't
@@ -14,44 +9,35 @@ let tmp += ["slimv"]          " (indirectly makes life miserable outside of lisp
                               "  setting 'filetype indent on' unconditionally inside
                               "  'slimv/plugin/paredit.vim'. Perhaps I should raise an
                               "  issue, or hack it?)
-let g:pathogen_disabled = tmp
+let s:disabled_plugins = tmp
 unlet tmp
 
-""""""""""""""""""""""""
-" debug mode machinery
+" In a function so that it can be disabled by commenting one line
+function s:setup_dein()
+	" (for future reference, the path I gave to dein's install.sh
+	"  was simply "bundle")
+	set runtimepath^=~/.vim/bundle/repos/github.com/Shougo/dein.vim
 
-function s:debug_plugins__overide_pathogen()
-	if len(s:debug_plugins) == 0
-		return
-	endif
+	call dein#begin(expand('bundle'))
 
-	" get all pathogen plugins
-	let cmd = 'find ~/.vim/bundle/ -maxdepth 1 -mindepth 1 -type d | xargs -n1 basename'
-	let g:pathogen_disabled = split(system(cmd), '\n')
+	call dein#add('Shougo/dein.vim') " Let dein manage itself as a plugin o.O
+	call dein#load_toml('~/dotfiles/vim/dein.toml') " ...along with these.
+	call dein#disable(s:disabled_plugins)
 
-	" now remove the whitelisted ones
-	for p in s:debug_plugins
-		let i = index(g:pathogen_disabled, p)
-		if i != -1
-			call remove(g:pathogen_disabled, i)
-		endif
-	endfor
-endfunction
+	call dein#end()
 
-function s:debug_plugins__skip_vimrc()
-	if len(s:debug_plugins) > 0 && index(s:debug_plugins, '.') == -1
-		finish
+	" Automatically install missing plugins
+	if dein#check_install()
+		call dein#install()
 	endif
 endfunction
+call s:setup_dein()
 
-""""""""""""""""""""""""
-
-" Pathogen plugin manager; this allows plugins to be installed to
-" subdirectories under ~/.vim/bundle (the point being to allow you to simply
-" git clone a plugin's repo)
-call s:debug_plugins__overide_pathogen()
-execute pathogen#infect()
-call s:debug_plugins__skip_vimrc()
+" because I can't spell dein for my life--
+" er, I mean, for abstraction. Yes. That.
+function s:enabled(name)
+	return dein#tap(a:name)
+endfunction
 
 """"""""""""""""""""""""
 " Customization
@@ -88,7 +74,7 @@ set backspace=indent,eol,start
 " Restrict modelines.
 " (mostly just don't want my indentation settings changed)
 
-if index(g:pathogen_disabled, "securemodelines") == -1
+if s:enabled("securemodelines")
 	set modelines=5
 	let g:secure_modelines_allowed_items = [
 		\ "syntax", "filetype", "ft",
@@ -110,7 +96,13 @@ if s:mdi_mode == 'b'
 endif
 
 " 256 Colors. Powerline is *nothing* without this...
-set t_Co=256
+if (has('nvim'))
+	set termguicolors
+	colorscheme OceanicNext
+	set background=dark
+else
+	set t_Co=256
+endif
 
 " Gives the status bar for inactive split windows a neat effect with Powerline
 set fillchars+=stl:\ ,stlnc:\
@@ -120,6 +112,7 @@ set fillchars+=stl:\ ,stlnc:\
 "  fonts from here: https://github.com/powerline/fonts  and you must set one of them
 "  as your terminal font
 " (future me: in case you forgot which one you were using, try Meslo LG S DZ...)
+" (wait, what?!  no, try Deja Vu Sans Mono...)
 let g:airline_powerline_fonts = 1
 
 
@@ -135,7 +128,7 @@ let g:tagbar_sort = 0 " Organize ctags by definition in file
 """""""""""""""""""""""""
 " EasyMotion
 
-if index(g:pathogen_disabled, "vim-easymotion") == -1
+if s:enabled("vim-easymotion")
 	" easymotion's n-character motion search
 	map  / <Plug>(easymotion-sn)
 	omap / <Plug>(easymotion-tn)
@@ -207,7 +200,7 @@ au BufNewFile,BufRead *.rs set filetype=rust
 
 """""""""""""""""""""""""
 " (((((((((((((((((())))))))))))))))))
-if index(g:pathogen_disabled, 'rainbow_parentheses.vim') == -1
+if s:enabled('rainbow_parentheses.vim')
 	autocmd VimEnter * RainbowParenthesesActivate
 	autocmd Syntax * RainbowParenthesesLoadRound
 endif
@@ -366,7 +359,7 @@ command DiffOrig vert new | set bt=nofile | r ++edit # | 0d_ | diffthis | wincmd
 " syntastic settings (automatic script analysis)
 " https://github.com/scrooloose/syntastic
 
-if index(g:pathogen_disabled, 'syntastic') == -1
+if s:enabled('syntastic')
 	" From the syntastic docs...?  I believe this causes the status line to display the error
 	"  message when the cursor is on a line with an error.
 	set statusline+=%#warningmsg#
@@ -554,6 +547,10 @@ nnoremap ;; ;
 vnoremap ;; ;
 
 let g:slimv_leader = "'"
+
+"""""""""""""""""""""""""
+" No thank you, neovim
+set mouse=
 
 """""""""""""""""""""""""
 " nyuck nyuck nyuck

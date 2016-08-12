@@ -1,0 +1,62 @@
+# Thankfully, thanks to shougo's own dein.toml files,
+# there is no shortage of examples:
+#
+#   https://github.com/Shougo/shougo-s-github/blob/master/vim/rc/dein.toml
+#   https://github.com/Shougo/shougo-s-github/blob/master/vim/rc/deinlazy.toml
+#
+
+[[plugins]]
+repo = 'bling/vim-airline'
+
+[[plugins]]
+repo = 'kien/rainbow_parentheses.vim'
+
+[[plugins]]
+repo = 'ciaranm/securemodelines'
+
+[[plugins]]
+repo = 'airblade/vim-gitgutter'
+
+[[plugins]]
+repo = 'mhartington/oceanic-next'
+
+#-----------------
+# language stuff
+
+[[plugins]]
+repo = 'scrooloose/syntastic'
+
+[[plugins]]
+repo = 'klen/python-mode'
+lazy = 1
+on_ft = 'python'
+
+[[plugins]]
+repo = 'nvie/vim-flake8'
+lazy = 1
+on_ft = 'python'
+
+[[plugins]]
+repo = 'vim-scripts/vim-json-bundle'
+lazy = 1
+on_ft = 'json'
+
+[[plugins]]
+repo = 'derekwyatt/vim-scala'
+lazy = 1
+on_ft = 'scala'
+
+[[plugins]]
+repo = 'fatih/vim-go'
+lazy = 1
+on_ft = 'go'
+
+[[plugins]]
+repo = 'cespare/vim-toml'
+lazy = 1
+on_ft = 'toml'
+
+[[plugins]]
+repo = 'neovimhaskell/haskell-vim'
+lazy = 1
+on_ft = 'haskell'
