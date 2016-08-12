@@ -22,7 +22,8 @@ repo = 'ciaranm/securemodelines'
 repo = 'airblade/vim-gitgutter'
 
 [[plugins]]
-repo = 'mhartington/oceanic-next'
+repo = 'ExpHP/oceanic-next'
+rev = 'darker'
 
 #-----------------
 # language stuff
@@ -36,16 +37,6 @@ hook_add = '''
 	set statusline+=%{SyntasticStatuslineFlag()}
 	set statusline+=%*
 '''
-
-[[plugins]]
-repo = 'klen/python-mode'
-lazy = 1
-on_ft = 'python'
-
-[[plugins]]
-repo = 'nvie/vim-flake8'
-lazy = 1
-on_ft = 'python'
 
 [[plugins]]
 repo = 'vim-scripts/vim-json-bundle'
@@ -71,3 +62,40 @@ on_ft = 'toml'
 repo = 'neovimhaskell/haskell-vim'
 lazy = 1
 on_ft = 'haskell'
+
+[[plugins]]
+repo = 'rust-lang/rust.vim'
+lazy = 1
+on_ft = 'rust'
+
+[[plugins]]
+repo = 'kovisoft/slimv'
+lazy = 1  # TAKE THAT, PAREDIT.VIM AND YOUR SMELLY "filetype indent on"!!
+on_ft = ['lisp', 'clojure', 'scheme']
+
+#-------------------------------------
+# Python plugins:
+
+# FIXME: Before python plugins can be used on nvim you must
+#  `pip install neovim` and `pip3 install neovim`,
+#  but I'm not sure how to prevent loading the plugins without them.
+
+# Unfortunately the following explodes in neovim... apparently because
+#  "has('python')" and "has('python3')" do something in neovim that is
+#  not permitted inside a sandbox (which dein uses when it evals the "if").
+#if = """
+#  (( has('nvim')) &&
+# \    (has('python') && has('python3')) ) ||
+# \((!has('nvim')) &&
+# \    (has('python') || has('python3')) )"""
+#  "
+
+[[plugins]]
+repo = 'klen/python-mode'
+lazy = 1
+on_ft = 'python'
+
+[[plugins]]
+repo = 'nvie/vim-flake8'
+lazy = 1
+on_ft = 'python'

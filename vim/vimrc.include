@@ -15,10 +15,10 @@ unlet tmp
 " In a function so that it can be disabled by commenting one line
 function s:setup_dein()
 	" (for future reference, the path I gave to dein's install.sh
-	"  was simply "bundle")
+	"  was simply "~/.vim/bundle")
 	set runtimepath^=~/.vim/bundle/repos/github.com/Shougo/dein.vim
 
-	call dein#begin(expand('bundle'))
+	call dein#begin('~/.vim/bundle')
 
 	call dein#add('Shougo/dein.vim') " Let dein manage itself as a plugin o.O
 	call dein#load_toml('~/dotfiles/vim/dein.toml') " ...along with these.
