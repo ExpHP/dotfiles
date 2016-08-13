@@ -5,23 +5,64 @@
 #   https://github.com/Shougo/shougo-s-github/blob/master/vim/rc/deinlazy.toml
 #
 
+# Prettiful status line.
 [[plugins]]
 repo = 'bling/vim-airline'
 
+# rainbow-parentheses.vim on steroids.
+# Colors not only the parentheses, but the commas, too.
 [[plugins]]
-repo = 'kien/rainbow_parentheses.vim'
+repo = 'luochen1990/rainbow'
 hook_add = '''
-	autocmd VimEnter * RainbowParenthesesActivate
-	autocmd Syntax * RainbowParenthesesLoadRound
+	let g:rainbow_active = 1
+	let tmp = {}
+	let tmp['guifgs'] = ['royalblue', 'darkorange', 'seagreen', 'firebrick', 'darkorchid']
+	let tmp['ctermfgs'] = [226,40,128,39,202]  " YGVBR
+	let tmp['operators'] = '_,_'
+	let tmp['parentheses'] = ['start=/(/ end=/)/']
+	let tmp['separately'] = {'*': {}}
+	let tmp['tex'] = {'parentheses': ['start=/{/ end=/}/', 'start=/\[/ end=/\]/']}
+	let tmp['vim'] = {'parentheses': [
+	\	'start=/(/ end=/)/', 'start=/\[/ end=/\]/', 'start=/{/ end=/}/ fold',
+	\	'start=/(/ end=/)/ containedin=vimFuncBody',
+	\	'start=/\[/ end=/\]/ containedin=vimFuncBody',
+	\	'start=/{/ end=/}/ fold containedin=vimFuncBody',
+	\	]}
+	let g:rainbow_conf = tmp
+	unlet tmp
 '''
 
+# I use this to permit SOME modelines (e.g. filetype)
+#  while disabling most (e.g. indent)
 [[plugins]]
 repo = 'ciaranm/securemodelines'
 
+# Marks added/modified/deleted lines since last commit.
 [[plugins]]
 repo = 'airblade/vim-gitgutter'
 
+# for :T (an easier way to reuse a neovim terminal buffer for running
+#   commands, since :! is kind of useless in neovim)
 [[plugins]]
+repo = 'kassio/neoterm'
+if = "has('nvim')"
+
+# provides :Scriptnames (a :scriptnames that writes to a type of buffer
+#  that you can actually search)
+[[plugins]]
+repo = "tpope/vim-scriptease"
+
+#-----------------
+# Colors
+
+# Vim's background=light colors adapted to a dark background.
+[[plugins]]
+if = "!has('nvim')"
+repo = "ExpHP/brighter.vim"
+
+# Neovim's default colors are hideous.
+[[plugins]]
+if = "has('nvim')"
 repo = 'ExpHP/oceanic-next'
 rev = 'darker'
 

@@ -40,6 +40,40 @@ function s:enabled(name)
 endfunction
 
 """"""""""""""""""""""""
+
+" Main colorscheme for neovim
+if has('nvim') && dein#tap('oceanic-next')
+
+	set termguicolors
+	colorscheme OceanicNext
+	set background=dark
+
+" Main colorscheme for vim
+elseif dein#tap('brighter.vim')
+
+	" Brighter versions of background=light colors.
+	" All colors in this colorscheme will use standard 16-colors.
+	" (hence they are themable in the gnome-terminal profile;
+	"  I currently use Tango)
+	let g:brighter_use_light = ['statement'] " I don't like the yellow
+	let g:brighter_brown_16 = 1  " But vim's darkyellow is nonstandard
+	colorscheme brighter
+
+	" Allow other plugins to have access to more colors if they need it...
+	set t_Co=256
+
+" Probably a remote machine with no internets...
+else
+	" fallback to background=light colors
+	" I don't care if they're too dark to be readable, it's what I'm used to
+	colorscheme default
+	set background=light
+
+	" Keep away from that ugly nonstandard brown
+	set t_Co=16
+endif
+
+""""""""""""""""""""""""
 " Customization
 
 " Pick between tabs and buffers.
@@ -91,15 +125,6 @@ if s:mdi_mode == 'b'
 	let g:airline#extensions#tabline#enabled = 1
 endif
 
-" 256 Colors. Powerline is *nothing* without this...
-if (has('nvim'))
-	set termguicolors
-	colorscheme OceanicNext
-	set background=dark
-else
-	set t_Co=256
-endif
-
 " Gives the status bar for inactive split windows a neat effect with Powerline
 set fillchars+=stl:\ ,stlnc:\
 
@@ -107,8 +132,7 @@ set fillchars+=stl:\ ,stlnc:\
 " IMPORTANT: in order for this to do you any good, you need to install the powerline
 "  fonts from here: https://github.com/powerline/fonts  and you must set one of them
 "  as your terminal font
-" (future me: in case you forgot which one you were using, try Meslo LG S DZ...)
-" (wait, what?!  no, try Deja Vu Sans Mono...)
+" (future me: you use "Ubuntu Mono derivative Powerline 12")
 let g:airline_powerline_fonts = 1
 
 """""""""""""""""""""""""
@@ -517,6 +541,13 @@ let g:slimv_leader = "'"
 """""""""""""""""""""""""
 " No thank you, neovim
 set mouse=
+
+"""""""""""""""""""""""""
+" In neovim :! seems pretty useless;
+" Let T<Enter> make neoterm repeat its last command.
+if has('nvim')
+	nnoremap T :T<Space><Up>
+endif
 
 """""""""""""""""""""""""
 " nyuck nyuck nyuck
