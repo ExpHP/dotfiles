@@ -55,8 +55,8 @@ elseif dein#tap('brighter.vim')
 	" All colors in this colorscheme will use standard 16-colors.
 	" (hence they are themable in the gnome-terminal profile;
 	"  I currently use Tango)
-	let g:brighter_use_light = ['statement'] " I don't like the yellow
-	let g:brighter_brown_16 = 1  " But vim's darkyellow is nonstandard
+"	let g:brighter_use_light = ['statement'] " I don't like the yellow
+"	let g:brighter_brown_16 = 1  " But vim's darkyellow is nonstandard
 	colorscheme brighter
 
 	" Allow other plugins to have access to more colors if they need it...
@@ -111,7 +111,7 @@ set backspace=indent,eol,start
 if s:enabled("securemodelines")
 	set modelines=5
 	let g:secure_modelines_allowed_items = [
-		\ "syntax", "filetype", "ft",
+		\ "syntax", "filetype", "ft", "nolist", "foldmethod", "foldmarker",
 		\ ]
 else
 	set modelines=0

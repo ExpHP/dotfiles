@@ -47,6 +47,7 @@ export PATH=$PATH:/opt/alex/3.1.7/bin
 export PATH=$PATH:/opt/happy/1.19.5/bin
 
 alias cabal="cabal --require-sandbox"
+alias cabal-deps="cabal --require-sandbox install --dependencies-only -pj"
 
 #...um, at least until I can figure out distutil. >_>
 #export PYTHONPATH=$HOME/asd/class/research/circuit:$PYTHONPATH

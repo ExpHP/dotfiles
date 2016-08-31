@@ -13,24 +13,7 @@ repo = 'bling/vim-airline'
 # Colors not only the parentheses, but the commas, too.
 [[plugins]]
 repo = 'luochen1990/rainbow'
-hook_add = '''
-	let g:rainbow_active = 1
-	let tmp = {}
-	let tmp['guifgs'] = ['royalblue', 'darkorange', 'seagreen', 'firebrick', 'darkorchid']
-	let tmp['ctermfgs'] = [226,40,128,39,202]  " YGVBR
-	let tmp['operators'] = '_,_'
-	let tmp['parentheses'] = ['start=/(/ end=/)/']
-	let tmp['separately'] = {'*': {}}
-	let tmp['tex'] = {'parentheses': ['start=/{/ end=/}/', 'start=/\[/ end=/\]/']}
-	let tmp['vim'] = {'parentheses': [
-	\	'start=/(/ end=/)/', 'start=/\[/ end=/\]/', 'start=/{/ end=/}/ fold',
-	\	'start=/(/ end=/)/ containedin=vimFuncBody',
-	\	'start=/\[/ end=/\]/ containedin=vimFuncBody',
-	\	'start=/{/ end=/}/ fold containedin=vimFuncBody',
-	\	]}
-	let g:rainbow_conf = tmp
-	unlet tmp
-'''
+hook_add = 'source ~/dotfiles/vim/rainbow-conf.vim'
 
 # I use this to permit SOME modelines (e.g. filetype)
 #  while disabling most (e.g. indent)
@@ -51,6 +34,9 @@ if = "has('nvim')"
 #  that you can actually search)
 [[plugins]]
 repo = "tpope/vim-scriptease"
+
+[[plugins]]
+repo = "chrisbra/Recover.vim"
 
 #-----------------
 # Colors
@@ -105,7 +91,8 @@ lazy = 1
 on_ft = 'haskell'
 
 [[plugins]]
-repo = 'rust-lang/rust.vim'
+#repo = 'rust-lang/rust.vim'
+repo = 'jpernst/rust.vim'
 lazy = 1
 on_ft = 'rust'
 
