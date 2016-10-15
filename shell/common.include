@@ -35,13 +35,13 @@ alias context="context --nostatistics"
 
 alias min="vim -u NONE"
 
-
 function swap()
 {
     local TMPFILE=tmp.$$
-    mv "$1" $TMPFILE
-    mv "$2" "$1"
-    mv $TMPFILE "$2"
+    { mv "$1" $TMPFILE && mv "$2" "$1" && mv $TMPFILE "$2"; } ||
+    { echo >&2 "swap: oops, a bad thing happened!";
+      echo >&2 "swap: one file is probably now located at '$TMPFILE'.";
+      false; }
 }
 
 # no more.
