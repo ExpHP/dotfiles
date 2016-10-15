@@ -49,6 +49,15 @@ function swap()
 PATH=~/syncbin:$PATH
 alias cp=sane-cp
 alias mv=sane-mv
+alias rm='echo "rm disabled, use can or /usr/bin/rm" >&2; false'
+alias can="trash"
+# Note: restore-trash is interactive :/
+alias uncan="restore-trash"
+
+# https://twitter.com/liamosaur/status/506975850596536320
+alias fuck='sudo $(history -p \!\!)'
+
+alias make='make -j4'
 
 # So it turns out that simply invoking `unity` -- without arguments! -- will
 #  kill your entire session immediately and without question.
@@ -78,8 +87,9 @@ export PATH=/opt/cross/bin:$PATH
 # Limit the total allowed memory for interactive bash prompts, to protect
 #  me from myself. Let's hope I don't forget about this when I some day
 #  decide I want to start X11 manually.
-MAX_RAM_FRACTION=0.75
+MAX_RAM_FRACTION=0.5
 TOTAL_RAM=$(free -kt | sed -n '2p' | awk '{ print $2 }')
+# (note: The purpose of "/ 1" here seems to be to floor the number)
 MAX_OK=$(echo "($MAX_RAM_FRACTION * $TOTAL_RAM) / 1" | bc)
 # just a sanity check. Maybe the output format of free changed... idunno,
 # and i don't care, because a silly and pointless check is better than never
