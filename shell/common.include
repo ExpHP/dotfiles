@@ -3,20 +3,11 @@
 # This file is intended to be sourced by both .bashrc and .zshrc.
 # It contains environment variables, aliases, and other shell-agnostic things.
 
-# commented out because LERN 2 DIST BRO
-# also it causes me shit when trying to build a cross-compiler
-## !!! BEGIN TWEAK SCRIPT: Custom Includes !!!
-## !!! rev 2
-#export LIBRARY_PATH=$LIBRARY_PATH:~/scripts/cpp-lib
-#export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:~/scripts/cpp-include
-## !!! END TWEAK SCRIPT: Custom Includes !!!
-
-
 # for my lame-ass script that I gave up on
-export VASP_POTCAR_DIR="/home/lampam/asd/VASP DATA/potentials"
+export VASP_POTCAR_DIR="$HOME/asd/VASP DATA/potentials"
 
 # for pymatgen, written by people who actually know what they're doing
-export VASP_PSP_DIR="/home/lampam/asd/pymatgen_res"
+export VASP_PSP_DIR="$HOME/asd/pymatgen_res"
 
 # this incredibly-descriptively named variable is for phonon
 export ISODATA=/usr/local/phon610/isobyu/
@@ -28,29 +19,19 @@ export ISODATA=/usr/local/phon610/isobyu/
 alias sym-pos="phonopy --sym -c POSCAR > symmetry"
 alias sym-con="phonopy --sym -c CONTCAR > symmetry"
 
-# set p4vasp environment variables
-export PATH=$PATH:/home/lampam/app/p4vasp/bin
-
 export GOPATH=$HOME/cpp/go
 
 # binaries distributed inside haskell packages
 export PATH=$PATH:$HOME/.cabal/bin
 alias hoogle="hoogle --color --count=10"
 
-# Updated Haskell components from the hvr/ghc PPA.
-# Unfortunately it just dumps all of its junk into /opt without setting
-#  up any links, apparently so that multiple versions can be installed
-#  side-by-side without conflict.
-export PATH=$PATH:/opt/ghc/7.10.3/bin
-export PATH=$PATH:/opt/cabal/1.24/bin
-export PATH=$PATH:/opt/alex/3.1.7/bin
-export PATH=$PATH:/opt/happy/1.19.5/bin
-
 alias cabal="cabal --require-sandbox"
-alias cabal-deps="cabal --require-sandbox install --dependencies-only -pj"
+alias cabal-deps="echo >&2 \"No longer necessary. Try:  cabal new-build
+Failing that, the old def was:
+   cabal --require-sandbox install --dependencies-only -pj\"; false"
 
-#...um, at least until I can figure out distutil. >_>
-#export PYTHONPATH=$HOME/asd/class/research/circuit:$PYTHONPATH
+# plz stop making me scroll through tons of noise to find error messages kthx
+alias context="context --nostatistics"
 
 alias min="vim -u NONE"
 
@@ -82,8 +63,8 @@ alias unity='echo >&2 "Disabled. (use /usr/bin/unity if you truly are a madman)"
 
 # I've gotten spoiled by reasonable people reasonably packing a single
 # reasonable directory into a .tar file, and, as a result, I have on more
-# than one occassion accidentally permitted a .zip file to dump 500 files
-# all over my lawn.
+# than one occassion accidentally permitted a .zip file to unreasonably
+# dump 500 files all over my lawn.
 if which unzip2dir >/dev/null; then
 	alias unzip='echo >&2 "Disabled. (Use unzip2dir or /usr/bin/unzip)"; false'
 fi
