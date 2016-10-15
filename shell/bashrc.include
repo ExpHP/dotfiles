@@ -39,6 +39,9 @@ shopt -s globstar
 shopt -s extglob
 #shopt -s failglob  # Wrecks with some tab-completions...
 
+# so readline has a vim mode
+set -o vi
+
 #------------------------------------------------------
 # replicate zsh's inc_append_history. Or at least, try to.
 
