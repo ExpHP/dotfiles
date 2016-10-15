@@ -1,7 +1,7 @@
 
 " Disable plugins I don't really use
 let tmp = []
-let tmp += ["command-t"]      " (I really SHOULD start using this...)
+"let tmp += ["command-t"]      " (I really SHOULD start using this...)
 let tmp += ["powerline"]      " (just here to remind me that I use airline; powerline doesn't
                               "  actually have pathogen support, so this does nothing!)
 let tmp += ["vim-easymotion"] " (has trouble with files over a few hundred megs)
@@ -156,6 +156,7 @@ if s:enabled("vim-easymotion")
 	let g:EasyMotion_smartcase = 1
 
 	" make EasyMotion use one <Leader> instead of two
+	" *** note added 2016:  WAIT WHAT !?!?!?!  DID I SERIOUSLY REMAP LEADER
 	map <Leader> <Plug>(easymotion-prefix)
 
 " improve the standard search functionality instead
@@ -547,6 +548,34 @@ set mouse=
 " Let T<Enter> make neoterm repeat its last command.
 if has('nvim')
 	nnoremap T :T<Space><Up>
+endif
+
+"""""""""""""""""""""""""
+" stop being a noob
+
+" use hjkl or better
+inoremap <Up>      <NOP>
+inoremap <Down>    <NOP>
+inoremap <Left>    <NOP>
+inoremap <Right>   <NOP>
+noremap <Up>       <NOP>
+noremap <Down>     <NOP>
+noremap <Left>     <NOP>
+noremap <Right>    <NOP>
+
+" use x instead
+noremap <Delete>   <NOP>
+
+" Ctrl-U or Ctrl-D
+noremap <PageUp>   <NOP>
+noremap <PageDown> <NOP>
+
+"""""""""""""""""""""""""
+
+" command-t
+if s:enabled("command-t")
+	let g:CommandTFileScanner = 'git'
+	nnoremap <silent> <Leader>l :CommandT<CR>
 endif
 
 """""""""""""""""""""""""

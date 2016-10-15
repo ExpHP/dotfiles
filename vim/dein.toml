@@ -38,6 +38,18 @@ repo = "tpope/vim-scriptease"
 [[plugins]]
 repo = "chrisbra/Recover.vim"
 
+# !!! If dein reports that this failed to build,
+# !!!  make sure 'ruby-dev' is installed.
+# !!! Barring that, you'll need to go into the plugin directory and try
+# !!!  running the command yourself it yourself to see what's up...
+[[plugins]]
+repo = "wincent/command-t"
+build = 'sh -c "cd ruby/command-t && ruby extconf.rb && make"'
+
+# Working with arguments (>, <, [, ], a, i,)
+[[plugins]]
+repo = 'PeterRincker/vim-argumentative'
+
 #-----------------
 # Colors
 
@@ -91,8 +103,7 @@ lazy = 1
 on_ft = 'haskell'
 
 [[plugins]]
-#repo = 'rust-lang/rust.vim'
-repo = 'jpernst/rust.vim'
+repo = 'rust-lang/rust.vim'
 lazy = 1
 on_ft = 'rust'
 
@@ -100,6 +111,16 @@ on_ft = 'rust'
 repo = 'kovisoft/slimv'
 lazy = 1  # TAKE THAT, PAREDIT.VIM AND YOUR SMELLY "filetype indent on"!!
 on_ft = ['lisp', 'clojure', 'scheme']
+
+[[plugins]]
+repo = 'adityam/vim-context'
+lazy = 1
+on_ft = ['context']
+
+[[plugins]]
+repo = 'rubik/vim-dg'
+lazy  = 1
+on_ft = ['dg']
 
 #-------------------------------------
 # Python plugins:
