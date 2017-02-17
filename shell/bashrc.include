@@ -12,22 +12,85 @@ function doTheSpecialPromptyThing {
   local white='\[\033[01;37m\]'
   local green='\[\033[01;32m\]'
   local purple='\[\033[01;35m\]'
+  local yellow='\[\033[01;33m\]'
 
-  # A desparate attempt to break a complicated expression up...
-  PS1=""`
-     `"${white}["`              # White opening brace
-     `" "`                      #  (literal space)
-     `"${blue}\\u@\\h"`         # Colored username & host
-     `" "`                      #  (literal space)
-     `"${white}]"`              # White closing brace
-     `" "`                      #  (literal space)
-     `"\$(if [[ \$? != 0 ]]; "` # If last command returned non-zero
-       `"then echo \"(${red}!!!${white}) \"; "` # Error indicator (w/ space)
-     `"fi)"`
-     `"${green}\w${none}"`      # Current directory
-     `"\n"`                     # --- LINE BREAK ---
-     `"${white}\\\$${none}"`    # Prompt char (\$)
-     `" "                       #  (literal space)
+  local lbrace="$white["
+  local rbrace="$white]"
+  local midbrace="$blue@"
+  if ! [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
+    local lbrace="$red[["
+    local rbrace="$red]]"
+    local midbrace="$red⚡"
+  fi
+  local gitgud=
+  if which git >/dev/null; then
+     gitgud=1
+  fi
+
+
+
+  # == STATIC REGION ==
+  # no command substitutions may be used before the error indicator,
+  # to ensure that the value of $? is preserved.
+  PS1=""
+  PS1+="$lbrace "
+  if [[ "$HOSTNAME" == lampam-ThinkPad-T430 ]]; then
+    # Username & time
+    PS1+="$blue\\u"
+    PS1+="$bracecolor $midbrace "
+    PS1+="$yellow\t"
+  else
+    # Username & host
+    PS1+="$blue\\u@\\h"
+  fi
+  PS1+=" $rbrace "
+
+  # == ERROR INDICATOR ==
+  PS1+="\$(if [[ \$? != 0 ]];"
+  PS1+="then echo \"($red!!!$white) \"; "
+  PS1+="fi)"
+
+  # == DYNAMIC REGION ==
+  # Git branch
+  if which git >/dev/null; then
+    PS1+="\$(
+      __PS1_GIT_BRANCH=\$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+      if [[ \$__PS1_GIT_BRANCH ]]; then
+
+        __PS1_GIT_DIRTY=\$(git status --porcelain 2>/dev/null)
+        __PS1_GIT_UNTRACKED=\$(git ls-files --others --exclude-standard | wc -l 2>/dev/null)
+        __PS1_GIT_ADDITIONS=\$(git diff --shortstat | awk '{ print \$4 }' 2>/dev/null)
+        __PS1_GIT_DELETIONS=\$(git diff --shortstat | awk '{ print \$6 }' 2>/dev/null)
+        echo -n \"$none(\"
+
+        if [[ \$__PS1_GIT_DIRTY ]]; then
+          echo -n \"$yellow\$__PS1_GIT_BRANCH\"
+        else
+          echo -n \"$green\$__PS1_GIT_BRANCH\"
+        fi
+
+        echo -n \"$none\"
+        if   [[ \$__PS1_GIT_UNTRACKED -gt 0 ]]; then
+          echo -n \" •\$__PS1_GIT_UNTRACKED\"
+        fi
+
+        if [[ \$__PS1_GIT_DELETIONS -gt 0 ]]; then
+          echo -n \" ${red}-\$__PS1_GIT_DELETIONS\"
+        fi
+        if [[ \$__PS1_GIT_ADDITIONS -gt 0 ]]; then
+          echo -n \" $green+\$__PS1_GIT_ADDITIONS\"
+        fi
+        echo -n \"$none) \"
+      fi
+  )"
+  fi
+
+  # Current directory
+  PS1+="$green\w$none"
+
+  # Prompt on newline
+  PS1+="\n"
+  PS1+="${white}\\\$${none} "
 }
 
 doTheSpecialPromptyThing

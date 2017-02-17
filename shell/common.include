@@ -19,6 +19,10 @@ export ISODATA=/usr/local/phon610/isobyu/
 alias sym-pos="phonopy --sym -c POSCAR > symmetry"
 alias sym-con="phonopy --sym -c CONTCAR > symmetry"
 
+# Let sudo see things in our path.
+alias sudo="sudo env PATH=\"\$PATH\""
+
+# as if I'm ever going to use go again >_>
 export GOPATH=$HOME/cpp/go
 
 # binaries distributed inside haskell packages
@@ -33,16 +37,14 @@ Failing that, the old def was:
 # plz stop making me scroll through tons of noise to find error messages kthx
 alias context="context --nostatistics"
 
+# reduce likelihood of me ever accidentally typing `make -j` again
+alias make='make -j4'
+# disable X11 gui (never mind, this has been upgraded to ~/bin status)
+alias emacs='emacs -nw'
+
 alias min="vim -u NONE"
 
-function swap()
-{
-    local TMPFILE=tmp.$$
-    { mv "$1" $TMPFILE && mv "$2" "$1" && mv $TMPFILE "$2"; } ||
-    { echo >&2 "swap: oops, a bad thing happened!";
-      echo >&2 "swap: one file is probably now located at '$TMPFILE'.";
-      false; }
-}
+# NOTE: swap has been upgraded to a script
 
 # no more.
 # please. no more.
@@ -56,8 +58,6 @@ alias uncan="restore-trash"
 
 # https://twitter.com/liamosaur/status/506975850596536320
 alias fuck='sudo $(history -p \!\!)'
-
-alias make='make -j4'
 
 # So it turns out that simply invoking `unity` -- without arguments! -- will
 #  kill your entire session immediately and without question.
@@ -84,17 +84,19 @@ fi
 export PATH=/opt/cross/bin:$PATH
 
 # Bumper rail.
-# Limit the total allowed memory for interactive bash prompts, to protect
-#  me from myself. Let's hope I don't forget about this when I some day
-#  decide I want to start X11 manually.
-MAX_RAM_FRACTION=0.5
-TOTAL_RAM=$(free -kt | sed -n '2p' | awk '{ print $2 }')
-# (note: The purpose of "/ 1" here seems to be to floor the number)
-MAX_OK=$(echo "($MAX_RAM_FRACTION * $TOTAL_RAM) / 1" | bc)
-# just a sanity check. Maybe the output format of free changed... idunno,
-# and i don't care, because a silly and pointless check is better than never
-# being able to use a terminal again!
-if [[ $MAX_OK -ge 10000 ]]; then
-	ulimit -v $MAX_OK
+# Limit memory for interactive bash prompts, because thrashing sucks.
+# To bypass, invoke 'nolimit' from *outside* of a bash process.
+if [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
+	MAX_RAM_FRACTION=0.5
+	TOTAL_RAM=$(free -kt | sed -n '2p' | awk '{ print $2 }')
+	# (note: The purpose of "/ 1" here seems to be to floor the number)
+	MAX_OK=$(echo "($MAX_RAM_FRACTION * $TOTAL_RAM) / 1" | bc)
+	# just a sanity check. Maybe the output format of free changed... idunno,
+	# and i don't care, because a silly and pointless check is better than never
+	# being able to use a terminal again!
+	if [[ $MAX_OK -ge 10000 ]]; then
+		ulimit -v $MAX_OK
+		export NOLIMIT_TOO_LATE=1
+	fi
 fi
 

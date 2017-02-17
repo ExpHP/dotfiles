@@ -96,7 +96,7 @@ let g:auto_rusty_tags = 0
 " Because I keep breaking my backslash key otherwise, set leader to Enter.
 " Also, TIL there is a second leader key, intended for filetype-specific stuff.
 let mapleader="\r"
-let maplocalleader="\r"
+let maplocalleader=","
 
 """"""""""""""""""""""""
 " The Canonical build sets this option automatically but I have no clue where.
@@ -110,11 +110,18 @@ set backspace=indent,eol,start
 
 if s:enabled("securemodelines")
 	set modelines=5
+	set modeline
 	let g:secure_modelines_allowed_items = [
 		\ "syntax", "filetype", "ft", "nolist", "foldmethod", "foldmarker",
 		\ ]
 else
-	set modelines=0
+"	set modelines=0
+
+	" FIXME ugh, try as I might I can't seem to set foldmarker
+	" with securemodelines, so I will enable them universally...
+	" ...for now.
+	set modelines=5
+	set modeline
 endif
 
 """"""""""""""""""""""""
@@ -276,6 +283,18 @@ if s:tab_mode == 't'
 	filetype plugin off " XXX
 	filetype indent off
 
+	" sigh....
+	"  but sometimes that ftplugin is *really useful*...
+	"
+	" NOTE: this autocmd ends up disabling all syntax highlighting somehow.
+	"       (no doubt a wild interaction with all the other crazy and dumb
+	"        shit in this RC file)
+	"
+	"autocmd Filetype idris call ReloadWithFtplugin()
+	"
+	" So let's just give it a hotkey instead.
+	nnoremap <LocalLeader>` :call ReloadWithFtplugin()<CR>
+
 elseif s:tab_mode == 's'
 	" alright alright alright I'll TRY it
 	" my apologies to the police
@@ -286,6 +305,13 @@ elseif s:tab_mode == 's'
 	set smarttab
 
 endif
+
+function ReloadWithFtplugin()
+	filetype plugin on
+	edit %
+	filetype plugin off
+endfunction
+
 
 """""""""""""""""""""""""
 " Make Y consistent with C, D.
@@ -380,6 +406,8 @@ let g:syntastic_mode_map = {
 unlet s:active
 unlet s:passive
 
+let g:syntastic_idris_checkers = ['idris']
+
 let g:syntastic_loc_list_height = 5
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1 " 0-no auto-toggle  1-auto-toggle   2-auto-close only
@@ -391,6 +419,11 @@ let g:syntastic_check_on_wq = 0
 if s:enabled('syntastic') && s:enabled('vim-go')
 	let g:go_fmt_fail_silently=1
 endif
+
+" get with the times
+let g:syntastic_cpp_compiler = 'g++'
+let g:syntastic_cpp_compiler_options = ' -std=c++11 '
+" -stdlib=libc++'
 
 """""""""""""""""""""""""
 
@@ -525,17 +558,8 @@ noremap <leader>cd :cd %:p:h<cr>
 """""""""""""""""""""""""
 " Die, shift key, die!!
 
-" WARNING: for this to work nicely you must use "noremap" religiously
-"   throughout vimrc. Never write "map <key> :command"!
-nnoremap ; :
-vnoremap ; :
-
-" Make the functionality of ";" available through different means.
-" (what does that key even do, anyways?)
-" To let ":!" remain comfortable, I keep ";" and ":" as synonyms and
-" bind semicolon to something else.
-nnoremap ;; ;
-vnoremap ;; ;
+" (this section used to remap ; to : and ;; to ;, but it turns out
+"  that ; is the command used to repeat an f, F, t, or T search)
 
 let g:slimv_leader = "'"
 
@@ -570,12 +594,28 @@ noremap <Delete>   <NOP>
 noremap <PageUp>   <NOP>
 noremap <PageDown> <NOP>
 
+" And yet even after all this I just end up resorting to HJKL.
+" Time to get real...
+if s:enabled("hardmode")
+	" default to hardmode...
+	autocmd VimEnter,BufNewFile,BufReadPost * silent! call HardMode()
+	" ...with a painful keybinding to toggle.
+	nnoremap <leader>h <Esc>:call ToggleHardMode()<CR>
+endif
+
 """""""""""""""""""""""""
 
 " command-t
 if s:enabled("command-t")
 	let g:CommandTFileScanner = 'git'
 	nnoremap <silent> <Leader>l :CommandT<CR>
+endif
+
+"""""""""""""""""""""""""
+
+if s:enabled("typescript-vim")
+	" typescript.vim does better highlighting of standard JS than the builtin syntax
+	au BufReadPost *.js set syntax=typescript
 endif
 
 """""""""""""""""""""""""

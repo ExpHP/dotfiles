@@ -1,0 +1,39 @@
+#!/bin/bash
+# clein: Remove all packages except Dein
+
+# This exists because I couldn't see how else to force dein to forget
+# that a package exists after it is removed/commented out from the TOML.
+
+# It prunes a directory tree so that nothing outside a given subtree exists.
+
+DIR_TO_RIP_TO_SHREDS="$HOME/.vim/bundle"
+SUBDIR_TO_PROTECT="repos/github.com/Shougo/dein.vim"
+LAME_JOKE="Don't see dein, we ain't cleinin!"
+
+cd $DIR_TO_RIP_TO_SHREDS || exit 1
+
+# If we aren't 100% sure that we are in the right place,
+# recursively deleting everything doesn't sound like a
+# very good idea.
+if [[ ! -e "$SUBDIR_TO_PROTECT" ]]; then
+	echo "$LAME_JOKE" >&2
+	exit 1
+fi
+
+IFS=/ read -a path_components <<<"$SUBDIR_TO_PROTECT"
+for comp in "${path_components[@]}"; do
+
+	# paranoia, in case I introduce a bug to this script
+	if [[ ! -e "$comp" ]]; then
+		echo "$LAME_JOKE" >&2
+		exit 1
+	fi
+
+	for d in `ls -a`; do
+		if [[ "$d" == "." ]]; then continue; fi
+		if [[ "$d" == ".." ]]; then continue; fi
+		if [[ "$d" == "$comp" ]]; then continue; fi
+		rm -rf $d
+	done
+	cd $comp || exit 1
+done

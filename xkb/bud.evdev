@@ -1,0 +1,13 @@
+    <layout>
+      <configItem>
+        <name>bud</name>
+        
+        <shortDescription>bud</shortDescription>
+        <description>English (Bud)</description>
+        <languageList>
+          <iso639Id>eng</iso639Id>
+        </languageList>
+      </configItem>
+      <variantList>
+      </variantList>
+    </layout>

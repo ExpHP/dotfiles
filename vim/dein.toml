@@ -18,6 +18,9 @@ hook_add = 'source ~/dotfiles/vim/rainbow-conf.vim'
 # I use this to permit SOME modelines (e.g. filetype)
 #  while disabling most (e.g. indent)
 [[plugins]]
+# FIXME forcibly disabling to work around issue with setting
+#       foldmarker in a latex doc. No idea what's up.
+if = "0"
 repo = 'ciaranm/securemodelines'
 
 # Marks added/modified/deleted lines since last commit.
@@ -49,6 +52,13 @@ build = 'sh -c "cd ruby/command-t && ruby extconf.rb && make"'
 # Working with arguments (>, <, [, ], a, i,)
 [[plugins]]
 repo = 'PeterRincker/vim-argumentative'
+
+# STOP BEING A GODDAMN NOOB
+#[[plugins]]
+#repo = 'wikitopian/hardmode'
+
+[[plugins]]
+repo = 'tpope/vim-surround'
 
 #-----------------
 # Colors
@@ -121,6 +131,22 @@ on_ft = ['context']
 repo = 'rubik/vim-dg'
 lazy  = 1
 on_ft = ['dg']
+
+[[plugins]]
+repo = 'leafgarland/typescript-vim'
+
+[[plugins]]
+repo = 'facebook/reason'
+rtp = 'editorSupport/VimReason'
+
+[[plugins]]
+repo = 'zah/nim.vim'
+
+[[plugins]]
+repo = 'manicmaniac/coconut.vim'
+
+[[plugins]]
+repo = 'idris-hackers/idris-vim'
 
 #-------------------------------------
 # Python plugins:

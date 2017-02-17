@@ -49,3 +49,9 @@ let s:lang['vim'] = {'parentheses': [
 	\'start=/{/ end=/}/ fold containedin=vimFuncBody',
 	\]}
 
+let s:tmp = []
+let s:tmp += ['start=/(/ end=/)/']
+let s:tmp += ['start=/\[/ end=/\]/']
+let s:tmp += ['start=/{/ end=/}/']
+let s:lang['typescript'] = {'parentheses': s:tmp}
+let s:lang['javascript'] = {'parentheses': s:tmp}
