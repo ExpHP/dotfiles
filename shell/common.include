@@ -29,6 +29,10 @@ export GOPATH=$HOME/cpp/go
 export PATH=$PATH:$HOME/.cabal/bin
 alias hoogle="hoogle --color --count=10"
 
+# Newer ghc versions:
+#   sudo add-apt-repository https://launchpad.net/~hvr/+archive/ubuntu/ghc
+export PATH=/opt/ghc/bin:$PATH
+
 alias cabal="cabal --require-sandbox"
 alias cabal-deps="echo >&2 \"No longer necessary. Try:  cabal new-build
 Failing that, the old def was:
