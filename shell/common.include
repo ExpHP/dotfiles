@@ -15,6 +15,11 @@ export ISODATA=/usr/local/phon610/isobyu/
 
 #----------------------------------------------
 
+callable() {
+	# NOTE: 'GNU which', as found on arch linux, writes to stderr on failure
+	which "$@" 1>/dev/null 2>/dev/null
+}
+
 # phonopy
 alias sym-pos="phonopy --sym -c POSCAR > symmetry"
 alias sym-con="phonopy --sym -c CONTCAR > symmetry"
@@ -53,12 +58,14 @@ alias min="vim -u NONE"
 # no more.
 # please. no more.
 PATH=~/syncbin:$PATH
-alias cp=sane-cp
-alias mv=sane-mv
-alias rm='echo "rm disabled, use can or /usr/bin/rm" >&2; false'
-alias can="trash"
-# Note: restore-trash is interactive :/
-alias uncan="restore-trash"
+if callable sane-cp; then alias cp=sane-cp; fi
+if callable sane-mv; then alias mv=sane-mv; fi
+if callable trash; then
+	alias rm='echo "rm disabled, use can or /usr/bin/rm" >&2; false'
+	alias can="trash"
+	# Note: restore-trash is interactive :/
+	alias uncan="restore-trash"
+fi
 
 # https://twitter.com/liamosaur/status/506975850596536320
 alias fuck='sudo $(history -p \!\!)'
@@ -78,7 +85,7 @@ alias unity='echo >&2 "Disabled. (use /usr/bin/unity if you truly are a madman)"
 # reasonable directory into a .tar file, and, as a result, I have on more
 # than one occassion accidentally permitted a .zip file to unreasonably
 # dump 500 files all over my lawn.
-if which unzip2dir >/dev/null; then
+if callable unzip2dir; then
 	alias unzip='echo >&2 "Disabled. (Use unzip2dir or /usr/bin/unzip)"; false'
 fi
 
@@ -90,7 +97,7 @@ export PATH=/opt/cross/bin:$PATH
 # Bumper rail.
 # Limit memory for interactive bash prompts, because thrashing sucks.
 # To bypass, invoke 'nolimit' from *outside* of a bash process.
-if [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
+if callable bc && [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
 	MAX_RAM_FRACTION=0.5
 	TOTAL_RAM=$(free -kt | sed -n '2p' | awk '{ print $2 }')
 	# (note: The purpose of "/ 1" here seems to be to floor the number)
@@ -103,4 +110,3 @@ if [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
 		export NOLIMIT_TOO_LATE=1
 	fi
 fi
-
