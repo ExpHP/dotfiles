@@ -1,0 +1,2214 @@
+
+WHAT IS THIS FILE?
+
+This file is a list of notes I've compiled on various issues that I have encountered either on
+my personal machines (most of which use Ubuntu) or on other computing resources available to me.
+The general goal is that, after a new installation of the OS, if I encounter an issue that I know
+I have encountered before, then I can look in here (searching for a couple of keywords that I think
+I might have used) to find out what I did.
+
+
+=== CRITICAL THINGS TO DO AFTER INSTALLING UBUNTU === (last update: Aug 11 2016)
+
+This section is a laundry list of tasks that should be done ASAP after installing,
+ because the repercussions of not doing so can be painful.
+
+All of these already have sections in the text below, so I'll just put down enough info
+ to locate those sections via search.
+
+ * Re-enable REISUB!!!! (this already has a section below; search for REISUB)
+ * Make sure Ctrl+Alt+F2 works (if not there is a section on nomodeset...)
+ * Disable useless splash screens that obscure useful info on boot/shutdown.
+     - /etc/default/grub, get rid of "quiet splash", `sudo update-grub`.
+ * Install massive dependency trees ahead of time:
+     - must first edit /etc/apt/sources.list and uncomment the deb-src lines
+     - texlive (and texlive-latex-extra, and texlive-math-extra...)
+     - KDE libraries (try kate or kdiff3)
+     - 32bit libraries (try wine, maybe, though the version available might be kinda old;
+                        unfortunately "build-dep wine" isn't enough :/)
+     - pip(3,) install pylab (includes just about every python package and its mother)
+     - libgtk2.0-dev
+     - npm and node.js
+
+=== OTHER ESSENTIAL PACKAGES TO GRAB ===
+
+Varous things you need in order to help get the rest of the things you need
+
+    - vim  python-pip  python3-pip  git
+    - (from website, not repo)  google chrome
+
+NOTICE: the pip from the canonical repos now installs to user folders (no sudo!)
+
+=== LIST OF AWKWARD BUILD DEPS ===
+
+Build dependencies that are either very painful to miss the first time around (because lots of
+stuff must be rebuilt due to e.g. poor build process), or that only count as warnings when they
+are missing (when they should probably be more)
+
+ * pylab
+   This one is funny because `pip install pylab` automatically includes `pillow`... but pylab
+    apparently doesn't *depend* on `pillow`, because pylab installs successfully even if pillow
+    doesn't.  But I'd rather not take my chances
+   - libjpeg-dev
+   (added August 11 2016; even a pip install requires these):
+   - libpng<VER>-dev
+   - libfreetype<VER>-dev
+
+
+ * matplotlib
+   - sudo apt-get install libffi-dev
+   - sudo pip install cairocffi
+   - sudo pip3 install cairocffi
+
+
+ * wine
+   - First and foremost:   sudo apt-get build-dep wine
+   - Then:                 sudo apt-get install libgstreamer-plugins-base1.0-dev
+   - When running wine's 'configure', you should see messages near the end like
+
+       configure: pcap development files not found, wpcap won't be supported.
+       configure: libhal development files not found, no legacy dynamic device support.
+       
+       configure: Finished. Do 'make' to compile Wine.
+
+   - If you see anything more serious that is missing, consider getting that dep, too.
+
+libgstreamer-plugins-base0.10-dev
+
+=== It's lxc, dude ===
+
+"Ohhhhh what was the name of that thing I used to use when I was
+ trying to build 32-bit executables for wine and Dwarf Therapist"
+
+ It's lxc.
+
+ sudo lxc-create -t ubuntu -n my32bitbox -- --bindhome $LOGNAME -a i386 --release trusty
+
+
+=== CTAGS and the tagbar ===
+
+Installing CTAGS:
+ package: exuberant-ctags
+
+Installing TagBar:
+ cd downloads
+ vim tagbar.vba
+ :so %
+ :q
+
+Setting up keybind, move to left side, disable sorting:
+Add to '~/.vimrc':
+  nmap <F8> :TagbarToggle<CR>
+  let g:tagbar_left = 1
+  let g:tagbar_sort = 0
+
+=== SETTING UP SCRIPTS/DOTFILES ===
+As of 2016-08-11:
+
+At some point in the past I decided to add a "~/dotfiles" repo,
+which is far simpler than my previous solution of "tweak" scripts.
+
+The necessary manual edits are the following:
+
+Add this to ~/.bashrc
+    
+    #-----------------------------------------------------
+    # Stuff specifically bash-related (e.g. PS1 prompt)
+    source /home/lampam/dotfiles/shell/bashrc.include
+
+    # Stuff for all shells  (environment vars, aliases...)
+    source /home/lampam/dotfiles/shell/common.include
+
+The following is the ENTIRETY of my ~/.zshrc:
+
+    source /home/lampam/dotfiles/shell/zshrc.include
+    source /home/lampam/dotfiles/shell/common.include
+
+My zsh used a custom theme:
+
+    sudo ln -s dotfiles/symlinks/agnoster-exphp.zsh-theme /usr/local/share/oh-my-zsh/themes
+
+There are some old scripts in ~/scripts/tweak that still
+appear to be worth running:
+    
+    setup-python-imports.py  (because unfortunately there are python libs I still
+                              use to this day which do not have a proper setup.py)
+    disable-login-sound.sh
+    volume-step-fix.py
+
+This was the entirety of my .vimrc as of 2016-08-11:
+(again, you will see I sourced files rather than symlinking them,
+ apparently so that I could reuse .vimrc on other machines where I did not necessarily
+ compile vim by hand)
+
+    " Load system defaults since my custom build does not do this on its own.
+    " (note: there must be another file elsewhere, too, as I've noticed that the
+    " 'backspace' setting still doesn't get set automatically)
+    source /etc/vim/vimrc
+    
+    source /home/lampam/dotfiles/vim/vimrc.include
+
+To set up ~/.vim/, I appear to have left myself with a multi-step process
+(apparently because I was afraid that copying the entire folder over an
+ existing one would be bad.  Is it? I dunno!).
+
+ * Get pathogen: https://github.com/tpope/vim-pathogen
+
+ * ~/.vim/after should be a symlink to ~/dotfiles/vim/after
+
+ * I have a small script which prints out all the installed plugin git urls;
+   Go to `<LAST_BACKUP>/.vim/bundle` and run `./get-git-clone-commands.sh`.
+   (it seems the intent was to give me a chance to copy the lines into an editor
+    and weed out ones I no longer use before running them locally)
+
+ * Don't forget to be kind to your future self, and copy over
+   the `get-git-clone-commands.sh` script itself as well!
+
+=== BACKUPS ===
+2016-08-11
+
+There's a readme in `~/scripts/other/backup` but it has a lot of text,
+and seems to be geared more towards configuring it for a new setup
+(rather than recovering my old setup)
+
+I think in summary:
+
+    # NOTE: must symlink; I was dumb when I wrote it and it does
+    #       a "readlink" to find its true directory.
+    ln -s ~/scripts/other/backup/bin/back-me-up ~/bin
+    cd ~/scripts/other/backup
+    yes | sudo apt-get install rsnapshot rsync anacron
+    sudo mkdir -p /etc/cron.{monthly,weekly}
+    sudo cp etc/cron.monthly/* /etc/cron.monthly
+    sudo cp etc/cron.weekly/* /etc/cron.weekly
+
+    # compare and "pull" upstream changes before overwriting!
+    vimdiff {/,}etc/rsnapshot.conf
+
+Here's a bit of text to stand stand as a barrier against blind
+copying-and-pasting, yay!
+
+    sudo cp {,/}etc/rsnapshot.conf
+
+---
+
+!!! IMPORTANT !!!
+If you just reinstalled the OS then MAKE YOUR FINAL BACKUP PERMANENT!
+(otherwise you can't trust it to survive even to a "weekly")
+
+This capability is NOT provided by my script (or rsnapshot in general).
+Best solution I can think of is to make a hard-link copy manually with
+the following command: (assuming daily.0 is the most recent backup)
+
+    sudo rsync -a --link-dest=../daily.0 daily.0/ eternal.USEFUL-NAME-HERE
+
+(note: locations of trailing slashes very important. Also, for some absolutely
+ bizarre fucking reason, --link-dest is relative to the destination)
+
+=== FLASHPLUGIN INSTALLER ===
+2016-08-11
+
+In brief:
+
+ * You USED to use a PPA with a package called `flashplugin-installer`.
+   This was because there was no official 64-bit package at the time.
+ * Now, an official package DOES exist; you now use `adobe-flashplugin`,
+   from the `partner` repo.
+
+=== OTHER VIM PLUGINS AND CONFIG (OUTDATED) ====
+
+2014-09-30
+
+NOTE 2016-08-11: DON'T BOTHER WITH THIS ANY MORE
+
+Actually, since Ubuntu has no ~/.vimrc by default, you can easily
+just symlink the version saved here in the scripts directory.
+
+*.vim files can be found in the 'downloads' subfolder and symlinked
+into ~/.vim/plugin
+
+To symlink all of the .vim files:
+  ln -s -t ~/.vim/plugin/ ~/scripts/setup-notes/downloads/*.vim
+
+
+
+======= RPI VPN ========
+
+packages: openconnect vpnc-scripts
+
+Check old ~/bin folder for script.
+If missing, the following should do:
+
+#!/bin/bash
+sudo openconnect vpn.net.rpi.edu
+
+
+NOTE: An older version of the script included a --script option:
+
+sudo openconnect --script=/etc/vpnc/vpnc-script vpn.net.rpi.edu
+
+This script does not appear to exist at this location in Ubuntu,
+and specifying its location no longer appears necessary.
+
+
+======== DELETING TO TRASH =========
+
+packages: trash-cli
+
+This goes in ~/.bash_aliases (which must be created on a fresh Ubuntu).
+
+  alias rm="echo Use can, or full path name for rm"
+  alias can="trash"
+  # Note: restore-trash is interactive :/
+  alias uncan="restore-trash"
+
+Then 'can' can be used to trash stuff, '/bin/rm/' can be used to permanently delete
+stuff, and 'uncan' provides an interactive restore prompt.
+
+========= THINKPAD NOT ENTERING SLEEP MODE  =========
+
+There is an issue with the Intel e1000e driver not enjoying being suspended when it
+is already suspended (or something like that).
+
+Create a symlink to scripts/data/50_E1000E_FIX in /etc/pm
+
+
+========= 32-BIT AND 64-BIT LIBS ============
+
+(section added Dec 2014)
+
+When manually compiling an application and building separate libs for 32 bit and 64 bit, you can't put them both in /usr/local/lib.  Instead, make some directories for this purpose: /usr/local/lib32 and /usr/local/lib64.
+
+Messing around with the `hello` package, I think I found the most important options to pass to ./configure:
+(32-bit)
+    ./configure --libdir=/usr/local/lib32 "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
+(64-bit)
+    ./configure --libdir=/usr/local/lib64
+
+A lot of sources mention using the --build flag, but I'm not quite sure what that does.  It had no visible impact on the results of `make`.
+
+
+To make the system search these directories for libraries at linking and runtime, add a file to /etc/ld.so.conf.d.
+
+File: /etc/ld.so.conf.d/CUSTOM_local_biarch
+
+    # Biarch directories for manually built libraries 
+    /usr/local/lib32
+    /usr/local/lib64
+
+	
+
+========= BUILDING GLC ===========
+
+(section added Dec 2014)
+
+GLC is a program for capturing game video and audio.  I had trouble getting the install script [https://github.com/nullkey/glc/raw/master/scripts/glc-build.sh] to find my 32 bit libraries, so here is how I built it manually.
+
+UPDATE:  So it turns out glc can be built in 64 bit perfectly fine.  I had feared it wouldn't since glc-build.sh always does a 32-bit build.  Of course, for that very reason, you can't use the script to do it, and so you still need to build it manually.  You may skip the commands tagged "(32-bit build only)".
+
+* Since I don't know much about cmake, I use some hacky tricks to do things that would typically be accomplished by passing flags to ./configure.  I use the CFLAGS environment variable to get elfhacks built in 32-bit:
+
+(32-bit build only)
+    export CFLAGS=-m32
+
+* Get elfhacks and build:
+
+    git clone https://github.com/nullkey/elfhacks.git
+    cd elfhacks
+    cmake . && make
+
+* Note you can verify that the library is 32-bit or 64-bit with the file command:
+
+    file src/libelfhacks.so.0.4.1
+
+* Another dependency, `packetstream`, is built the same way.
+
+    cd ..
+    git clone https://github.com/nullkey/packetstream.git
+    cd packetstream
+    cmake . && make
+    cd ..
+
+* There is yet another dependency, `glc-support`, but this one is meant to be symlinked into - and built as part of - `glc`.  Get both `glc-support` and `glc`:
+
+    git clone https://github.com/nullkey/glc.git
+    git clone https://github.com/nullkey/glc-support.git
+    cd glc && ln -sf ../glc-support ./support && cd ..
+
+* It will require zconf.h to build.  zconf.h is in an architecture-qualified directory, but currently Ubuntu has no i386 version for for it.  The x86_64 version seems to work fine.
+
+(32-bit build only)
+    ln -s /usr/include/x86_64-linux-gnu/zconf.h /usr/include
+
+* I don't use `make install` because IIRC that will put things in `/usr/local/lib`, ignoring the architecture.
+* We can manually install the libs by copying the files and links.
+
+(32-bit)
+    export GLC_LIB_DIR=/usr/local/lib32/
+    mkdir -p $GLC_LIB_DIR
+    cp -Pit $GLC_LIB_DIR elfhacks/src/libelfhacks.so* packetstream/src/libpacketstream.so*
+
+(64-bit)
+    export GLC_LIB_DIR=/usr/local/lib64/
+    mkdir -p $GLC_LIB_DIR
+    cp -Pit $GLC_LIB_DIR elfhacks/src/libelfhacks.so* packetstream/src/libpacketstream.so*
+
+* Some symlinks (namely, ones with no version number) are oddly missing from the 32-bit versions of the multiarch libs.  Make symlinks to mirror the x86_64 ones:
+
+(32-bit only)
+    pushd /usr/lib/i386-linux-gnu
+    sudo ln -s libpng12.so.0 libpng12.so
+    sudo ln -s libpng12.so libpng.so
+    sudo ln -s mesa/libGL.so.1 mesa/libGL.so
+    sudo ln -s libXxf86vm.so.1 libXxf86vm.so
+    sudo ln -s libX11.so.6 libX11.so
+	sudo ln -s libasound.so.2 libasound.so
+    popd
+
+* It also won't find libGL due to being in a subfolder.  We can modify ld.so.conf to include it, or we can symlink the library in a path that's already searched.  My preference:
+
+(32-bit only)
+    sudo ln -s /usr/lib/i386-linux-gnu/mesa/libGL.so /usr/local/lib32/libGL.so
+
+* Now we may build.
+
+    cd glc
+    cmake -DELFHACKS_LIBRARY=$GLC_LIB_DIR/libelfhacks.so -DPACKETSTREAM_LIBRARY=$GLC_LIB_DIR/libpacketstream.so -DELFHACKS_INCLUDE_DIR=../elfhacks/src -DPACKETSTREAM_INCLUDE_DIR=../packetstream/src .
+    make
+
+* Manually install libs and binaries
+
+(32-bit)
+    sudo cp -Pit $GLC_LIB_DIR src/glc/lib*.so* src/hook/lib*.so*
+    sudo cp -i src/glc-capture /usr/local/bin/glc-capture32
+
+(64-bit)
+    sudo cp -Pit $GLC_LIB_DIR src/glc/lib*.so* src/hook/lib*.so*
+    sudo cp -i src/glc-capture /usr/local/bin/glc-capture64
+    sudo cp -i src/glc-play /usr/local/bin/glc-play
+
+(I don't think there's any reason to keep around an x86 version of glc-play,
+  hence why the instructions above don't install it.
+ glc-capture is another story, since it hooks directly into your game, and
+  so you must use the version corresponding to the game's architecture)
+
+=========== TRYING TO GET SMOOTH VIDEO ==============
+
+Jan 13 2015
+
+(tl;dr:  video issues? try a different driver)
+
+ - Wanted to play Touhou but was devastated by 'microstuttering'.  The game
+   would run perfectly except for an *almost imperceptible jump* that would
+   occur about once or twice per second.  It's the kind of situation that
+   can make one go mad, wondering if things *really are* off or if maybe
+   you've just convinced yourself they are.
+
+   (good test animations for stuttering can be found at http://testufo.com .
+    Comparing this site on linux to windows made the stuttering very obvious)
+
+ - *** Some things I tried that DID NOT WORK: ***
+ - Using xrandr to switch to resolutions with refresh rates closer to 60.
+   (frustratingly, this did have *some* effect, but not enough!)
+ - Disabled ccsm > OpenGL > Sync To VBlank
+ - dconf write /org/compiz/profiles/unity/plugins/composite/refresh-rate "60"
+ - Enabled ccsm > Workarounds > Legacy Fullscreen Support
+ - Tried GNOME Fallback with Metacity (No Compiz).  No dice.
+
+ - ****** SUCCESS!!! SUCCESS!!!! ********
+ - *** Uninstalling `nvidia-331` and using `nouveau` fixed the issue! ***
+
+ - One thing to note: When I uninstalled nvidia-331, nouveau was already
+   installed, so I logged out, and instead of lightdm, I was greeted with
+   some menu for troubleshooting video problems in a low graphics mode.
+   I selected an option that purportedly "recovered" some config files and
+   was dropped into blank terminal, from which I switched to tty2, logged in,
+   and rebooted.  LightDM worked on the next boot.
+   Thus, it could also be these "recovered" config files that solved the
+   issue.  Not sure, don't really care.
+
+=========== (UNITY) DISABLE OVERLAY SCROLLBAR ===========
+
+ -This disables the overlay scrollbar from popping up (and making window
+    resizing difficult), while retaining its visual appearance.
+   
+  This makes the scrollbar unusable, but it's not like I ever used it anyways.
+
+  Mousewheel, page up/page down, and trackpoint scrolling all still work.
+ 
+    gsettings set com.canonical.desktop.interface scrollbar-mode 'overlay-touch'
+
+=========== RE-ENABLE SYSREQ STUFF (REISUB, ETC.) ===========
+
+ edit /etc/sysctl.d/10-magic-sysrq.conf
+ instructions are there
+ I chose the value 502 to enable all but memory dumps
+
+=========== DOWNMIXING STEREO TO MONO (PULSE AUDIO) ===========
+
+ To prevent myself from going insane from listening to recordings with no right channel, or where everything is panned 100% to different sides for some ungodly reason. (I'm looking at you, 419 Eater).  (no, really, what do you think this is, the freakin nineties?)
+ This can be done in pulse audio by adding a sink that mixes the channels together.
+
+ From StackOverflow: (with some edits)
+
+ Find the name of your audio sink by running `pacmd list-sinks | grep name:`.
+ Then run this command:
+     pacmd load-module module-remap-sink sink_name=mono master=<name_of_audio sink_given_by_previous_command> channels=2 channel_map=mono,mono
+ (taking care to remove the angled brackets), or add the argument to pacmd to `/etc/pulse/default.pa` (NOTE: "argument to pacmd" as in "everything after pacmd in the command"), to have it run at startup. Then in Sound Preferences choose "Mono" as the output but remember to reduce volumes by half, since two channels are getting mixed into one, or else you'll have distortion. To test, run : `speaker-test -c 2 -t sine`.
+
+============= ATTEMPT TO DISABLE VSYNC ==============
+
+Latest attempt to disable vsync
+ 
+ * added /etc/X11/xorg.conf
+   (this was automatically moved to /etc/X11/xorg.conf.02042015 after the
+    incident with Optimus detailed below)
+ * ccsm >> OpenGL >> Sync to Vblank off
+   (this has been reverted)
+ * (reboot)
+
+Still no effect even when running vpatch.exe
+
+ * In addition, went into BIOS and disabled Optimus and OS Detection for Optimus
+
+This caused my actual refresh rate to drop to 30, even though
+  xrandr and Test UFO reported 60. (note: game reported 30)
+
+After entering sleep mode and waking, Xorg hung. (no ctrl alt f2 even)
+  Computer had to be hard reset.
+
+
+=========== RUNNING pcsx2 ===========
+
+* Found it easier to just download the prebuilt binary than to
+  deal with i386 dev packages.
+
+* On attempt to run, many "modules" will fail to load, listing
+  their requirements. (you need 32-bit versions)
+
+* There were a couple for which I had trouble locating the correct package:
+     libCg.so
+     libCgGL.so
+  To remedy this, I borrowed them from Steam.
+
+* An apparent runtime dependency...?:
+     libcanberra-gtk-module
+  (when not installed, it produces a message in the console output, though
+   the program still appears to run.  Meh.)
+
+* At this point, running the launch_pcsx2_linux.sh script brings up a
+  configuration window, and so I'm calling it a night.
+
+  (so I technically haven't confirmed it can play!)
+
+============================
+
+( THIS SECTION IS OLD:  PLEASE SEE NEXT SECTION )
+
+INSTALLING numpy AND scipy
+
+After setting the BLAS and LAPACK environment variables to point to the
+ appropriate libxxx.so (or .a) files, running
+
+    pip3 install scipy
+
+may cause the system to appear to hang.
+
+RESOLUTION:  Wait 10 minutes.  No really.  It *is* compiling, and it *will*
+             finish eventually.
+
+If you're not convinced, run `top` and look carefully at the PID of the
+install process, and notice how it keeps changing (presumably as each
+individual file is compiled).
+
+NOTE: For some reason it was ignoring the BLAS and LAPACK variables
+on my ubuntu system
+
+==== Installing numpy and scipy on matisse CORRECTLY!! ==== May 27 2015
+
+When I actually tried running a sparse matrix linear solver
+ (scipy.sparse.linalg.factorized) with the above described setup
+ on matisse (RPI supercomputer) it ground to a halt.
+
+I took a closer look at the directions in the example-site.cfg provided
+ in numpy's source, and figured out a way to link the (extremely effective)
+ atlas libs.
+
+1. DO NOT bother setting any blas/atlas/lapack-related environment variables.
+   DO NOT bother loading any modules.
+
+2. DO bother finding out where libatlas' libraries are installed.  On matisse,
+   I found them in /usr/lib64/atlas, but they didn't have any versionless
+   symlinks (all were `.so.3` or `.so.3.0`, but the linker will only look
+   for `.so`) so I had to make my own personal set of links to them without
+   version numbers.
+
+3. Make a file ~/.numpy-site.cfg.  The only lines I needed were
+
+    [blas_opt]
+    library_dirs = /home/lampam/data/local-install/lib
+    libraries = ptf77blas, ptcblas, atlas
+
+    [lapack_opt]
+    library_dirs = /home/lampam/data/local-install/lib
+    libraries = lapack, ptf77blas, ptcblas, atlas
+
+(`/home/lampam/data/local-install/lib`, of course, being the location of
+ the linked `.so` files without version numbers)
+
+4.  You can use pip!
+
+    pip install numpy
+
+5.  Before installing scipy (that takes forever), verify that numpy
+    was able to find and link them correctly:
+
+    $ python3
+    Python 3.4.3 (default, Apr  8 2015, 10:26:55) 
+    [GCC 4.8.1] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import numpy
+    >>> numpy.__config__.show()
+    atlas_threads_info:
+        library_dirs = ['/data/lampam/local-install/lib']
+        language = f77
+        define_macros = [('ATLAS_INFO', '"\\"3.8.4\\""')]
+        libraries = ['lapack', 'ptf77blas', 'ptcblas', 'atlas']
+    
+    [ ... snip ... ]
+
+    blas_opt_info:
+        library_dirs = ['/data/lampam/local-install/lib']
+        language = c
+        define_macros = [('ATLAS_INFO', '"\\"3.8.4\\""')]
+        libraries = ['ptf77blas', 'ptcblas', 'atlas']
+    atlas_blas_threads_info:
+        library_dirs = ['/data/lampam/local-install/lib']
+        language = c
+        define_macros = [('ATLAS_INFO', '"\\"3.8.4\\""')]
+        libraries = ['ptf77blas', 'ptcblas', 'atlas']
+    lapack_mkl_info:
+      NOT AVAILABLE
+
+
+
+
+#------------  Update 2015-09-15
+
+If I ever want to make a full guide for building from scratch, it
+is necessary to include how to build python.  Here's a start.
+
+    MY_PREFIX=/data/$USER/anywhere-u-like
+
+(and add that-path/bin to your PATH)
+Download python source from website.
+
+    tar -xzf Python-2.7.10.tgz
+    cd Python-2.7.10
+    ./configure --prefix=$MY_PREFIX
+    make && make install
+
+To install packages easily you want `pip`.
+Python3 will automatically install it.
+Python2 on the other hand appears to *include* it, but does not automatically install it.
+To install pip after installing Python2.7 (from the command line):
+
+    python -m ensurepip
+
+============================
+
+VIM CommandT plugin
+
+For searching files
+
+(get pathogen first; it lets you install vim plugins by cloning
+ an appropriately-structured repo into .vim)
+
+    sudo apt-get install rake ruby-dev
+
+    cd ~/.vim/bundle
+    git clone https://github.com/wincent/command-t.git
+
+    cd command-t
+    git submodule init
+    git submodule update
+
+    make
+
+    cd ruby/command-t
+    ruby extconf.rb
+    make
+
+I also had trouble with another plugin (TaskList) stealing the `<Leader>t`
+keybind.  The solution was to explicitly map something to `<Plug>TaskList`
+in `~/.vimrc` (`:TaskList<CR>` won't do), as `TaskList` only sets its own
+default keybinds when the user hasn't set one.
+
+
+======= INPUT/OUTPUT ERROR (BAD BLOCKS) =======  May 24 2015
+
+The night before finishing my backup scripts (the irony), my laptop incurred
+a small fall, and a couple of files on my SSD had become compromised by bad
+blocks (whether or not these two events are actually related is anyone's
+guess!).  This caused a number of tools to spit out the phrase "Input/output
+error" when attempting to read certain files, including `rsnapshot` (which
+ran the day prior with zero errors).
+
+(note this was from a 1 foot drop onto a carpeted floor. Clearly I should
+ have dropped it from a 3rd story building instead!
+ https://youtu.be/j4cK0L__B9U )
+
+Here is how I identified and dealt with them.
+
+## Identifying bad blocks
+
+Bad blocks can be identified with the tool `badblocks`. The affected drive
+must be unmounted (this means booting via a live USB if the affected
+filesystem is /).
+
+You must supply `badblocks` with an appropriate block size (or prepared to
+convert the numbers it gives you!)  To determine your drive's block size:
+
+    # tune2fs -l /dev/sdXY | grep Block
+    Block count:              61035008
+    Block size:               4096
+    Blocks per group:         32768
+
+Supply it with the `-b` option to `badblocks`:
+
+    badblocks -vs -b 4096 -o badblocks.log /dev/sdXY
+
+(`-s` gives a progress meter, `-v` is verbose)
+
+## Identifying owners of bad blocks
+
+(it is okay for the drive to be mounted during this)
+
+THE FOLLOWING IS FOR ext2/ext3/ext4 FILESYSTEMS ONLY.
+You can find the corresponding inodes and files via `debugfs`, which works
+like an interpreter.  The command `icheck` maps blocks to the inodes that
+own them, while `ncheck` maps inodes to files.
+
+    # debugfs
+    debugfs 1.41.3 (12-Oct-2008)
+    debugfs:  open /dev/sdc1
+    debugfs:  icheck 15757325 15757340 15765044 15765082 15765209 16093175
+    Block	Inode number
+    15757325	3542957
+    15757340	3542957
+    15765044	3934205
+    15765082	3934229
+    15765209	3934333
+    16093175	3156031
+    debugfs:  ncheck 3542957 3542957 3934205 3934229 3934333 3156031
+    Inode	Pathname
+    3156031	/usr/lib/llvm-3.4/lib/libLLVMAnalysis.a
+    3542957	/usr/local/lib/python2.7/dist-packages/numpy/core/multiarray.so
+    3542957	/usr/local/lib/python2.7/dist-packages/numpy/core/multiarray.so
+    3934205	/usr/share/doc/mousetweaks/NEWS.gz
+    3934229	/usr/share/doc/nano/faq.html
+    3934333	/usr/share/doc/openssh-client/faq.html
+
+## Resolving the badblocks
+
+In my case, all the bad blocks above are in files that belong to programs
+which could be reinstalled, so I reinstalled them
+(`sudo apt-get install --reinstall`, `sudo pip2 install --force --upgrade`),
+causing new versions to be written into healthy blocks.
+
+I checked `debugfs` to watch the blocks become unused.  To my surprise, a
+couple were re-used by the "updated" files.  I'm not too sure how to
+interpret this; perhaps those blocks may have been healthy after all (they
+just needed to be written to again).  Or maybe the device remapped them to
+safe blocks at an even lower level than is visible in these tools.  I'm
+not sure how it all works. :P
+
+(I plan to check by running badblocks again, but I can't promise I'll
+ come back to update this)
+
+
+-------------------------
+UPDATE: Sunday 1 May 2016
+
+Something kind of funny:  Take a look at this failed file list:
+
+ERROR: home/lampam/Dropbox/ARTZ/FMBA/[LonE]_Nakagawa_Shoko_-_Fullmetal_Alchemist_Brotherhood_ED5_Single_-_RAY_OF_LIGHT_[w_scans]_(FLAC)/Scans/05.jpg failed verification -- update discarded.
+ERROR: home/lampam/dd-vaspruns/true-relax/WHAT-IS-WRONG/All-0.1-1e-5-1e-4-5/1.27/stubborn-workdir/WAVECAR failed verification -- update discarded.
+ERROR: home/lampam/dd-vaspruns/true-relax/WHAT-IS-WRONG/Damped-0.4-1e-5-1e-4-0/1.27/stubborn-workdir/WAVECAR failed verification -- update discarded.
+
+Interesting how two of the paths are so similar.  Not sure what to make of it... pure coincidence?  
+
+======= INSTALLING GIT ON KOMODO =======  May 26 2015
+
+( FAILED ATTEMPT - KEPT FOR HISTORICAL PURPOSES ONLY )
+
+A naive build from source with no special flags resulted in this:
+
+    [lampam@komodo build]$ git clone https://github.com/ExpHP/circuit.git
+    Cloning into 'circuit'...
+    fatal: Unable to find remote helper for 'https'
+
+Had to build libcurl.
+
+## building `libcurl`
+
+  HUGE P.S. I just now noticed `/usr/local` on matisse doesn't have anything
+   in it, so the ssl flag below only enabled ssl (without correctly specifying
+   which copy to link).  I *intended* to set `--with-ssl=/usr`, as that appeared
+   to be the newest copy.
+
+Configured curl with the following: (not sure if `ssl`
+was required for `git`. The `./buildconf` instruction is mentioned in a file
+called `GIT-INFO`)
+
+    # after unpacking a source archive from https://github.com/bagder/curl
+    cd curl-master
+    ./buildconf
+    ./configure --prefix=/home/lampam/data/local-install --with-ssl=/usr/local
+
+Building eventually resulted in this error:
+
+    gcc -DHAVE_CONFIG_H -I../include/curl -I../include -I../include -I../lib -I../lib -DBUILDING_LIBCURL -DCURL_HIDDEN_SYMBOLS -I/usr/kerberos/include -fvisibility=hidden -O2 -Wno-system-headers -MT libcurl_la-openssl.lo -MD -MP -MF .deps/libcurl_la-openssl.Tpo -c vtls/openssl.c  -fPIC -DPIC -o .libs/libcurl_la-openssl.o
+    vtls/openssl.c: In function 'ssl_msg_type':
+    vtls/openssl.c:1490: error: 'SSL3_MT_NEWSESSION_TICKET' undeclared (first use in this function)
+    vtls/openssl.c:1490: error: (Each undeclared identifier is reported only once
+    vtls/openssl.c:1490: error: for each function it appears in.)
+
+RESOLUTION was -- and I kid you not -- opening `vtls/openssl.c`, finding the
+ line for `#include <openssl/ssl.h>` and adding `#include <openssl/ssl3.h>`
+ under it.  (apparently, some versions of the `ssl` library include `ssl3.h`
+ from `ssl.h`.  This one evidentally doesn't.)
+
+## building `git`
+
+If you have already built a (non-working) version of `git`, you MUST `make clean` before continuing:
+
+    make clean
+
+    # in an unpacked source archive from https://github.com/git/git
+    ./configure --prefix=/home/lampam/data/local-install --with-curl=/home/lampam/data/local-install
+    make && make install
+
+(NOTICE: I spotted the following warnings during the build.  Probably something easily addressed, but
+ I'm not too worried as git seems to be working fine regardless)
+
+    /usr/bin/ld: warning: libssl.so.1.0.0, needed by /home/lampam/data/local-install/lib/libcurl.so, may conflict with libssl.so.6
+    /usr/bin/ld: warning: libcrypto.so.1.0.0, needed by /home/lampam/data/local-install/lib/libcurl.so, may conflict with libcrypto.so.6
+
+Using `git` afterwards required this:
+
+    LD_LIBRARY_PATH=/cm/local/apps/openssl/lib64/
+
+-----------------------------------------
+
+Update: It doesn't work.  `git clone` says it is cloning but then
+simply does nothing and returns.
+
+The version of ssl in `/usr` is actually not the most recent. (`ssl3.h` for
+that version lacks `SSL3_MT_NEWSESSION_TICKET`!!!).  So you do want to link
+against the one in `/cm/local/apps/openssl/lib64/` from the start.
+
+But even with that modification, the steps above still don't produce
+a working copy of `git`.  I give up.
+
+====== LAPTOP NOT ENTERING SLEEP MODE ======= 11 June 2015
+
+some tags: sleep, ThinkPad
+
+Finally found it!!!!!!!!!!!!!
+
+The issue is with the module `e1000e` (for the networking card).
+I found it is sufficient to simply restart it.  I.e.
+
+    sudo rmmod e1000e
+    sudo modprobe e1000e
+
+EDIT: oops, looks like I already found this out :P (it's one of the first entries in this file!)
+NOTE TO SELF: Don't just write documentation.  Use it!!!
+
+============ UNISON VERSION ANTICS ============ 3 August 2015
+
+Because unison versions on both hosts must match (and putting it on the
+remote servers involves laboriously compiling it on every machine), I
+marked the `unison` and `unison-gtk` packages as held at version 2.40.102.
+
+Additional notes: 15 August 2015
+
+Not only must the version of `unison` match, but they must be built
+against the same version of `ocaml` as well!
+
+On Server
+ - Go check what versions of ocaml/unison are available on the repos for your own computer first to make
+   life easier; Building the gtk client on your own is unfun.
+ - ocaml: go to https://ocaml.org/releases/ , pick a version, page has direct link to a source tarball.
+     ./configure -prefix /where/to/install
+     make world.opt
+     make world      # added 28 Jan 2016; see note below
+     make install
+   (NOTE: according to the ocaml docs, world.opt is intended to be equivalent to
+    "make world opt opt.opt"
+
+ - unison: go to http://www.cis.upenn.edu/~bcpierce/unison/download.html , the buttons underneath
+    "official releases" point to file-serving pages from which a tarball is available.
+     make UISTYLE=text
+
+On own computer
+ - If at all possible, get from the repos instead (but ocaml/unison versions MUST match the servers).
+   But if you must build it, you need...
+
+ - ocaml: see above for On Server
+
+ - camlp4: https://github.com/ocaml/camlp4
+    need to checkout a branch corresponding to ocaml version
+       make all
+       make install
+
+ - lablgtk2: http://lablgtk.forge.ocamlcore.org/
+  I think lablgtk2 is sensitive to ocaml version as well, but so far as I can tell the only way to
+  figure out the right version is to scour the changelog (linked underneath the latest source download).
+  You're on your own here. When I built 2.14 with ocaml 4.02, there was no indication of any issue at
+  all until I finished compiling unison and ran it (at which point it segfaulted)
+    `make` target is `world`
+
+    * NOTE: I needed libgtk2.0-dev (NOT libgtk-3-dev)
+    * NOTE: (28 Jan 2016) When I tried following these notes, I got
+        configure: error: Cannot find camlp4o
+      and saw that /usr/local/camlp4o.opt exists but not /usr/local/camlp4o .
+      * No, you can't fix this with a symlink. (camlp4o "doesn't know what to do with xxx.cmo")
+      * The following did work for me:
+           - go to ocaml build dir, 'make world' and 'make install'
+           - go to camlp4 build dir, './configure', 'make', 'make install'
+        After which /usr/local/camlp4o exists.
+      * So contrary to what the ocaml docs say, I do not believe 'make world.opt' includes
+         'world' (and if you look at the Makefile, it doesn't; at least not directly...)
+
+ - unison: `make`
+    The very first line it prints will be `UISTYLE = gtk2` if the right dependencies were met,
+    or `UISTYLE = text` otherwise.
+   (if you build it yourself like this, the binary will be `unison`, not `unison-gtk`)
+   * DON'T BE ROOT for `make install` as it defaults to $HOME/bin, surprisingly
+
+
+UPDATED NOTES 28 Jan 2016:
+  * On my desktop PC I had to move the unison binaries afterwards from ~/bin to
+     /usr/local/bin, because otherwise I would get 'bash: unison: command not found' when
+     attempting to connect to the PC remotely with unison. I haven't the slightest idea why,
+     though, because it works just fine on the supercomputers (maybe they have a setting that
+     causes .bashrc to get sourced whereas my desktop pc doesnt?)
+
+
+
+============ SSH HOSTS ============ 3 August 2015
+
+host aliases for ssh go in `.ssh/config`, which I keep in the data dir here.
+
+UPDATE: 20 January 2016
+
+For reliably connecting to computers on the local network, give them static IPs. See below.
+(while you CAN just use their hostnames under certain (unknown) conditions, I found that it is
+ possible for the hostname to instead resolve to the router's outward, internet-facing IP)
+
+=========== SETTING A STATIC IP ========= 20 January 2016
+
+**********************************************************************
+*** UPDATE:  THERE IS ANOTHER (QUITE POSSIBLY BETTER) ALTERNATIVE! ***
+*** Search this document for "DHCP reservation"                    ***
+**********************************************************************
+
+Static IPs and DHCP can in fact coexist!  This is because DHCP only assigns from a limited range.
+You can safely choose any address in the local subnet except for the following:
+
+    192.168.1.0      - This identifies the subnet as a whole
+    192.168.1.100-49 - These are the DHCP addresses
+    192.168.1.255    - Broadcast address
+
+In the Edit Connection dialog for your SSID, under the "IPV4 Settings" tab, set Method = Manual,
+and address to whatever you want (given the restrictions above).
+Netmask is the subnet mask (255.255.255.0).
+Gateway is the router's local IP (at least, that's what I used and it works...).
+
+There's a confusing checkbox on the page about forcing IPv4 (the label and the hover tooltip seem
+to give contradictory descriptions). I left it in its default state (which was unchecked).
+
+NOTE: Even using DHCP, websites that test IPv6 connectivity report that I am unable to use IPV6,
+regardless of the state of this checkbox. No idea what's up with that.
+
+
+=========== STATIC IPS THROUGH DHCP ========= 1 February 2016
+
+On some routers it is in fact possible to assign a static IP through DHCP.  This is
+known as a "DHCP reservation".  This causes the router to assign a fixed IP to a single
+device by MAC address.  Compared to static IPs, this obviously has the advantage that
+the router is actually involved in the process.
+
+On the FiOS ActionTec router, one can configure a static connection through DHCP by going to
+
+    1. Connect the device to the router normally using DHCP.
+    2. Go to the router config page
+    3. Advanced >> Routing >> IP Address Distribution >> Connection List
+    4. Click the edit button on the right next to your device.
+    5. Check the box labeled "Static Lease Type", hit Apply. (if you want a different IP
+       other than the one currently active, hit Apply anyways then click the Edit button
+       again; after doing so, it will be possible to edit the IP field)
+
+============ DNS NOTES =========== 5 September 2015
+
+Editing `/etc/resolvconf/resolv.conf.d/base` did not work for me.
+
+I decided to do it in the Edit Connections window.  Edit the connection
+for your SSID, go to IPv4, change mode to "DHCP (Addresses only)", and
+set DNS servers "8.8.8.8,4.4.4.4".
+
+============ PASSWORDLESS LOGIN TO SERVERS ======= 10 September 2015
+
+    ssh-keygen
+
+    ssh-copy-id user@server
+
+Greatest thing ever.
+
+============ HIBERNATION ================= 23 September 2015
+
+To my understanding, hibernation is only enabled by default for a whitelist
+of laptops which are known to not have trouble waking from hibernation.
+It must be explicitly reenabled on others.
+
+The method to reenable it seems to keep changing between versions of Ubuntu,
+so I won't mention anything here.
+
+Also, for some versions of ubuntu, the battery level defined as "critical" is
+REDICULOUSLY LOW; it only starts trying to hibernate/shutdown at about 2%
+battery (which typically doesn't end well).  In 14.04, this can be adjusted
+via `dconf-editor` under `org.gnome.settings-daemon.plugins.power`.
+
+
+EDIT 7 October 2015:  ALSO ALSO ALSO!!!   At the bottom of that same page,
+note that there is 'use-time-for-policy' which defaults to ON.
+When it is ON, it ignores 'percentage-action' and uses 'time-action' instead.
+
+=========== VIM AND PYTHON 3 ============= 2015 16 October
+
+
+    TODO: FINISH!!!!!!!
+
+    git clone https://github.com/b4winckler/vim
+    ./configure \\
+      --enable-perlinterp \\
+      --enable-rubyinterp \\
+      --enable-cscope \\
+      --enable-gui=auto \\
+      --enable-gtk2-check \\
+      --enable-gnome-check \\
+      --with-features=huge \\
+      --enable-multibyte \\
+      --with-x \\
+      --with-compiledby="xorpd" \\
+      --enable-python3interp \\
+      --enable-luainterp \\
+      --enable-tclinterp \\
+      --with-python3-config-dir="$(python3-config --configdir)" \\
+      --prefix=/opt/vim-py3
+    sudo update-alternatives --install /usr/bin/vim vim /opt/vim-py3/bin/vim 100
+
+====== COMPILING VASP -- BGQ EDITION ======= 30 October 2015
+
+I used Makefiles provided by Neerav;  @@@@TODO@@@@ put in files
+
+The necessary compilers on BGQ are provided by the `xl` module, but there
+are two options: standard `xl`, and a 'thread safe' version `xl_r` required
+for parallel code ('r' stands for reentrant).
+
+For building `vasp.5.lib`, used `module load xl`.
+(this is what Neerav said he used as well)
+Neither him nor I have tried building exclusively with the `xl_r` module.
+
+On first compilation attempt for the libs, I got this:
+    $ make
+    cpp -P -C   preclib.F >preclib.f90 
+    mpixlf90   -O3 -qstrict -qfree=f90 -qhot -qarch=qp -qtune=qp   -c -o preclib.o preclib.f
+    "preclib.f", line 8.6: 1514-220 (S) Module symbol file for module preclib.mod is in a format not recognized by this compiler. Please compile the module with this compiler.
+    ** preclib   === End of Compilation 1 ===
+    1501-511  Compilation failed for file preclib.f.
+    make: *** [preclib.o] Error 1
+
+
+When building the libs, `make` produced an error about `preclib.mod` having
+an unrecognized format. This appears to be because I grabbed the source from
+code previously built elsewhere (and `make clean` doesn't remove this file).
+*Simply renaming `preclib.mod` resolved the error.* (and yes, a new one was
+generated during compilation)
+
+Don't need to do anything with the built libs other than have `vasp.5.3.3/`
+and `vasp.5.lib/` in the same directory; the vasp5.3 Makefile uses relative paths
+for locating the libs, and links them statically. I think.
+
+Before building vasp, `module unload xl` and `module load xl_r`
+
+There are, in fact, syntax errors in the source files which may need to be
+corrected. Perhaps these go uncaught due to 'quirks' which differ between our compiler
+and the ones used by the vasp crew. (makes me just a bit worried about how many
+such quirks cause changes in behavior which DO get compiled...)
+
+
+
+(November 13: 2015:  em, looks like I got interrupted there...  In any case, the modifications
+ that need to be made to the source files are not that hard to figure out.  Also, IIRC there is
+ a step near the end where xl_r causes problems again and you can do the rest with xl.  But I
+ might be getting it confused with the vasp 5.4 build process...)
+
+
+====== INTERACTIVE PLOTS IN MATPLOTLIB ======= 13 November 2015
+
+a.k.a. HOLY SHIT THEY EXIST (and they have for a... long time)
+
+But not without a little bit of work, first (at least for python3 users).
+
+    import matplotlib.pyplot as plt
+    plt.ion()
+    fig,ax = plt.subplots()
+
+After this, *a figure window should now be open*.
+Of course, I found that while it worked fine on Python2, *it did not work for me on Python 3*.
+
+Insofar as I can tell, this is because `matplotlib` was set up to use `tk` bindings in Python 2,
+but to use `gtk3` bindings in Python 3.
+
+To resolve this issue, install the header files for `tk`, and build `matplotlib` from source.
+
+    sudo apt-get install tk-dev
+    git clone https://github.com/matplotlib/matplotlib
+    cd matplotlib
+    sudo python3 setup.py install
+
+After doing so, I found that `matplotlib` still defaults to `gtk3` in Python 3... fixing this
+requires either invoking `plt.switch_backend('TkAgg')`, or, even better, you can use `ipython`:
+
+    $ ipython3
+    In [1]: %matplotlib tk
+    In [2]: import matplotlib.pyplot as plt
+    In [3]: fig,ax = plt.subplots()
+
+and there's probably a config file somewhere you can modify to change the default but who cares.
+...scratch that, I do care, so I found this (your path may vary):
+
+    /usr/local/lib/python3.4/dist-packages/matplotlib-1.5.0_342.g5ac32f3-py3.4-linux-x86_64.egg/matplotlib/mpl-data/matplotlibrc
+
+Copy it to `~/.config/matplotlib/matplotlibrc`, fix the backend line to TkAgg, done.
+
+
+====== VESTA CRASHES ON POSCAR ======= 22 December 2015
+
+keywords: vesta, hang, locks up, disk thrashing, poscar
+
+If your file extension is ".poscar", change it to ".vasp".
+This is for two reasons:
+ * vesta crashes whenever an invalid file extension contains "sca", instead of
+   erroring on an unknown extension
+   (I can only imagine that this has to do with the fact that it supports a
+    filetype with extensions ".sca" and ".scat", and probably does a substring
+    search for "sca" to catch both)
+ * it wouldn't recognize ".poscar" as an extension anyways, even if it didn't
+    crash!
+
+For now I have a wrapper script for vesta which checks for this mistake and
+refuses to run.
+
+====== APTITUDE FLAT LIST ======= 14 January 2016
+
+One of the things that always bothered me about aptitude was how packages can be
+listed in more than one section, causing them to appear multiple times (which can
+easily throw you off while searching by making you think you've already looped
+through the whole list).
+
+Just today I realized that there is a setting under `Options >> Preferences`
+ labeled `Display flat view instead of default view on startup`.
+
+Greatest thing ever.
+
+====== MY DESKTOP PC AND LANGAUGE PACKS ======= 18 January 2016
+
+So today I finally decided to re-look into the issue of why my Windows 7
+desktop computer is in Japanese, because I had forgotten the details.
+This time, I'll record my findings:
+
+* The reason I cannot find language packs in Windows Update is because the
+  PC has Windows 7 Professional Edition.  Language packs require
+  Windows 7 Ultimate Edition.
+  (this is, of course, also the reason Microsoft does not provide a download
+   for the English language pack on their website)
+
+* How did I get it into Japanese in the first place?  To be honest...
+  I have no clue!  I can only imagine that it must've involved reinstalling
+  the OS...!
+
+* In other words, my computer is stuck in Japanese pending me finding the
+  installation disk and reinstalling the OS in English.  Fun.
+
+====== FUCK MULTIARCH ON UBUNTU ======= 19 January 2016
+
+The title was "fuck wine", but I think we all know the true cause of my pain here...
+
+This is my... what is it now, 5th attempt to build wine from source on a 64-bit system?
+As always, it ends in tragedy.
+
+Found this: https://wiki.winehq.org/Building_Biarch_Wine_On_Ubuntu
+
+Followed it more or less to the letter, dependencies aside.  That is:
+
+    # assuming all the build-deps for wine are installed on both your system, as
+    #  well as a 32-bit lxc named my32bitbox:
+    # PART 1:  Setup and building 64 bit
+    cd ~/build
+    mkdir wine
+    git clone git://source.winehq.org/git/wine.git wine-src
+    mkdir build-wine64
+    mkdir build-wine32-tools
+    mkdir build-wine32-combo
+    cd build-wine64
+    ../wine-src/configure --enable-win64
+    make -j9
+
+    # PART 2:  Working inside the LXC
+    sudo lxc-start -nmy32bitbox
+    
+    cd build/wine/build-wine32-tools
+    ../wine-src/configure
+    make -j9
+    
+    cd ../build-wine32-combo
+    ../wine-src/configure --with-wine64=../build-wine64 --with-wine-tools=../build-wine32-tools
+    make -j9
+    sudo make install      # to force some additional bits of compilation
+    
+    sudo shutdown -h now   # to exit the lxc
+
+
+At this point, the guides say it is time to `make install` on your real system, first
+in `build-wine32-combo`, then in `build-wine64`. This may have been true at some point in time,
+but it is no longer.
+
+If you try to do `make install` on wine32-combo, then a command in the makefile will automatically
+ regenerate a single source file, 'lib/wine/version.c', causing a recompilation of 'version.o'
+ (in 64 bit!), and re-linkage of linwine.so (which now complains very loudly about how we are
+  mixing 64 bit and 32 bit!!).
+
+Thus, we must prevent the extraneous update to version.c.
+
+    # PART 3:  Additional hack number 1
+    cd ~/build/wine/build-wine32-combo
+    cp libs/wine/Makefile{,.bak}  # make a backup
+    vim libs/wine/Makefile
+    # find the line
+    #    version.c: dummy
+    # and change it to
+    #    version.c:
+
+You may want to revert this change after you install it successfully.
+But we're not done yet!  If you try to install it now, it still dies on the following command:
+
+./../build-wine32-tools/tools/winebuild/winebuild  -w --def -o dlls/dinput/libdinput.def --export ../wine-src/dlls/dinput/dinput.spec
+
+with a 'command not found' error.  This is because './../build-wine32-tools/tools/winebuild/winebuild'
+is an ELF32 executable.  Certainly however this line already served its purpose when we built and
+installed inside the LXC, so we can simply prevent this line from running as well.
+
+... but because I'm not sure precisely WHY it's running, we'll just comment it out.
+
+    # PART 4:  Additional hack number 2
+    $ vim Makefile
+    # Search for 'libdinput.def'
+    # Find the matching line that begins with $(WINEBUILD)
+    # Insert a hash ('#') between the tab and the $.
+
+    # PART 5:  The true installation
+    # Do 32-bit first:
+    cd ~/build/wine/build-wine32-combo
+    sudo make install
+    cd ../build-wine64
+    sudo make install
+
+One more thing... we need the 32 bit libraries that wine depends on in 64bit!
+
+If you have previously installed wine from the repos, you will already have them.  If not,
+here's a moderately easy yet moderately tedious way to get them:
+
+    0. sudo apt-get update && sudo apt-get upgrade  (to avoid encountering extraneous conflicts)
+    1. sudo aptitude
+    2. select wine
+    4. hit 'g'
+    5. deselect the things with 'wine' in the name at the end of the list
+    6. now manually go back up the list and reselect all the things that don't have 'wine' in the
+       name.
+
+(amusingly, when I did this, I left out step 0, and encountered a conflict when selecting wine.
+ The first suggestion involved uninstalling 10 packages, including linear algebra packages that
+   my research depends heavily on.
+ The second suggestion was to install 1 update.)
+
+
+...Alas, this build is still not 100% successful.
+
+I tested it on Remar's Herocore.  The game was capable of:
+
+    * Producing a window (this alone is an achievement well beyond any of my previous builds)
+    * Displaying a splash image on load
+    * Capturing the mouse
+    * Going fullscreen
+    * Setting the titlebar text
+    * Responding to keyboard input (F4 toggles fullscreen, F12 closes)
+
+It was not capable of
+
+    * Displaying any graphics.  (the entire window was black)
+    * Producing any audio.  (Nor could Wine itself, when clicking the Test button in winecfg)
+
+So while the game did appear to be, for all intents and purposes, *ACTUALLY RUNNING!!!!*...
+it was completely unplayable.
+
+...back to Windows it is, I suppose...
+
+====== GRUB CONFIGURATION FROZE, AAHHHHHHH!!!! ======= 25 January 2016
+
+Here's some nightmare fuel for you:
+
+* Picture that, one day, you run a routine apt-get upgrade (or Update Manager),
+   and you notice that things are taking a while.  The last messages you see are
+
+    ...
+    Generating grub configuration file ...
+    Found memtest86+ image: /boot/memtest86+.elf
+    Found memtest86+ image: /boot/memtest86+.bin
+    Found Windows 7 (loader) on /dev/sda1
+    Found MS-DOS 5.x/6.x/Win3.1 on /dev/sdb1
+    █
+
+  where the '█' indicates a blinking cursor that is quite emphatically *not* proceeded
+  by a bash prompt.
+
+* When you are done screaming and running around in circles, check if you have a USB flash drive
+  inserted; perhaps some terrible one you got from an event, which has an awful, indestructible
+  partition hidden on it which is supposed to open a website when you insert the drive in Windows.
+  (man, screw those people)
+* Unmount said drive and remove it. (also burn it)
+* Hopefully, the configuration should have now finished.  If not... good luck.
+
+For future reference, here is how I determined that the flash drive was the issue:
+
+    ps faux
+
+The 'f' flag is something wonderful I never knew about; it prints a process FOREST!
+With this, I was able to locate the guilty processes: (edited for width)
+
+root  23395  | \_ run-parts --verbose --exit-on-error --arg=3.16.0-59-generic --arg=/boot/vml
+root  25685  |     \_ /bin/sh /usr/sbin/grub-mkconfig -o /boot/grub/grub.cfg
+root  26710  |         \_ /bin/sh /etc/grub.d/30_os-prober
+root  26714  |             \_ /bin/sh /etc/grub.d/30_os-prober
+root  26715  |                  \_ /bin/sh /usr/bin/os-prober
+root  27292  |                 |   \_ /bin/sh /usr/lib/os-probes/50mounted-tests /dev/sdc1
+root  27373  |                 |       \_ grub-mount /dev/sdc1 /var/lib/os-prober/mount
+root  26716  |                 \_ tr   ^
+root  26717  |                 \_ paste -s -d  
+
+The line which should stand out here is the one ending in 'sdc1'.
+A quick `ls -l /dev/disk/by-id` revealed that /dev/sdc is the flash drive.
+
+...Unfortunately, this was only after I had already killed several update-related processes
+in an attempt to make it possible to unlock the dpkg lock file so I could follow
+the steps here: (DON'T!!!)
+
+    http://askubuntu.com/questions/703590/got-stuck-when-updating-from-15-04-to-15-10-generating-grub-config-file
+
+My discovery of the 'ps f' flag was because I wanted some sort of idea with regards to which
+of the processes involved would be safest to kill.
+
+
+If you want to test your grub configuration after all is done, you can try this:
+
+    sudo apt-get install grub-emu
+    grub-emu
+
+This will at least let you see the list.  Fair warning: I personally found that I was unable
+to use the keyboard in grub-emu, which sucks because AFAICT the only proper way to exit it is
+to 'c' for a command line and type 'reboot'.  It also is unresponsive to SIGTERM, so I had to
+`kill -9` it.  Ick...
+
+
+====== SSHD more securely ======= 28 January 2016
+
+There are a number of things you can do to make port forwarding to SSH safer, but
+after thinking through a few (and trying them out), this one wins by far:
+
+First, set up passwordless authentication through ssh-copy-id.
+
+Then edit /etc/ssh/sshd_config add the lines:
+
+    PasswordAuthentication no
+    ChallengeResponseAuthentication no
+
+Now no other devices than yours can ssh in, even if the password is known.
+
+
+
+=========== NOTES ON ACTIONTEC CONFIG ========= 1 February 2016
+
+Because Dad is paranoid that I did something to slow down our internet connection
+a couple days ago, I'll try to sort out all of the things I've done here.
+
+* Around 20 Jan, I set a static IP but did not change the DHCP address range. (so my "fixed" IP
+  was still considered a DHCP address).  I cannot think of any config changes I made on this date.
+* 28 Jan: Modified DHCP address range to a smaller window. (reverted 1 February)
+* 28 Jan: Enabled IPv6.  (reverted 1 February)
+* 1 Feb: Set a static lease through DHCP for my PC.  (still in effect)
+* 10 Feb: Changed the DNS servers to ones that do not hijack results
+      with Verizon SearchAssist.
+   (this is under My Network >> Network Connections
+      >> Broadband Connection (Ethernet/Coax).  Where the default DNS addresses
+       are x.y.z.12, the searchassist-free ones are x.y.z.14)
+
+If our internet connection suddenly improves from this day onward, we'll know I was at fault.
+(in hindsight... why in heaven's name did I think enabling ipv6 would be without consequence?
+ In this day and age, the only reason I can think of that a feature like IPv6 would be disabled
+ by default would be because they're still working out the bugs!)
+
+============================
+
+=========== DESMUME ========= 9 February 2016
+
+So the desmume gtk port has some pretty terrible performance.
+
+Some flags to try are `--advanced-timing=0` and `--cpu-mode=1`.
+However, another thing to try is this:
+
+    desmume-glade
+
+I found this alone (no extra cli options, no settings in .config) improved
+performance of Nine Persons, Nine Hours, Nine Doors to a satisfactory level.
+I also tried New SMB; FPS started out at a solid 30 (the window bar reports
+60fps; it also LIES), then started to slow down as I played through level 1.
+Eh.
+
+desmume-glade is restricted to integer multiple window sizes, which made me
+really happy until I realized that the only rescaling mode it supports is
+linear.  So I hope you like your games fuzzy.
+
+also,
+
+    OOOOOOWWWCHGODDAMNIT! Gah! What the hell!?
+
+NOTE:
+
+Even better:
+
+    desmume --num-cores=4
+
+This also lets you use nearest pixel (though I can't find a way to save it
+so you have to clickity click click, every time; and make sure to do it BEFORE
+OPENING THE ROM!). Unfortunately I also cannot find a way to force integer
+sizes, but maximizing the window makes it verrrrrrry close to 2x on this 900px
+tall monitor. (note: maximizing, not fullscreen).
+
+The GTK port doesn't seem to have the ability to set the sound buffer size.
+On 'Nine Persons, Nine Hours, Nine Doors', here's what I noticed (during cutscene after
+first escape):
+  SPU Mode: Asynchronous - lots of crackling.  When frame rate slows, pi
+  SPU Mode: Synchronous (N) - no crackling in BGM, but crackling during "the wave".
+  SPU Mode: Synchronous (Z) - zero crackling. Smooth. But speeds up and slows down and
+                              can lag quite a bit behind.  The pitch changes with the speed.
+                              Very bizarre experience overall!
+  SPU Mode: Synchronous (P) - less crackling. Audio stutters during screen transitions.
+resulted in less crackling.
+
+
+------------
+
+UPDATE UPDATE: BEST SOLUTION OF ALL:
+
+Build Desmume. Just do it. Source is on SourceForge.
+Current version fixes pretty much all complaints:
+* Settings are remembered.
+* There are integer window sizes in View >> Window Size.
+* Nine Persons, Nine Hours, Nine Doors runs at a perfect 60 FPS consistently,
+  where previously large character sprites would cause it to grind down to
+  20-30. Have not tested other games.
+
+Remaining issues:
+* Sound still crackles; it depends on the audio track playing.
+ (even though the crackling sounds like what you would hear from a short
+  sound buffer, this is NOT the cause; I tried modifying the source code to
+  use a larger buffer, and while it caused sound effects to be delayed,
+  it did NOT fix the crackling one bit)
+* There are screenshots, but the automatic naming is terrible.  Basically,
+  every time you start Desmume, the first screenshot will be saved to
+  ~/Pictures/desmume-screenshot-0.png, (then -1.png and so on), **overwriting
+  any existing snapshots with those numbers from previous runs.**
+
+
+
+=============================
+
+    export CFG_DISABLE_MANAGE_SUBMODULES=1
+    module load gnu-4.7.2
+
+    http://preshing.com/20141119/how-to-build-a-gcc-cross-compiler/
+    page is pretty recent
+    I got https://www.kernel.org/pub/linux/kernel/v2.6/linux-2.6.32.tar.xz instead
+     to match BG kernel
+
+    In step 2, the relevant edits are:
+    make ARCH=powerpc INSTALL_HDR_PATH=/opt/cross/powerpc64-linux headers_install
+
+ !!! there was no /opt/cross/$TARGET/include/gnu; had to mkdir it
+
+
+  !!!    configure: error: cannot find sources (move-if-change) in ../binutils-2.24 or ..
+      If this occurs I think it is a result of hitting Ctrl+C during download.
+      (when you do this, curl will leave the incomplete file there, and next time
+       you try it will see that a file is already there and won't redownload it)
+
+ !!! Saw this during 5. Compiler Support Library
+
+ In file included from ../../../gcc-4.9.2/libgcc/gthr.h:148:0,
+                 from ../../../gcc-4.9.2/libgcc/libgcov-interface.c:27:
+./gthr-default.h:35:21: fatal error: pthread.h: No such file or directory
+ #include <pthread.h>
+                     ^
+
+     Seems that this is because '-pthread' is not among the flags passed to 'xgcc'
+     but I have no clue why.  My best guess is that it may have to do with the unset
+     statement but that seems silly.
+
+     UPDATE: I now believe that when I got this specific error I had accidentally installed
+     the linux headers under the wrong location.
+
+ !!! before building GCC, got an error about some unknown variable (something like
+     SIZELONG_INT) and a post on StackOverflow said to
+
+         unset LIBRARY_PATH CPATH C_INCLUDE_PATH PKG_CONFIG_PATH CPLUS_INCLUDE_PATH INCLUDE LD_LIBRARY_PATH
+
+     which I guess seems kind of reasonable?
+     NOTICE:  Not 100% sure (I could be fooling myself) but it appears that these
+     really need to be **unset**;  When I don't unset them I run smack into an
+     issue about some invalid syntax "%{%:sanitize(stuff):".
+     One of the many things I tried here was to
+         echo $LIBRARY_PATH $CPATH $C_INCLUDE_PATH $PKG_CONFIG_PATH $CPLUS_INCLUDE_PATH $INCLUDE $LD_LIBRARY_PATH
+     just to see if any were set, and the output was blank.  Further attempts to 'make' would fail
+     at the same spot.
+     On the last failure before I got things working, two things occurred:
+         1. I tried the unset, even though all the variables appeared blank
+         2. I remembered that the correct command at this point is 'make all-gcc'
+            (keep in mind that this IS the target which is in the process of being built
+             when the error ocurs for the first time; it is only on subsequent manual
+             runs that I would accidentally use 'make')
+     And after doing both of these it finished.  I then added the 'unset' line to the script
+     right before 'make all-gcc', and it ran from the very beginning to... the next error.
+     Who knows what would've happened had I simply run 'make all-gcc' without doing step 1?
+
+
+ !!! /home/lampam/build/holy-crap/build-cross/build-glibc/resolv/libresolv_pic.a(res_query.os):(.toc+0x0): undefined reference to `__stack_chk_guard'
+     /home/lampam/build/holy-crap/build-cross/build-glibc/resolv/libresolv_pic.a(ns_samedomain.os):(.toc+0x0): undefined reference to `__stack_chk_guard'
+     /home/lampam/build/holy-crap/build-cross/build-glibc/resolv/libresolv_pic.a(ns_print.os):(.toc+0x0): undefined reference to `__stack_chk_guard'
+
+     Didn't worry about these as there are already what appear to be functional-looking
+     c/c++ compilers cross-compilers in /opt/cross.  Trying them out on rust now.
+
+     ...and rust says that my cross-compiler "cannot produce binaries".
+     ...when I attempt to use gcc directly I get:
+
+         /home/lampam/build/holy-crap/build-cross/glibc-2.20/csu/../sysdeps/powerpc/powerpc64/start.S:80: undefined reference to `__libc_start_main'
+
+     ...and the c++ compiler complains about not being able to find -lstdc++
+     (and rightfully so; we never cross compiled the c++ std libraries)
+
+
+========= CMAKE NOT FINDING FFTW3F ========
+
+    TODO: quote error message
+
+    This is an issue Andrew had when trying to build QSTEM, which uses cmake.
+    When I try building it on Ubuntu I also get the error, despite seemingly having
+     my bases covered in terms of fftw3-related packages.
+
+    Various attempts were made to e.g. set variables to help cmake find the existing
+     libraries. All failed
+
+    Andrew says that after building his own copy of fftw3 manually (and, presumably,
+     installing it to his home directory), cmake found it just fine.
+
+========= IBUS MISBEHAVING =============  2016 May 25
+Today when attempting to Ctrl+D close a terminal window, the machine appeared to
+grind to a halt as the CPU fan audibly sped up.
+Somehow, the "magic" Alt+F2 still worked, and the virtual terminal was very
+responsive in contrast to the desktop.  I was able to find that "ibus-daemon"
+was using ~190% CPU.
+
+Killing it was no use as it would come back immediately upon hitting Alt+F7
+and return to >100% CPU usage.
+
+I found this page: https://bugs.launchpad.net/ubuntu/+source/ibus/+bug/1276186
+
+While the bug is still open, there is the following workaround:
+
+    gsettings set org.gnome.desktop.background show-desktop-icons true
+
+========= rpi_wpa2 CERTIFICATE AUTHORITY TROUBLE =============  2016 June 14
+
+Been having trouble connecting to wifi.
+Today after an odd turn of events it is working under what would appear to be identical
+to its intial settings.
+
+There are some excerpts from /var/log/syslog in ~/scripts/setup-notes/files/2016-06-14-ssl
+
+More or less what happened:
+
+* Had trouble connecting to rpi_wpa2 at union.
+  Saw certificate-authority-related errors in /var/log/syslog.
+  Tried to look into things:
+    - RPI's SSL cert is issued by Internet2 according to some whois site.
+    - It expires August 2016: Two months from now.
+    - Nothing recent on the RPI site mentions anything about this changing.
+    - Various sources (links on RPI site, searches related to Internet2) all lead to the
+      same certificate file: the "AddTrust External Root Certificate", which begins with
+      MIIENjCCAx6gAwIBAgIBATANBgkqhkiG9w0BAQUFADBvMQswCQYDVQQGEwJTRTEU
+* Tried using that certificate specifically (default is a generic 'ca-certificates.crt'). Nothing.
+* Tried Tunneled TLS. Nothing.
+* Went to office.  Still nothing on wifi.  (first excerpt from syslog was around this time)
+* Switched to LEAP authentication.  All of a sudden, wifi. (second excerpt)
+* Tried switching back to PEAP and set all the settings back.
+  Oddly enough... still have wifi! (third excerpt)
+
+UPDATE: Yeah that didn't last long.
+  Back to no wifi under PEAP when I returned to the union.
+  Using LEAP from now on because it works.
+
+========= COMPILING GHC =============  2016 July 5
+
+## Cloning the repo
+
+Instructions here:  https://github.com/ghc/ghc  (DO NOT clone from this URL)
+
+Notable deviations from standard building procedure:
+
+1. You don't clone the github repo, but rather the Glasklow repo:
+
+    git clone --recursive git://git.haskell.org/ghc.git
+
+2. Before `./configure` you must run `./boot`.
+
+## Bootstrapping Issues
+
+Compiling GHC may require a higher version of GHC than is available through the
+canonical repos.
+
+One can add this repo:
+
+    sudo apt-add-repository ppa:hvr/ghc
+    sudo apt-get update
+
+UNINSTALL any preexisting versions of these packages, and install ones with
+version numbers in the name (from the hvr/ghc repo)
+
+    ghc{,-*}
+    cabal-install
+    happy
+    alex
+
+And then --- oh hey, now we have GHC and don't have to build anything, right?
+
+Well... kinda.
+The problem with the hvr/ghc repository is that it doesn't actually install anything.
+It just dumps a bunch of stuff into `/opt/`.
+You can manually edit `PATH` to include all the `various/opt/PROGRAM/VERSION/bin` folders
+it creates, but eh.
+
+## Further Issues
+
+`make` failed for me with
+
+    collect2: error: ld returned 1 exit status
+    `gcc' failed in phase `Linker'. (Exit code: 1)
+
+which appeared to occur during the creation of
+`compiler/stage2/build/libHSghc-8.1-ghc8.1.20160705.so`
+
+At this point I just gave up and added the hvr bin directories to `PATH`.
+
+
+========= COMPILING RUST FOR MUSL =============  2016 August 10
+
+musl would allow static linking of libc in rust so I can build crap for matisse.
+
+I get an error during make:
+
+    compile: x86_64-unknown-linux-musl/rt/compiler-rt/absvdi2.o
+    as: unrecognized option '-mrelax-relocations=no'
+
+Looks like my binutils is too old (have 2.24, need 2.26).
+Time to update to the new LTS 16.04.
+Feels like the last time I did that was just yesterday...
+
+https://gist.github.com/ExpHP/f2aad25aa885988a9245759d9d70f318
+
+
+========= COLOR/FONT SETTINGS =============  2016 August 13
+
+After the Ubuntu reinstall I had a very bumpy ride trying to recover
+all of my terminal settings for vim, gnome-terminal, etc....
+
+Insofar as I can tell:
+
+* I use the Tango theme in `gnome-terminal`.
+* The colors I am used to in vim are the background=light colors
+  for ":colorscheme default"---even though I use a dark background.
+* That colorscheme pulls (mostly) from the 16 configured terminal colors.
+* I decided to make my own variant with brighter colors:
+  https://github.com/ExpHP/brighter.vim
+* The font I use is "Ubuntu Mono derivative Powerline Regular 12".
+
+So that I don't ever have to worry about losing the Tango colors,
+I shall immortalize them here in this text dump of the
+dconf key `org.gnome.terminal.legacy.profiles:.:<UUID>.palette`:
+
+    ['rgb(0,0,0)', 'rgb(204,0,0)', 'rgb(78,154,6)', 'rgb(196,160,0)',
+     'rgb(52,101,164)', 'rgb(117,80,123)', 'rgb(6,152,154)',
+     'rgb(211,215,207)', 'rgb(85,87,83)', 'rgb(239,41,41)',
+     'rgb(138,226,52)', 'rgb(252,233,79)', 'rgb(114,159,207)',
+     'rgb(173,127,168)', 'rgb(52,226,226)', 'rgb(238,238,236)']
+
+========= LATEXMK BUGS =============  2016 August 17
+
+Q: HEEEELP LATEXMK IS FORK-BOMBING ME WHEN I RUN IT FROM INSIDE
+   ANOTHER SHELL SCRIPT
+
+A: latexmk 4.41 is broken. Upgrade it. (4.45 is good)
+
+
+Q: LATEXMK IS DROPPING JUNK ALL OVER THIS DIRECTORY DESPITE
+   ME USING THE -cd OPTION
+
+A: I said latexmk 4.41 is broken!!! Upgrade it, already!
+
+========= Missing Linux Terminal =============  2016 August 17
+
+After the upgrade to 16.04 LTS I would find that Ctrl+Alt+F2
+would sometimes not present a login (just a blinking cursor).
+
+The following links to a VERY BAD SOLUTION, DO NOT DO:
+http://askubuntu.com/questions/162535/why-does-switching-to-the-tty-give-me-a-blank-screen
+
+(adding `nomodeset` to my /boot/grub/grub.cfg not only caused my FPS to
+ drop to shit, but my screen would not turn on after awakening from sleep
+ mode either!)
+
+A small amount of research indicates that `nomodeset` has to do
+with a recent change to how video drivers interact with the kernel.
+Could this recent change have perhaps caused the tables to turn between
+nouveau and proprietary drivers?
+
+I should try installing nvidia drivers again (without nomodeset) and see.
+
+========= Installing Mathematica =============  2016 August 22
+
+You need the install "script" Mathematica_X.X.X_LINUX.sh,
+which is several GB large.
+
+1. For the love of god, CLOSE CHROME.  (you need memory)
+2. Run the installer as root.
+3. It asks for an install path (you'll want to change this since the default
+    is `/usr/local/Wolfram/...` O_o)
+4. No need to babysit as it installs since the only remaining step is brief.
+5. When done it will ask where to put binaries.
+   For reference, this will produce the following symlinks:
+
+       math  mathematica  Mathematica  MathematicaScript  MathKernel  mcc
+
+   Update: Mathematica 10.4 further adds some "wolfram" executables
+
+       math         Mathematica        MathKernel  wolfram        WolframScript
+       mathematica  MathematicaScript  mcc         WolframKernel
+
+6. Note that in addition to the directories you specified it will also
+   have put some stuff in /usr/share/Mathematica.
+
+======= THAT EMULATOR CHIP WAS USING ======= 21 September 2016
+
+ChipCheezum used a multiplatform emulator called "RetroArch"
+in the Gextra Life stream which looked cool, want to try it.
+
+(technically, the emulator is just a frontend for the "libretro" API,
+ which is basically a middleware layer between frontends and emulator
+ cores)
+
+He was using it with Mednafen as the core, which sounds like a
+nice idea, as I don't recall Mednafen having much in the way of
+a frontend on linux.
+
+======= LEANEMACS ====== 16 October 2016
+
+After building lean and trying to run leanemacs, I discovered that there
+were some packages it depends on.  Some of these are on the melpa repository
+which is not avaliable by default.  I had to add this to ~/.emacs:
+
+    (require 'package)
+    (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+    (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
+
+The package list must be explicitly updated before they can be installed:
+
+    M-x package-refresh-contents [RET]
+    M-x package-install [RET] dash [RET]
+    M-x package-install [RET] dash-functional [RET]
+    M-x package-install [RET] f [RET]
+    M-x package-install [RET] s [RET]
+
+After this it is probably worth actually, you know, READING the README:
+https://github.com/leanprover/lean/tree/master/src/emacs
+In particular I needed to add all of this to .emacs:
+
+(notice that lean-rootdir is the *install directory of Lean*,
+ as opposed to something like GOPATH)
+
+    (package-initialize)
+
+    ;; Install required/optional packages for lean-mode
+    (defvar lean-mode-required-packages
+      '(company dash dash-functional flycheck f
+                fill-column-indicator s))
+    (let ((need-to-refresh t))
+      (dolist (p lean-mode-required-packages)
+        (when (not (package-installed-p p))
+          (when need-to-refresh
+            (package-refresh-contents)
+            (setq need-to-refresh nil))
+          (package-install p))))
+
+    ;; Set up lean-root path
+    (setq lean-rootdir "/usr/local")
+    (setq-local lean-emacs-path "/usr/local/share/emacs/site-lisp/lean")
+    (add-to-list 'load-path (expand-file-name lean-emacs-path))
+    (require 'lean-mode)
+
+It was also necessary to install ninja (`sudo apt install ninja`)
+and copy the binary from `/usr/sbin` to `/usr/local/bin`
+
+=========== MENDELEY =========== 24 October 2016
+
+Huh, don't recall having much trouble with the install the first time,
+but this reinstall is proving to be a hassle.
+
+Note: It installs itself on first run.  The "installer" there is just
+for the mendeley: protocol, ignore it.
+
+Some notes:
+
+* UNPACK MENDELEY WHERE YOU WANT IT TO LIVE FOREVER
+  It will install symlinks which point into that directory.
+  (this is in spite of the fact that it also makes hard copies of
+   a bunch of other very large files >_>)
+
+* DON'T RUN WITH AN ACTIVE ulimit -r!!
+  Because mendeley thinks it is entitled to everything.
+
+Also, beware that it puts files in several places.
+I found and deleted stuff at ./local/share/{data,Mendeley\ Ltd.}
+
+
+That said, it looks like the devs had a bit of fun with writing
+messages for consecutive crashes. (Note: tracked in
+"~/.config/Mendeley Ltd./Mendeley Desktop.conf":)
+
+    [CrashReport]
+    consecutiveCrashCount=6
+    lastRunExitedCleanly=false
+    lastRunVersion=1.17.1
+    lastStartTime=1477329538
+
+=========== WIFI ISSUES AFTER SUSPEND ============
+
+After the 16.04 update I frequently find my laptop shows the icon for
+a wired connection in the notification area after awakening from suspend,
+and refuses to display or connect to any wifi networks.
+
+On this thread:
+http://askubuntu.com/questions/761180/wifi-doesnt-work-after-suspend-after-16-04-upgrade
+
+the asker claims that this command reproduces the issue
+
+    sudo service network-manager restart
+
+Although for me, said command resolves it.
+
+To prevent the issue from recurring,
+I created the service script given in the top answer;
+if this section doesn't get updated, then it probably worked.
+
+=========== LINUX KERNEL 4.8.0 ============ December 12 2016
+
+Currently the generic linux image metapackage on Xenial points to 4.4.0,
+but 4.8.0 kernels are available.
+
+These are needed for the perf tool to display annotations from rust source code.
+
+However, it also seems to be causing terrible framerate issues, so I don't think
+I'll be sticking with it for too long...
+
+(search tag: FPS)
+
+=========== WIFI ON DESKTOP IN ARCH ============ February 26 2017
+
+How I got wifi working on the Arch Linux Live USB, on the desktop (which uses
+the Netgear N150 Wireless USB Adapter WNA1100):
+
+Mostly followed this:
+http://linuxcommando.blogspot.com/2013/10/how-to-connect-to-wpawpa2-wifi-network.html
+
+Broad summary:
+
+```
+# iw dev
+phy#0
+        Interface wlp0s18f2u3
+        ...
+# IF=wlp0s18f2u3
+
+# ip link show $IF
+10: wlp0s18f2u3: <BROADCAST,MULTICAST> ...
+# ip link set $IF up
+# ip link show $IF
+10: wlp0s18f2u3: <NO-CARRIER,BROADCAST,MULTICAST,UP> ...
+
+# iw dev $IF link
+Not connected.
+# iw dev $IF scan
+    ...
+    SSID=FiOS-KM0UW
+    ...
+# SSID=FiOS-KM0UW
+# wpa_passphrase $SSID "the-network-password" >/etc/wpa_supplicant/fios.conf
+# wpa_supplicant -B -i$IF -Dnl80211 -c/etc/wpa_supplicant/fios.conf
+# iw dev $IF link
+Connected to my:ma:ca:dd:re:ss (on wlp0s18f2u3)
+...
+
+# ping google.com
+ping: google.com: Name or service not known.
+# dhclient $IF
+# ping google.com
+PING google.com (172.217.4.78) 56(84) bytes of data.
+...
+```
+
+`/etc/wpa_supplicant.conf` is instead an empty directory `/etc/wpa_supplicant`;
+you can just create any file there (it is arbitrary anyways since we manually
+specify the path later).
+
+In `wpa_supplicant`, I needed to swap `-Dwext` out for `-Dnl80211`.
+
+Clean up old `wpa_supplicant` processes after a failed attempt (they will cause an
+otherwise perfectly valid configuration to appear to fail)
+
+
+
+*** VERY IMPORTANT ***
+
+At some point while following the ArchLinux install guide (https://wiki.archlinux.org/index.php/installation_guide)
+you chroot into your soon-to-be-root directory and have the opportunity to
+use `pacman` install various things.
+
+INSTALL ALL OF THE WIFI TOOLS!!!!
+
+    pacman -S iw wpa_supplicant dhclient
+
+=========== ARCH SETUP TODO LIST ============ February 27 2017
+
+Various steps one should not forget while installing Arch:
+
+### During the installation guide:
+
+#### Obvious advice
+
+MAKE DOUBLY SURE YOU DON'T MISS ANY STEPS!
+
+#### pacstrap:
+
+instead of just base, do:  base base-devel
+
+#### grub:
+
+The following installs grub to the MBR, and boots an operating system
+in legacy (BIOS) mode (a.k.a. "not EFI mode"):
+
+    pacman -S grub os-prober
+    # NOTE: don't worry about the x86 target;
+    #       32-bit Grub can boot into a 64-bit operating system.
+    grub-install --target=i386-pc /dev/sdx
+    grub-mkconfig -o /boot/grub/grub.cfg
+
+
+Forgot where you put grub?
+
+    sudo dd if=/dev/sdx bs=512 count=1 2>/dev/null | strings
+
+##### on the T430s...
+
+Setting up the T430s involved quite a bit of running around in circles,
+but ultimately the outcome was this:
+
+* The preinstalled Windows 7 boots through UEFI.  This can be confirmed
+  beyond a shadow of a doubt by booting into windows and searching
+  "C:\Windows\Panther\setupact.log" for "Detected boot".
+  (I found "Detected boot environment: EFI";
+   for Legacy mode it would say "BIOS")
+
+* The Arch Linux Live USB was not booting through UEFI, as made clear by
+  the lack of `/sys/firmware/efi`
+
+* The latter could be fixed in the BIOS settings, by changing "Legacy first"
+  to "EFI first" (or "UEFI First", don't remember the precise name).
+
+Unlike legacy-mode bootloaders, EFI bootloaders must match the architecture:
+
+    # inside the chroot...
+    # (note: incidentally, my /boot is also a separate drive (in hindsight
+    #  I'm not entirely sure what prompted me to do that), so after this
+    #  the path /mnt/boot/efi was literally 3 recursively nested mounts :P)
+    mount /dev/sdx1 /boot/efi
+    pacman -S efibootmgr
+    grub-install  # no args necessary; it will see /boot/efi
+                  #   and do the needful
+    grub-mkconfig -o/boot/grub/grub.cfg
+
+If, upon reboot, you see this: (pay special attention to the UUID!)
+
+    error: no such device: ad4103fa-d940-47ca-8506-301d8071d467
+    Loading Linux core repo kernel ...
+    error: no such partition.
+    Loading initial ramdisk ...
+    error: you need to load the kernel first.
+
+then you forgot to do grub-mkconfig. (The 'ad4103fa' UUID will bring up
+many google results if you search for it, because it is specified
+in the default `/boot/grub/grub.cfg`.)
+
+##### /etc/wpa-supplicant/:
+
+Copy your conf file to the chroot!!!
+And please please please `pacman -S iw dhclient wpa_supplicant`!
+
+### rankmirrors:
+
+Be sure to do this before installing lots of packages.
+(the rankmirrors script is part of the base install, so feel free to
+ wait until after the reboot)
+
+The default `/etc/pacman.d/mirrorlist` is in a format that is easily
+filtered by region. DO THIS! (don't worry, there's an entire 40 mirrors
+in the US alone!)
+
+(rankmirrors will mess up the comments that make this filtering
+ possible, so keep the original, too!)
+
+```
+cp /etc/pacman.d/mirrorlist{,.bak}
+grep --no-group-separator -A1 'United States' /etc/pacman.d/mirrorlist.bak >/etc/pacman.d/mirrorlist.us
+rankmirrors -v /etc/pacman.d/mirrorlist.us >/etc/pacman.d/mirrorlist
+```
+
+### User account:
+
+After the installation guide:
+
+    # (warning: this is from memory)
+    useradd -G wheel -c /bin/bash exp -m
+    visudo           # ... uncomment the line for the wheel group
+    sudo passwd exp  # ... set the password
+    sudo su exp      # try it out
+    sudo su          # (and make sure the new user can 'sudo'!)
+
+### Packages:
+
+These can be installed after chroot to `/mnt` in the installation guide,
+or after booting into the new OS:
+
+    pacman -S iw dhclient wpa_supplicant
+    pacman -S git
+    pacman -S vim emacs
+    pacman -S python{,2}{,-pip}
+    pacman -S ghc ghc-mod cabal-install
+    pacman -S pass gnupg pwgen
+    pacman -S xorg-xinit       # has startx; not part of the 'xorg' group
+
+    NVIDIA CARDS:  xf86-video-nouveau  # many things will install without this,
+                                       # yet appear completely broken
+
+
+### Laptop battery state
+
+    pacman -S acpi
+    modprobe ac    # note: many other drivers exist too (e.g. for temperature)
+    acpi -d
+
+### Dear god that text is so tiny
+
+Try this:
+
+    pacman -S terminus-font
+    setfont ter-132n
+
+See /usr/share/kbd/consolefonts for a list of available fonts.
+
+To make it persistent, add "FONT=ter-132n" to "/etc/vconsole.conf".
+
+### Passwords:
+
+If not done already:
+
+    pacman -S pass gnupg pwgen git
+
+Do NOT do `pass init` (you'll see).
+Also, add this to .bashrc: (assuming this is still the key I use)
+
+    export GPGKEY=6FB78008
+
+(to be honest, I'm not sure if exporting it makes any difference, because
+ I'm not sure if any programs look at this envar; but at the very least,
+ it is useful in some expansions)
+
+#### Transfer `gnupg` keys
+
+**On an old system,** export your gnupg private key (the public key
+is included with it):
+
+    gpg --export-secret-key $GPGKEY >priv.keys
+
+**On the new system:**
+
+Attempt to import the keys.  **This will likely fail;** the point is to make
+gpg automatically create .gnupg with the right set of permissions it wants.
+
+    # NOTE: Expected to fail with "problem with the agent: No pinentry".
+    # or "problem with the agent: (something along the lines of File not Found)"
+    # The purpose for now is to make gpg generate ~/.gnupg.
+    gpg --import priv.keys
+
+The reason it fails is because by default, the gpg-agent tries to start
+some GUI prompt for a password. Let's fix that:
+
+    echo 'pinentry-program /usr/bin/pinentry-tty' >>~/.gnupg/gpg-agent.conf
+    pkill gpg               # kill any broken agents that are still running.
+    gpg --import priv.keys  # this should succeed now.
+
+Oddly, this is enough to let you decode messages with the key, but not
+to encode them with the public key.  For that, you need to "trust" it:
+
+    gpg --edit-key $GPGKEY
+    gpg> trust
+    (give yourself a trust level of 5 and confirm)
+
+That should be it for `gpg`. (for now)
+
+#### Clone the `pass` storage
+
+A bare clone of .password-store is on the external 3.0 TB HDD.
+Mount it to a path that you're comfortable sticking to.
+
+    git clone /mnt/ext4-backup/password-store.git/ ~/.password-store
+
+`pass` should now be fully functional.
+
+...unfortunately, it's a bit tough to use without X window system
+
+#### Let `git` know about the GPG key
+
+If you want, you can sign commits with the GPG key.
+(unfortunately, this will NOT let you bypass the password prompt;
+ you need an SSH key for that)
+
+See this: https://help.github.com/articles/telling-git-about-your-gpg-key/
+and also do this:
+
+    git config --global commit.gpgsign true
+
+#### THINGS I DID ON THE LAPTOP WHILE TRYING TO GET A WORKING DESKTOP, BUT I DON'T UNDERSTAND HOW THE THING I DID THAT MADE IT WORK ACTUALLY MADE IT WORK
+
+This is largely narrative written after the fact.  There are probably factual
+errors and inconsistencies;  I tried my best to reconstruct this from my bash
+history, but that history doesn't include e.g. the error messages I saw!
+
+Okay, so: I tried installing 'i3' (a tiling window manager) and put this in
+`.xinitrc`:
+
+    exec i3
+
+However, inside `i3` I observed the following:
+
+* Super+d just gave a permanent 'wait' cursor (it is supposedly supposed to
+  open a menu)
+* Super+Enter complained that there were no terminals.  After installing
+  `gnome-terminal`, it just gave a permanent 'wait' cursor.
+* Super+Shift+e opened a "are you sure you want to leave"-sort of box at
+  the top.  Clicking "Yes" did nothing. Clicking "Yes" a second time dismissed
+  the bar (but did not exit i3).
+
+Ctrl+Alt+Fing to a new terminal I saw various scary-looking errors from nouveau.
+So I installed the nouveau drivers: (strangely not a dependency of nouveau?)
+
+    sudo pacman -S xf86-video-nouveau
+    sudo reboot
+
+However this did not remove the errors or improve my experience with `i3` (and
+if anything, it just made more errors appear on boot!).  One of those errors
+mentioned IBUS so I decided "hey let's install ibus because why not"
+
+    sudo pacman -S ibus dbus
+    sudo reboot
+    # Nope, still have all these lousy errors
+
+Googling one of the errors led to a forum post where some guy supposedly
+solved all his issues by installing bumblebee. After reading up on:
+
+https://wiki.archlinux.org/index.php/NVIDIA
+https://wiki.archlinux.org/index.php/NVIDIA_Optimus
+https://wiki.archlinux.org/index.php/bumblebee
+
+and knowing that the laptop has Nvidia OPTIMUS, I figured "well gee, what the
+hey" and decided to install bumblebee and the nvidia drivers.
+
+    # (NOTE: there are also nvidia-340xx and nvidia-304xx for legacy drivers;
+    #  to determine what you need, `lspci -nn` to get the pci id numbers
+    #  and search for them here: http://www.nvidia.com/object/IO_32667.html)
+    sudo pacman -S nvidia
+    sudo pacman -S bumblebee mesa-demos
+    sudo gpasswd -a exp bumblebee
+    sudo systemctl enable bumblebeed
+    sudo reboot now
+
+This cleared the nouveau errors, but I think that's mostly just because
+installing nvidia disables nouveau. :P
+I was unable to run the `optirun` tests on the bumblebee page because they
+apparently required a running x session, and `i3` was still unusable.
+
+    lsmod | grep nvidia  # hmm, nothing
+    nvidia-modprobe
+    lsmod | grep nvidia  # okay there's something, but was that necessary?
+    startx               # gah, still sucks
+
+Then I installed `plasma` (the full KDE5 desktop environment),
+and enabled `sddm` (the DM that comes with plasma):
+
+    sudo pacman -S plasma
+    systemctl enable sddm.service
+    sudo reboot
+
+On reboot, SDDM was set to load `i3` by default; it loads i3 (without
+visually clearing the login screen), and i3 is now able to open terminals
+(and it uses gnome-terminal) and be quit out of.  I'm not entirely sure
+why installing a DM would fix that, but then again I'm not entirely sure
+that I've gotten all the details right!
+
+So there ye have it.
+
+...by the way, it turns out KDE actually kicks ass,
+so let's forget about `i3` for now. :3
+
+=========== END ============
+
