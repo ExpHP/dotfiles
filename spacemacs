@@ -31,6 +31,7 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     haskell
      javascript
      python
      ;; ----------------------------------------------------------------
@@ -308,15 +309,39 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-  (global-set-key (kbd "ESC ESC ESC") nil)
+
+  (setq vc-follow-symlinks nil)
+  (spacemacs/set-leader-keys "kk" 'evil-lisp-state)
+
   (add-to-list 'spacemacs-indent-sensitive-modes 'idris-mode)
-  
   (with-eval-after-load 'idris-mode
     (setq idris-stay-in-current-window-on-compiler-error t)
     (setq idris-enable-elab-prover t)
     (dolist (x '("*idris-notes*" "*idris-holes*" "*idris-info*"))
-      (plist-put (cdr (assoc x popwin:special-display-config)) :noselect t))
-  )
+      (plist-put (cdr (assoc x popwin:special-display-config)) :noselect t)))
+
+;;  ;; try as I might I cannot make it even marginally possible to edit existing haskell code that
+;;  ;; has tabs in it
+;;  (add-to-list 'spacemacs-indent-sensitive-modes 'haskell-mode)
+;;  (with-eval-after-load 'haskell-mode
+;;		(setq evil-auto-indent nil)
+;;    (setq evil-indent-convert-tabs nil))
+;;    (defmacro save-local (name)
+;;      "Execute BODY, then restore a variable's value from before the call."
+;;      (lambda (&rest body)
+;;        (let ((save-local--old ,name))
+;;          (unwind-protect
+;;            (progn ,@body)
+;;            (setq-local ,name save-local--old)))))
+  
+;;  (with-eval-after-load 'haskell-indentation
+;;    (define-minor-mode haskell-indentation-mode "he's dead, jim" t))
+;;  (with-eval-after-load 'haskell-mode
+;;    (advice-add 'haskell-mode :after (lambda () (setq-local indent-tabs-mode t))))
+  
+  (with-eval-after-load 'org-mode
+    ;; a.k.a line-wrap
+    (spacemacs/toggle-visual-line-navigation-on))
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -331,12 +356,14 @@ This function is called at the very end of Spacemacs initialization."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(haskell-compile-cabal-build-command "cd %s && cabal new-build --ghc-option=-ferror-spans")
  '(safe-local-variable-values
    (quote
     ((idris-load-packages "pruviloj")
      (idris-load-packages list "pruviloj")
      (idris-load-packages \`
                           (pruviloj))))))
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
