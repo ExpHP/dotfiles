@@ -3,11 +3,6 @@
 # This file is intended to be sourced by both .bashrc and .zshrc.
 # It contains environment variables, aliases, and other shell-agnostic things.
 
-callable() {
-	# note: the 'which' on arch linux prints to stderr on failure
-	which "$@" >/dev/null 2>/dev/null
-}
-
 # for my lame-ass script that I gave up on
 export VASP_POTCAR_DIR="$HOME/asd/VASP DATA/potentials"
 
@@ -19,6 +14,11 @@ export ISODATA=/usr/local/phon610/isobyu/
 
 
 #----------------------------------------------
+
+callable() {
+	# NOTE: 'GNU which', as found on arch linux, writes to stderr on failure
+	which "$@" 1>/dev/null 2>/dev/null
+}
 
 # phonopy
 alias sym-pos="phonopy --sym -c POSCAR > symmetry"
@@ -60,7 +60,7 @@ alias min="vim -u NONE"
 PATH=~/syncbin:$PATH
 if callable sane-cp; then alias cp=sane-cp; fi
 if callable sane-mv; then alias mv=sane-mv; fi
-if callable trash;   then
+if callable trash; then
 	alias rm='echo >&2 "rm disabled, use can or /usr/bin/rm"; false'
 	alias can=trash
 	# why oh why is restore-trash interactive?! :/
@@ -100,7 +100,7 @@ export PATH=$HOME/dotfiles/bin:$PATH
 # Bumper rail.
 # Limit memory for interactive bash prompts, because thrashing sucks.
 # To bypass, invoke 'nolimit' from *outside* of a bash process.
-if [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
+if callable bc && [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
 	MAX_RAM_FRACTION=0.5
 	TOTAL_RAM=$(free -kt | sed -n '2p' | awk '{ print $2 }')
 	# (note: The purpose of "/ 1" here seems to be to floor the number)
