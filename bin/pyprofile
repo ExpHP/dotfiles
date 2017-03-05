@@ -1,0 +1,57 @@
+# vim: ft=sh
+
+# pyprofile: run cProfile with reversed output so that you can see the
+#  important stuff without having to scroll all the way up.
+# All args are forwarded to 
+
+# 90% of this file is just trying to determine whether or not cProfile
+#  will actually run (so that help and usage don't get reversed)
+
+# Update March 5 2017: Fixed a bug with exit codes in a pipe.
+
+: ${PYTHON_BIN:=python}
+
+die() { echo >&2 "$@"; exit 1; }
+
+# We want only want to reverse successful output from cProfile,
+#  not --help and usage
+run_forward() {
+	"$PYTHON_BIN" -m cProfile "$@"
+	exit $?
+}
+run_reversed() {
+	"$PYTHON_BIN" -m cProfile "$@" | tac
+	exit ${PIPESTATUS[0]}
+}
+
+SAVED_ARGS=("$@")
+
+TEMP=`getopt -o :ho:s:n: --long help,outfile:,sort: -- "$@"`
+# option error
+if [[ $? -ne 0 ]]; then
+	run_forward "$@"
+fi
+eval set -- "$TEMP"
+
+while true ; do
+	case "$1" in
+		# help should run with regular output
+		-h|--help) run_forward "${SAVED_ARGS[@]}"; die UNREACHABLE-1 ;;
+
+		# nothing for us to do here; these just get forwarded
+		-o|--output) shift 2 ;;
+		-s|--sort) shift 2 ;;
+
+		--) shift ; break ;;
+		*) die "Internal error on option $1!" ;;
+	esac
+done
+
+# No positional arguments results in usage, which should not be reversed
+if [[ $# -eq 0 ]]; then
+	run_forward "${SAVED_ARGS[@]}"
+# cProfile should be able to run. Reverse the output
+else
+	run_reversed "${SAVED_ARGS[@]}"
+fi
+die UNREACHABLE-2

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+filename="$1"
+leftname="${filename%.*}"
+
+if test "$filename" = "$leftname"
+then
+  extension=""
+  ffprobe "$filename" 2>&1 | grep "Input #0, flv" > /dev/null
+  FLVCHECK=$?
+  ffprobe "$filename" 2>&1 | grep "Input #0" | grep mp4 > /dev/null
+  MP4CHECK=$?
+
+  [ $FLVCHECK -eq 0 ] && extension="flv"
+  [ $MP4CHECK -eq 0 ] && extension="mp4"
+  if test -z "$extension"
+  then
+    echo "$filename"
+  else
+    newname="$leftname.$extension"
+    echo "$newname"
+  fi
+else
+  echo "$filename"
+fi
+

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+filename="$1"
+extension="${filename##*.}"
+leftname="${filename%.*}"
+tempname="$leftname-aud.$extension"
+
+#ffprobe "$filename" 2>&1 | grep "Audio: none, 0 channels" > /dev/null
+ffprobe "$filename" 2>&1 | grep "hasAudio" | grep "false" > /dev/null
+
+RETVAL=$?
+[ $RETVAL -eq 0 ] && echo "addaudio: adding audio to $filename"
+[ $RETVAL -eq 0 ] && ffmpeg -ar 48000 -ac 2 -f s16le -i /dev/zero -i "$filename" -shortest -c:v copy -c:a aac -strict experimental "$tempname" 2>/dev/null
+[ $RETVAL -eq 0 ] || exit 0
+
+RETVAL=$?
+echo $retval
+[ $RETVAL -eq 0 ] && rm "$filename" && mv "$tempname" "$filename"
+[ $RETVAL -eq 0 ] || echo "addaudio: $filename processing failed?"

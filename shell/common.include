@@ -3,6 +3,11 @@
 # This file is intended to be sourced by both .bashrc and .zshrc.
 # It contains environment variables, aliases, and other shell-agnostic things.
 
+callable() {
+	# note: the 'which' on arch linux prints to stderr on failure
+	which "$@" >/dev/null 2>/dev/null
+}
+
 # for my lame-ass script that I gave up on
 export VASP_POTCAR_DIR="$HOME/asd/VASP DATA/potentials"
 
@@ -53,12 +58,14 @@ alias min="vim -u NONE"
 # no more.
 # please. no more.
 PATH=~/syncbin:$PATH
-alias cp=sane-cp
-alias mv=sane-mv
-alias rm='echo "rm disabled, use can or /usr/bin/rm" >&2; false'
-alias can="trash"
-# Note: restore-trash is interactive :/
-alias uncan="restore-trash"
+if callable sane-cp; then alias cp=sane-cp; fi
+if callable sane-mv; then alias mv=sane-mv; fi
+if callable trash;   then
+	alias rm='echo >&2 "rm disabled, use can or /usr/bin/rm"; false'
+	alias can=trash
+	# why oh why is restore-trash interactive?! :/
+	alias uncan=restore-trash
+fi
 
 # https://twitter.com/liamosaur/status/506975850596536320
 alias fuck='sudo $(history -p \!\!)'
@@ -78,7 +85,7 @@ alias unity='echo >&2 "Disabled. (use /usr/bin/unity if you truly are a madman)"
 # reasonable directory into a .tar file, and, as a result, I have on more
 # than one occassion accidentally permitted a .zip file to unreasonably
 # dump 500 files all over my lawn.
-if which unzip2dir >/dev/null; then
+if callable unzip2dir; then
 	alias unzip='echo >&2 "Disabled. (Use unzip2dir or /usr/bin/unzip)"; false'
 fi
 
@@ -86,6 +93,9 @@ fi
 # NOTE: don't get your hopes up, I've still yet to successfully make one that can
 #  actually produce an executable.
 export PATH=/opt/cross/bin:$PATH
+
+# Binaries in this repo!
+export PATH=$HOME/dotfiles/bin:$PATH
 
 # Bumper rail.
 # Limit memory for interactive bash prompts, because thrashing sucks.

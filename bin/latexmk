@@ -1,0 +1,12 @@
+#!/bin/bash
+# Wrapper around latexmk that tries to make pdflatex output more palatable,
+# because sadly I cannot find any flags for pdflatex or latexmk that hide all
+# the meaningless (to somebody who isn't developing pdflatex) debugging info
+# while still displaying error messages
+
+/usr/local/bin/latexmk "$@" |
+	# package-loading lines
+	grep -P --invert-match '^\(/usr/share/' |
+	# colorize errors; must be done last
+	grep -P --color '(^!.*|^l\.\d+)?'
+exit "${PIPESTATUS[0]}"

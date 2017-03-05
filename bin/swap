@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#? swap 0.1.0
+#? Copyright (C) 2017 Michael Lamparski
+#? Licensed under WTFPL Version 2
+
+# version 0.1.0: 16 February 2017
+
+PROG=$(basename $0)
+VERSION=$(grep "^#?" "$0" | cut -c 4-)
+info() { echo >&2 "$PROG: $@"; }
+die() { if [ "$*" != "" ]; then info "$@"; fi; exit 1; }
+bug() { die "Internal error! ($@)"; }
+P__G=$(echo "$PROG" | sed 's/./ /g') # spaces to align usage strings
+
+which docopts >/dev/null || die "Please install docopts."
+eval "$(docopts -V "$version" -h - -A OPT : "$@" <<ENDDOC
+Usage: $PROG <A> <B> [--]
+       $PROG (-h | --help) [--]
+       $PROG --version [--]
+
+OPTIONS:
+ -h --help    You did it!
+ --version    Print version
+ENDDOC
+)"
+
+#-------------------------------------------
+# options
+
+OPT_A=${OPT[A]}
+OPT_B=${OPT[B]}
+
+#-------------------------------------------
+
+# Do some prospective checking to reduce mess from user mistakes.
+for path in "$OPT_A" "$OPT_B"; do
+    if ! [[ -e "$path" ]]; then
+        die "File does not exist: '$path'"
+    fi
+done
+
+# Perform the move
+tmp=$(mktemp) || die "could not obtain a temporary path"
+{ mv "$OPT_A" "$tmp" && mv "$OPT_B" "$OPT_A" && mv "$tmp" "$OPT_B"; } ||
+{ echo >&2 "swap: oops, a bad thing happened!";
+  echo >&2 "swap: one file is probably now located at '$tmp'.";
+  exit 1; }
+

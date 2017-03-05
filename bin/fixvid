@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for var in "$@"
+do
+  NEWNAME=$(_fixvid--addext "$var")
+  if [ "$var" != "$NEWNAME" ]
+  then
+    mv "$var" "$NEWNAME"
+    echo "fixvid: $var moved to $NEWNAME"
+  fi
+  _fixvid--addaudio "$NEWNAME"
+done

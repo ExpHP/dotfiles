@@ -1,0 +1,10 @@
+#!/bin/bash
+
+GHCWRAP_PROG=$(basename $0)
+GHCWRAP_USAGE="Compile and run a haskell module with backtraces."
+GHCWRAP_GHC_ARGS=(ghc -prof -fprof-auto -fprof-cafs -o a.out)
+GHCWRAP_RUN_ARGS=(./a.out +RTS -xc -RTS)
+GHCWRAP_POST_ARGS=()
+GHCWRAP_INPUT_ARGS=("$@")
+
+. _ghcwrap

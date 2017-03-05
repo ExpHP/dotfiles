@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# 2017
+# vm-mode:  Disable various personal customizations for the professor
+
+# all in a function to minimize impact on environment vars and to
+# guarantee that "return" works. (a sourced script must not use 'exit'!)
+__vm_mode__impl() {
+	if [[ "$0" != "bash" ]]; then
+		echo "This script should be sourced instead"
+		return 1
+	fi
+
+	local temp=`getopt -o h -- "$@"`
+	if [ $? != 0 ] ; then echo >&2 "Terminating..." ; return 1 ; fi
+	eval set -- "$temp"
+	while true ; do
+		case "$1" in
+			-h) shift; echo >&2 "usage: vm-mode [vm|ml]"; return 1;;
+			--) shift; break;;
+			*) echo >&2 "We dun goofed!"; return 1;;
+		esac
+	done
+
+	local mode=""
+	while true ; do
+		case "$1" in
+			ml) shift; mode=ml;;
+			vm) shift; mode=vm;;
+			*) break;;
+		esac
+	done
+
+	local ml_dot_emacs=$(readlink -f "$HOME/.emacs.spacemacs.d")
+	local vm_dot_emacs=$(readlink -f "$HOME/.emacs.standard.d")
+
+	local cur_dot_emacs=$(readlink -f $HOME/.emacs.d)
+
+	# alternating mode toggle (doesn't work too well between multiple console windows)
+	if [[ "$mode" == "" && "$cur_dot_emacs" == "$ml_dot_emacs" ]]; then mode=vm; fi
+	if [[ "$mode" == "" && "$cur_dot_emacs" == "$vm_dot_emacs" ]]; then mode=ml; fi
+
+	case "$mode" in
+		ml) echo "== Entering ML mode ==";;
+		vm) echo "== Entering VM mode ==";;
+		*)  echo >&2 "We dun goofed!"; return 1;;
+	esac
+
+	case "$mode" in
+		ml) echo "Readline mode: vi";
+		    set -o vi || return 1;
+		;;
+		vm) echo "Readline mode: emacs";
+		    set -o emacs || return 1;
+		;;
+	esac
+
+	# kill existing symlink
+	[[ -L $HOME/.emacs.d ]] && { /bin/rm -f $HOME/.emacs.d || return 1; }
+	if [[ -e $HOME/.emacs.d ]]; then
+		echo "emacs: (not a symlink!)";
+	else
+		case "$mode" in
+			ml) echo "emacs: spacemacs";
+			    ln -s $ml_dot_emacs $HOME/.emacs.d || return 1;
+			;;
+			vm) echo "emacs: normal";
+			    ln -s $vm_dot_emacs $HOME/.emacs.d || return 1;
+			;;
+		esac
+	fi
+
+	# don't bother with xinput enable/disable because gnome will keep
+	#  overriding it.
+	local schema=org.gnome.desktop.peripherals.touchpad
+	local key=send-events
+	case "$mode" in
+		ml)
+			echo "touchpad: off";
+			#xinput disable  "SynPS/2 Synaptics TouchPad" || return 1;
+			gsettings set $schema $key disabled || return 1;
+		;;
+		vm)
+			echo "touchpad: on";
+			#xinput enable "SynPS/2 Synaptics TouchPad" || return 1;
+			gsettings set $schema $key enabled || return 1;
+		;;
+	esac
+
+	case "$mode" in
+		ml) echo "Ctrl+Fn: flipped";;
+		vm) echo "Ctrl+Fn: still flipped (sorry)";;
+	esac
+}
+
+__vm_mode__impl "$@"
+

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# ALRIGHT SO HERE'S THE DEAL
+
+# This file is part of 'fwatch'.
+
+# You see.
+# Some implementations of 'tail' print this "helpful" error message
+#  when inotify fails, even when we aren't using --follow and there
+#  is no conceivable reason for it to be using inotify:
+
+filter-useless-text() {
+    grep --invert-match "inotify cannot be used, reverting to polling"
+    true
+}
+
+# The thing is, any output to STDERR (especially repeated output that
+#  conveys no useful information; see above) has a tendency to make
+#  'watch' unusable by filling up the screen.
+
+# Troublesome thing is, though, we need to apply that filter to STDERR.
+# But mind: we specifically want to filter the STDERR belonging to tail...
+#  not the one for watch!
+
+# One solution is to make a function which produces pre-filtered output...
+# Except that on some systems it seems to be virtually impossible to get watch
+# to call a bash function through any means, even after "export -f"ing the
+# function and using 'watch --exec bash -c'.
+# (after I did all of this, watch appeared to just stall with no output. Rude!)
+
+# So I give up. Here's a goddamn script with a goddamn silly name on my
+# goddamn path where it is visible to GODDAMN EVERYTHING so that I can do
+# a tiny little goddamn bit of IO redirection in a goddamn watch command.
+
+{
+    tail "$@" `
+     ` | cat 2>&1 1>&3 ` # move streams so we can filter STDERR
+     ` | filter-useless-text `
+     `
+    code=${PIPESTATUS[0]}
+} 3>&1 1>&2  # move them back
+
+exit $code
+
+

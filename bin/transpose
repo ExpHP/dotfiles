@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+import sys
+lines = list(sys.stdin)
+lines = [x.split() for x in lines]
+lines = list(zip(*lines))
+for line in lines:
+	print(' '.join(line))

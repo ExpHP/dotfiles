@@ -1,0 +1,66 @@
+# vim: ft=sh
+
+# NOT MEANT TO BE EXECUTABLE; SOURCE THIS SCRIPT INSTEAD
+# (see instructions below on environment vars used)
+
+# This splits a list of arguments at the first '--' and passes
+# the first half into ghc and the second half into another program.
+
+# Technically this script has very little to do with ghc specifically
+# and can be generalized, but when I began doing so I found myself
+# floundering over the documentation and worrying about things like
+# conflicts between recursive invocations (between multiple unrelated
+# wrappers which both happen to source this script), and the fact that
+# in some cases it may be desirable to be able to forward the first '--'
+# to the first program (replacing ghc). (This is definitely not the case
+# in ghc which seems to interpret '--' as an (invalid) short option
+# ('ghc: unrecognised flags: --'))
+
+# This expects to be sourced with the following env vars set:
+# GHCWRAP_PROG: basename of calling script (for usage message)
+# GHCWRAP_USAGE: usage message
+# GHCWRAP_GHC_ARGS: bash array of arguments to run ghc
+# GHCWRAP_RUN_ARGS: bash array of arguments to run compiled program
+# GHCWRAP_POST_ARGS: bash array of arguments for running a third program
+#   after the previous two succeed.  If empty, this is skipped.
+# GHCWRAP_INPUT_ARGS: bash array of args to parse (most likely ("$@"))
+
+no_name_collisions_plox_62uM0oKlZLSQ() {
+	if ! [[ $GHCWRAP_PROG ]]; then
+		echo >&2 $0: "This is not meant to be called directly."
+		echo >&2 $0: "Please call the 'ghc*' wrappers instead."
+		return 1
+	fi
+
+	if [[ $# -eq 0 ]]; then
+		echo >&2 "Usage: $GHCWRAP_PROG GHC_ARGS... [-- PROGRAM_ARGS...]"
+		echo >&2 "$GHCWRAP_USAGE"
+		return 1
+	fi
+
+	local ghc_args=("${GHCWRAP_GHC_ARGS[@]}")
+	local run_args=("${GHCWRAP_RUN_ARGS[@]}")
+	local post_args=("${GHCWRAP_POST_ARGS[@]}")
+
+	# NOTE: This is a bit overzealous; '--' is usually a legitimate value
+	#  for an option argument, so we prevent a small number of otherwise
+	#  valid options such as 'ghc -hidir --'.
+	# Perfect argument forwarding would require recreating all of GHC's
+	#  option parsing syntax.  Soyeahno.
+	while [[ $# -gt 0 && "$1" != -- ]]; do
+		ghc_args+=("$1")
+		shift
+	done
+	if [[ "$1" == -- ]]; then
+		shift
+	fi
+	run_args+=("$@")
+
+	# Let post_args default to a no-op (the shell builtin ":")
+	: ${post_args:=:}
+
+	"${ghc_args[@]}" && "${run_args[@]}" && "${post_args[@]}"
+}
+
+no_name_collisions_plox_62uM0oKlZLSQ "${GHCWRAP_INPUT_ARGS[@]}"
+# don't bother with 'unset -f'; then we'd have to save the error code!

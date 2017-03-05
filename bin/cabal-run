@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+
+import sys
+import subprocess
+import os
+
+# Michael Lamparski 10 October 2016
+# A hacked up script to bide time until 'cabal new-run' exists.
+# It does a 'cabal build', locates the compiled binary, and runs it
+#  with any given command line arguments.
+
+# THIS FILE IS NOT ASSOCIATED WITH CABAL, CABAL-INSTALL,
+#  OR THE CABAL DEVELOPMENT TEAM IN GENERAL.
+
+# version 1.04: 5 March 2017
+# * Touch up docs slightly in preparation for upload.
+# version 1.03: 24 February 2017
+# * Cabal goes to stderr.
+# version 1.02: 10 October 2016
+# * Give an approriate message if the package is a library.
+# version 1.01: 10 October 2016
+# * Initial version.  (shares version number with cabal-new)
+
+PROG = os.path.basename(sys.argv[0])
+
+def main():
+	import argparse
+	parser = argparse.ArgumentParser(
+		description='A stand-in for "cabal new-run" until it actually exists',
+	)
+	parser.add_argument('--name',
+		help='Name of executable to run (i.e. from the \'executable\' header in *.cabal)'
+		     ' in case there is more than one.  Defaults to the package name.'
+		     ' (note: ALL executables will be built regardless of this flag. Sorry)'),
+	parser.add_argument('--version', action='store_true', help='Print version')
+	parser.add_argument('ARGS', nargs=argparse.REMAINDER,
+		help='Arguments to the compiled binary.')
+	args = parser.parse_args()
+
+	if args.version:
+		print("'cabal run' workaround script 1.03")
+		sys.exit(0)
+
+	run_simple(['cabal', 'new-build'], stdout=sys.stderr)
+
+	package, version = determine_package_and_version()
+
+	# dist-newstyle, located wherever cabal.project is
+	cachedir = locate_build_cache()
+	path = locate_executable(cachedir, package, version, args.name or package)
+
+	run_simple([path] + list(args.ARGS))
+
+def determine_package_and_version():
+	# Example output from cabal info:
+	#
+	#* aaa-0.1.0.0              (program)
+	#    Versions available: [ Not available from server ]
+	#    Versions installed: [ Unknown ]
+	#    Homepage:      [ Not specified ]
+	#    Bug reports:   [ Not specified ]
+	#    License:       MIT
+	#    Author:        Michael Lamparski
+	#    Maintainer:    diagonaldevice@gmail.com
+	#    Source repo:   [ Not specified ]
+	#    Executables:   aaa
+	#    Dependencies:  base ==4.8.*
+	#    Cached:        Yes
+	try: output = subprocess.check_output(['cabal', 'info', '.'])
+	except subprocess.CalledProcessError:
+		die("An error occured while trying to determine the current package.")
+	output = output.decode('utf-8')
+
+	output = [line for line in output.split('\n') if line.startswith('*')]
+	lib_count = len([line for line in output if '(library)' in line])
+	bin_count = len([line for line in output if '(program)' in line])
+	other_count = len(output) - lib_count - bin_count
+
+	if bin_count == 0:
+		if lib_count > 0:   die('There are no binaries here! (just a library)')
+		if other_count > 0: die('There are no binaries here! (but there is... something else)')
+		die('cabal info returned no packages! :(')
+	if bin_count > 1:
+		die('cabal info returned more than one binary! However will we know what to run? ;_;')
+	line, = output
+
+	# something like the-package-name-0.1.0.0
+	versioned_package = line.split()[1]
+	# versions can't have hyphens... right?
+	package, version = versioned_package.rsplit('-', 1)
+	return package, version
+
+def locate_build_cache():
+	# FIXME surely there must be some way to query this information from cabal instead?
+
+	# search upwards for dist-newstyle
+	for depth in range(16):
+		path = os.path.join(*(['..']*depth + ['dist-newstyle']))
+		if os.path.isdir(path):
+			return path
+	die('could not locate dist-newstyle in this directory or a parent')
+
+def locate_executable(cachedir, package, version, executable):
+	# dist-newstyle/build/PACKAGE-VERSION/build/EXEC/EXEC
+	path = os.path.join(cachedir, 'build',
+	                    '{}-{}'.format(package, version),
+	                    'build', executable, executable)
+	if not os.path.exists(path):
+		die('Expected to find binary at %r, but didn\'t!', path)
+	return path
+
+# run, forwarding stdout/stderr and exit on failure with no message
+# (the assumption being that the command that failed already printed a message)
+# "cmd arg1 arg2 ... argN || exit 1" in bash
+def run_simple(args, **kw):
+	try: subprocess.check_call(args, **kw)
+	except subprocess.CalledProcessError: sys.exit(1)
+
+#----------------------------------------
+def _write_err(label='', msg='', args=()):
+	print('%s: %s%s' % (PROG, label, msg % tuple(args)), file=sys.stderr)
+
+def warn(msg, *args):
+	_write_err('', msg, args)
+
+def error(msg, *args):
+	_write_err('Error: ', msg, args)
+
+def die(msg, *args):
+	_write_err('Fatal: ', msg, args)
+	_write_err('Aborting.')
+	sys.exit(1)
+
+if __name__ == '__main__':
+	main()

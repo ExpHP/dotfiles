@@ -1,0 +1,166 @@
+#!/bin/bash
+
+# A safer version of `cp` where safety is opt-out, not opt-in.
+
+# As in, '-f' can override interactive mode in this version, which means
+# HOLY SHIT YOU CAN ACTUALLY USE INTERACTIVE MODE BY DEFAULT NOW WITHOUT
+#  LOSING YOUR FUCKING MIND
+
+# (it is ONLY to be used in interactive shells as the target of an alias;
+#  putting this in PATH as 'cp' will likely break many many things!)
+
+# Note: A single '-f' just overrides '-i'.
+#       Use '-ff' to recover the standard '-f' flag behavior.
+
+set -e
+
+if [[ "x$CMD" == x ]]; then
+    echo >&2 $0: "This is not meant to be called directly"
+    echo >&2 $0: "Please call the 'sane-cp' and 'sane-mv' wrappers instead."
+    exit 1
+fi
+
+# Now for the hard part: *correctly determining if the args contain -i and/or -f*.
+#
+# The sad truth of 'getopt'-style option parsing is that it is *impossible*
+#  to write a wrapper program that only looks at the options it cares about and
+#  simply forwards the rest; we must know the complete set of short and long options
+#  (and their arities) accepted by the wrapped program.
+#
+# Why? Because without this information we cannot distinguish option arguments from options:
+#  * 'cp -bSf' == 'cp --backup --suffix=f'
+#  * 'cp -bsf' == 'cp --backup --symbolic-link -f'
+#  * 'cp -bS -f' == 'cp --backup --suffix=-f'
+#  * 'cp -bs -f' == 'cp --backup --symbolic-link -f'
+#
+# So here's the stuff we directly care about:
+MY_SHORT_0ARG='fi'
+MY_SHORT_1ARG=''
+MY_LONG_0ARG='
+force
+interactive
+debug-the-wrapper
+'
+MY_LONG_1ARG='
+'
+
+# ...and then here's all the additional things we're forced to care about.
+FWD_SHORT_0ARG='abdHlLnPpRrsTuvx'
+FWD_SHORT_1ARG='St'
+FWD_LONG_0ARG='
+archive
+attributes-only
+copy-contents
+link
+dereference
+no-clobber
+no-dereference
+parents
+recursive
+remove-destination
+strip-trailing-slashes
+symbolic-link
+no-target-directory
+update
+verbose
+one-file-system
+help
+version
+'
+FWD_LONG_1ARG='
+backup
+preserve
+no-preserve
+reflink
+sparse
+suffix
+target-directory
+'
+
+# Reminder to self: Last time I tried to refactor this code and make it more DRY, I wasted 3
+#   hours revising a set of 6 small, one-liner functions because they couldn't live up to
+#   my expectations. (i.e. where the function doesn't have any hidden pitfalls in its usage that
+#   are only clear when you look at its definition)
+
+#---------------
+# option strings to be passed into getopt
+
+__short0=${MY_SHORT_0ARG}${FWD_SHORT_0ARG}  # abcd...
+__short1=${MY_SHORT_1ARG}${FWD_SHORT_1ARG}
+__short1=$(echo $__short1 | sed -r 's_(.)_\1:_g') # e:f:g:h:...
+SHORT_OPTSTR=${__short0}${__short1}  # abcd...e:f:g:h:...
+
+__long0="${MY_LONG_0ARG} ${FWD_LONG_0ARG}" # space to ensure word boundary
+__long1="${MY_LONG_1ARG} ${FWD_LONG_1ARG}"
+__long0=$(echo $__long0 | sed -r 's_(\S+)_\1,_g' | tr -d '[:space:]' ) # apple,bear,...
+__long1=$(echo $__long1 | sed -r 's_(\S+)_\1:,_g' | tr -d '[:space:]' ) # cat:,dog:,...
+LONG_OPTSTR=${__long0},${__long1} # apple,...,cat:,...
+
+#---------------
+# "case" patterns for the forwarded options
+
+# splits up every word in arguments into its own line (including within each argument),
+#  in a way that is safe for options
+function words-into-lines {
+    # cannot use xargs -n1 because it naively invokes coreutils /bin/echo in a way that allows
+    #  it to eat our options
+    for w in $*; do
+       printf '%s\n' "$w"
+    done
+}
+
+# outputs a case pattern that joins together all of the words in the function arguments as
+#  alternatives ( e.g.  abc | def | ghi )
+function words-into-alternatives {
+    # split into 1 word per line | remove trailing newline | substitute rest
+    words-into-lines $* | printf "%s" "$(cat)" | tr "\n" "|"
+    echo # replace trailing newline
+}
+
+__short0="$(echo $FWD_SHORT_0ARG | sed -r 's_(.)_-\1\ _g')" # -a -b -c ...
+__short1="$(echo $FWD_SHORT_1ARG | sed -r 's_(.)_-\1\ _g')"
+__long0="$(echo $FWD_LONG_0ARG | sed -r 's_(\S+)_--\1\ _g')" # --apple --bear --cat ...
+__long1="$(echo $FWD_LONG_1ARG | sed -r 's_(\S+)_--\1\ _g')"
+FWD_CASES_0ARG=$(words-into-alternatives $__short0 $__long0) # -a|-b|-c|...
+FWD_CASES_1ARG=$(words-into-alternatives $__short1 $__long1) # --apple|--bear|...
+
+TEMP="$(getopt -o $SHORT_OPTSTR -l $LONG_OPTSTR -- "$@")"
+if [ $? != 0 ] ; then echo >&2 "Terminating..."; exit 1 ; fi
+eval set -- "$TEMP"
+
+#-----------------------------
+OPT_INTERACTIVE='-i'
+OPT_DEBUG=
+FORWARDED=()
+
+# to use a variable as a case arm, one must set extglob
+#  and use +($var) as the pattern
+shopt -s extglob
+while true ; do
+    case "$1" in
+        # our cases
+        -i) shift; ;; # ignore, it's the default now
+        -f) # first occurrence
+            if [[ $OPT_INTERACTIVE ]]; then
+                OPT_INTERACTIVE=
+            # additional occurrences
+            else FORWARDED+=("$1"); fi
+            shift;;
+        --debug-the-wrapper) shift; OPT_DEBUG=y; ;;
+        # option divider
+        --) FORWARDED+=("$1"); shift; break;;
+
+        # forwarded cases
+        +($FWD_CASES_0ARG)) FORWARDED+=("$1"); shift; ;;
+        +($FWD_CASES_1ARG)) FORWARDED+=("$1" "$2"); shift; shift; ;;
+        *) echo >&2 "Oops! Internal error reading option: '$1' (this is a bug)"; exit 1;;
+    esac
+done
+
+# positional arguments "$@" are also forwarded
+FULL_CMD=($CMD $OPT_INTERACTIVE "${FORWARDED[@]}" "$@")
+
+if [[ $OPT_DEBUG ]]; then
+	echo "${FULL_CMD[@]}"
+fi
+"${FULL_CMD[@]}"

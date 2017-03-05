@@ -1,0 +1,113 @@
+#!/bin/bash
+
+# Michael Lamparski 10 October 2016
+# Personal-use wrapper around 'cabal init' that somewhat resembles 'cargo new'.
+
+# THIS FILE IS NOT ASSOCIATED WITH CABAL, CABAL-INSTALL,
+#  OR THE CABAL DEVELOPMENT TEAM IN GENERAL.
+
+# version 1.01: 10 October 2016
+# * Made sandboxes optional. This is because cabal 1.24 has an experimental
+#   'new-build' feature which incorporates sandbox-like features but also
+#   keeps a global cache of built artefacts.  ナイス！
+#   (too bad 'new-run' and 'new-exec' are still in the works...)
+
+PROG=$(basename $0)
+
+do_version() {
+	echo "'cabal new' wrapper script 1.01"
+}
+
+do_usage() {
+	echo <<HERE
+Usage: $PROG DIRNAME [-hf|--help|--force|--version]
+         [--sandbox|--no-sandbox] [--git|--no-git]
+HERE
+}
+
+do_help() {
+	do_usage
+	echo <<HERE
+Quickly set up a (possibly sandboxed) binary package in cabal.
+
+OPTIONS:
+ -f, --force:
+            Replace existing directory (deleting all contents)
+ --sandbox, --no-sandbox:
+            Perform 'cabal sandbox init'. Default: --no-sandbox.
+            The nix-style local build feature in cabal 1.24 ('cabal new-build')
+            largely eliminates the need for sandboxes.
+ --git, --no-git:
+            Perform a 'git init'.  Default: --git.
+ --version: Print version
+HERE
+}
+
+#-------------------------------------------
+# options
+
+OPT_FORCE=0
+OPT_SANDBOX=0
+OPT_GIT=1
+if ! which git >/dev/null; then
+	OPT_GIT = 0
+fi
+
+TEMP=`getopt -o h --long help,version,sandbox,no-sandbox,git,no-git -n "$PROG" -- "$@"` || { do_usage >&2; exit 1; }
+eval set -- "$TEMP"
+while true ; do
+	case "$1" in
+		-h|--help) do_help ; exit 0 ;;
+		-f|--force) OPT_FORCE=1 ; shift ;;
+		--sandbox)     OPT_SANDBOX=1 ; shift ;;
+		--no-sandbox)  OPT_SANDBOX=0 ; shift ;;
+		--git)     OPT_GIT=1 ; shift ;;
+		--no-git)  OPT_GIT=0 ; shift ;;
+		--version)  do_version ; exit 0 ;;
+		--) shift ; break ;;
+		*) echo >&2 Internal error on argument: "$1" ; exit 1 ;;
+	esac
+done
+
+if [[ $# -ne 1 ]]; then
+	do_usage >&2
+	exit 1
+fi
+ARG_PACKAGE=$1
+
+
+#-------------------------------------------
+# do eeet
+
+if [[ -e "$ARG_PACKAGE" ]]; then
+	if [[ $OPT_FORCE -eq 1 ]]; then
+		rm -rf "$ARG_PACKAGE"
+	else
+		echo >&2 "$PROG: Destination already exists"
+		exit 1
+	fi
+fi
+
+mkdir "$ARG_PACKAGE" || exit 1
+pushd "$ARG_PACKAGE" >/dev/null || exit 1
+# FIXME: Is there a config file I can move the license flag to?
+# NOTE: cabal-1.24 no longer infers --package-name from pwd.
+cabal init --is-executable --non-interactive --license=MIT "--package-name=$ARG_PACKAGE" || exit 1
+
+# ... >_>
+# ... <_<
+CABAL_FILE=$(echo *.cabal)
+if [[ -e "$CABAL_FILE" ]]; then
+	echo >>$CABAL_FILE # newline
+	echo "  ghc-options: -fno-warn-tabs" >>$CABAL_FILE
+fi
+
+if [[ $OPT_SANDBOX -eq 1 ]]; then
+    cabal sandbox init || exit 1
+fi
+if [[ $OPT_GIT -eq 1 ]]; then
+    git init || exit 1
+fi
+
+popd >/dev/null || exit 1
+

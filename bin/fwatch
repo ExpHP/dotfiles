@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# fwatch: Watch files.
+
+if [ "$1" == "" ]; then
+    echo "Usage: `basename $0` [-t WATCH_INTERVAL] [TAIL_OPTS...] FILE..."
+    exit 1
+fi
+
+OPT_WATCH_IVL=2
+OPT_LINECOUNT=25
+
+TEMP=`getopt -o :t:n: -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+        -t) shift; OPT_WATCH_IVL=$1; shift;;
+        -n) shift; OPT_LINECOUNT=$1; shift;;
+        --) shift; break;;
+        *) echo "We dun goofed!"; exit 1;;
+    esac
+done
+
+# ...sigh.
+# ...SIIIIIIGH.
+# Just read the notes inside '_fwatch--tail'.
+watch "-n$OPT_WATCH_IVL" _fwatch--tail "-n$OPT_LINECOUNT" "$@"

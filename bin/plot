@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+
+# Version 2:
+#    Allow multiple y columns and piping from stdin
+# Version 3 (2015-11-10):
+#    Add --subplot and --output as a (rather reprehensible) form of
+#     quick and dirty plot gen
+# Version 4 (2015-11-24):
+#    Allow multiple input files, which I was trying to avoid because it introduces a
+#    bunch of dumb design questions such as "what if the files have different delimiters"
+#    (to which the correct answer is: "we don't support that") how could we  This, whi
+
+import argparse
+import matplotlib.pyplot as plt
+import numpy as np
+import warnings
+import sys
+
+def main():
+	parser = argparse.ArgumentParser(description='Plot columnated data')
+	parser.add_argument('-F', default=' ', type=str, help='set field delimiter')
+	parser.add_argument('--subplot','-s',action='append',default=[],
+		help='subplot keyword arguments in the form name=python_expr')
+	parser.add_argument('--output','-o',
+		help='save figure to a file. Default is to display it instead.')
+	parser.add_argument('--dots',action='store_true',
+		help='mark data points')
+	parser.add_argument('INFILE', nargs='*', type=argparse.FileType('r'),
+		default=[sys.stdin], help='input file, default to STDIN when piped')
+	args = parser.parse_args()
+
+	# no file argument and nothing piped
+	if (args.INFILE is sys.stdin) and sys.stdin.isatty():
+		parser.error('No input provided!')
+
+	subplot_kw = {}
+	for s in args.subplot:
+		left,right = s.split('=',1)
+		subplot_kw[left] = eval(right) # *wince*
+
+	fig, ax = plt.subplots(subplot_kw=subplot_kw)
+
+	for f in args.INFILE:
+		x, *ys = read_columns(f, args.F, diefunc=parser.error)
+
+		for i,y in enumerate(ys):
+			sty = '-o' if args.dots else '-'
+			ax.plot(x, y, sty, label='column %s'%(i+2,))
+
+		if len(ys) > 1:
+			ax.legend()
+
+	if args.output:
+		fig.savefig(args.output)
+	else:
+		plt.show()
+
+# FIXME get rid of this, now that I know that ``numpy.loadtxt`` exists
+def read_columns(f, fieldsep, diefunc):
+	# Handle most of the parsing with a simple generator that
+	# produces lists of floats for each row of data
+	def inner():
+		for line in f:
+			line = line.strip()
+			if not line:
+				continue
+			strs = line.split(fieldsep)
+			yield list(map(float, strs))
+
+	rows = list(inner())
+	if not rows:
+		diefunc('Input data was empty!')
+		return []
+
+	len0 = len(rows[0])
+	assert len0 > 0, "Empty lines were skipped"
+	if not all(len(x)==len0 for x in rows):
+		warnings.warn('Mismatched row lengths! Incomplete columns will be ignored')
+
+	cols = list(zip(*rows))
+	return cols
+
+if __name__ == '__main__':
+	main()

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+GHCWRAP_PROG=$(basename $0)
+GHCWRAP_USAGE="Compile and profile a haskell module."
+GHCWRAP_GHC_ARGS=(ghc -o a.out -prof -fprof-auto)
+GHCWRAP_RUN_ARGS=(./a.out +RTS -p -RTS)
+GHCWRAP_POST_ARGS=(less a.out.prof)
+GHCWRAP_INPUT_ARGS=("$@")
+
+. _ghcwrap

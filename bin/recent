@@ -1,0 +1,5 @@
+#!/bin/bash
+LSARG="--sort=time --reverse -la"
+TAILARG="-n 10"
+echo $LSARG "$@" \| tail $TAILARG
+ls $LSARG "$@" | tail $TAILARG

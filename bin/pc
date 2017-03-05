@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+# Because bc sucks
+
+from sys import argv
+from math import *
+print(eval(' '.join(argv[1:]),globals()))

@@ -1,0 +1,2 @@
+#!/bin/bash
+PYTHON_BIN=python3 pyprofile "$@"
