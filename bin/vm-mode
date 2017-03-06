@@ -18,32 +18,35 @@ __vm_mode__impl() {
 		case "$1" in
 			-h) shift; echo >&2 "usage: vm-mode [vm|ml]"; return 1;;
 			--) shift; break;;
-			*) echo >&2 "We dun goofed!"; return 1;;
+			*) echo >&2 "We dun goofed! qHoEiEKvLe"; return 1;;
 		esac
 	done
 
 	local mode=""
-	while true ; do
+	while [[ $1 ]] ; do
 		case "$1" in
-			ml) shift; mode=ml;;
-			vm) shift; mode=vm;;
-			*) break;;
+			ml|vm) mode=$1;;
+			*) echo >&2 "Bad argument: '$1'"; return 1;;
 		esac
+		shift
 	done
+	# bah, forget about alternating modes just now; they're a horrible idea
+	# since some changes are console-local and others are more at a global level.
+	# Let's just always require a mode to be specified.
+	if ! [[ $mode ]]; then
+		echo >&2 "Please specify a mode (vm, ml)."
+		return 1
+	fi
 
 	local ml_dot_emacs=$(readlink -f "$HOME/.emacs.spacemacs.d")
 	local vm_dot_emacs=$(readlink -f "$HOME/.emacs.standard.d")
 
 	local cur_dot_emacs=$(readlink -f $HOME/.emacs.d)
 
-	# alternating mode toggle (doesn't work too well between multiple console windows)
-	if [[ "$mode" == "" && "$cur_dot_emacs" == "$ml_dot_emacs" ]]; then mode=vm; fi
-	if [[ "$mode" == "" && "$cur_dot_emacs" == "$vm_dot_emacs" ]]; then mode=ml; fi
-
 	case "$mode" in
 		ml) echo "== Entering ML mode ==";;
 		vm) echo "== Entering VM mode ==";;
-		*)  echo >&2 "We dun goofed!"; return 1;;
+		*)  echo >&2 "We dun goofed! Fa4D2mSXlD"; return 1;;
 	esac
 
 	case "$mode" in
@@ -70,27 +73,51 @@ __vm_mode__impl() {
 		esac
 	fi
 
-	# don't bother with xinput enable/disable because gnome will keep
-	#  overriding it.
-	local schema=org.gnome.desktop.peripherals.touchpad
-	local key=send-events
-	case "$mode" in
-		ml)
-			echo "touchpad: off";
-			#xinput disable  "SynPS/2 Synaptics TouchPad" || return 1;
-			gsettings set $schema $key disabled || return 1;
-		;;
-		vm)
-			echo "touchpad: on";
-			#xinput enable "SynPS/2 Synaptics TouchPad" || return 1;
-			gsettings set $schema $key enabled || return 1;
-		;;
+	declare -A choice
+	local prefix suffix
+	case "$(__vm_mode__guess_touchpad_method)" in
+		xinput)
+			prefix=(xinput)
+			choice[ml]=disable
+			choice[vm]=enable
+			suffix=('SynPS/2 Synaptics TouchPad')
+			;;
+		gsettings)
+			prefix=(gsettings set)
+			prefix+=(org.gnome.desktop.peripherals.touchpad) # schema
+			prefix+=(send-events) # key
+			choice[ml]=disabled
+			choice[vm]=enabled
+			suffix=()
+			;;
+		*)  echo >&2 "We dun goofed! WF4gjiof"; return 1;;
 	esac
+	case "$mode" in
+		ml) echo "touchpad: off"; ;;
+		vm) echo "touchpad: on"; ;;
+	esac
+	"${prefix[@]}" "${choice[$mode]}" "${suffix[@]}" || return 1;
 
 	case "$mode" in
 		ml) echo "Ctrl+Fn: flipped";;
 		vm) echo "Ctrl+Fn: still flipped (sorry)";;
 	esac
+}
+
+__vm_mode__guess_touchpad_method() {
+	# In ubuntu there seems to be some background service that periodically checks
+	#  a setting in gsettings and forcibly enables/disables the touchpad, preventing
+	#  us from reliably controlling it via xinput.
+	# Since I'm not sure what the culprit is, the following is just a heuristic to guess
+	#  if we're in such an affected environment.
+
+	# The following dconf path is populated on ubuntu, but not on Arch + KDE Plasma:
+	if which dconf >/dev/null 2>/dev/null \
+	&& [[ $(dconf dump /org/gnome/desktop/wm/keybindings/) ]]; then
+		echo gsettings
+	else
+		echo xinput
+	fi
 }
 
 __vm_mode__impl "$@"
