@@ -41,6 +41,14 @@ endfunction
 
 """"""""""""""""""""""""
 
+" O_o
+" Odd. Vim *has* syntax highlighting by default in arch, but it disappeared
+" once I set up .vimrc, and I can't seem to identify any pre-existing config
+" file that would have been doing this:
+syntax on
+
+""""""""""""""""""""""""
+
 " Main colorscheme for neovim
 if has('nvim') && dein#tap('oceanic-next')
 
