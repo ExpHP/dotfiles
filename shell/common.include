@@ -3,6 +3,10 @@
 # This file is intended to be sourced by both .bashrc and .zshrc.
 # It contains environment variables, aliases, and other shell-agnostic things.
 
+# this might already be there, but it also might not.
+# doesn't hurt to have it listed twice!
+PATH=$HOME/bin:$PATH
+
 # for my lame-ass script that I gave up on
 export VASP_POTCAR_DIR="$HOME/asd/VASP DATA/potentials"
 
@@ -11,7 +15,6 @@ export VASP_PSP_DIR="$HOME/asd/pymatgen_res"
 
 # this incredibly-descriptively named variable is for phonon
 export ISODATA=/usr/local/phon610/isobyu/
-
 
 #----------------------------------------------
 
@@ -29,6 +32,9 @@ alias sudo="sudo env PATH=\"\$PATH\""
 
 # as if I'm ever going to use go again >_>
 export GOPATH=$HOME/cpp/go
+
+# Sometimes rustup adds this, sometimes it has other things on its mind
+PATH=$HOME/.cargo/bin:$PATH
 
 # binaries distributed inside haskell packages
 export PATH=$PATH:$HOME/.cabal/bin
