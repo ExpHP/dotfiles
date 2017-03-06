@@ -2029,17 +2029,31 @@ After the installation guide:
 These can be installed after chroot to `/mnt` in the installation guide,
 or after booting into the new OS:
 
-    pacman -S iw dhclient wpa_supplicant
-    pacman -S git
+    pacman -S iw dhclient wpa_supplicant networkmanager
+    pacman -S wifi-menu dialog
+    pacman -S git cmake
     pacman -S vim emacs
-    pacman -S python{,2}{,-pip}
+    pacman -S python{,2}{,-pip} ruby rustup
     pacman -S ghc ghc-mod cabal-install
+    pacman -S nodejs npm
     pacman -S pass gnupg pwgen
     pacman -S xorg-xinit       # has startx; not part of the 'xorg' group
+    pacman -S rustup           # NOTE: don't run as root
+    pacman -S lsof mlocate tree
+    pacman -S zsh bash-completion zsh-completions
+    pacman -S ssh
+    pacman -S jq
+    pacman -S openmpi boost blas lapack
 
-    NVIDIA CARDS:  xf86-video-nouveau  # many things will install without this,
-                                       # yet appear completely broken
+    # feel free to run these simultaneously...
+    pip2 install jupyter numpy scipy pandas networkx
+    pip3 install jupyter numpy scipy pandas networkx
 
+
+don't forget drivers!
+
+    THINKPAD:      xf86-input-synaptics
+    NVIDIA CARDS:  xf86-video-nouveau  OR  nvidia
 
 ### Laptop battery state
 
@@ -2128,6 +2142,10 @@ and also do this:
 
     git config --global commit.gpgsign true
 
+#### Once you have a desktop
+
+    sudo pacman -S chromium firefox flashplugin
+
 #### THINGS I DID ON THE LAPTOP WHILE TRYING TO GET A WORKING DESKTOP, BUT I DON'T UNDERSTAND HOW THE THING I DID THAT MADE IT WORK ACTUALLY MADE IT WORK
 
 This is largely narrative written after the fact.  There are probably factual
@@ -2209,6 +2227,52 @@ So there ye have it.
 
 ...by the way, it turns out KDE actually kicks ass,
 so let's forget about `i3` for now. :3
+
+#### Automatic Wifi and ethernet
+
+once you're bored of using wpa_supplicant manually, enable some services:
+
+    sudo ip link  # to figure out device names
+    sudo systemctl enable dhclient@enp0s25.service
+    sudo systemctl enable dhclient@wlp3s0.service
+    sudo systemctl enable NetworkManager
+    sudo reboot
+
+and then e.g. Plasma already has a network management widget that should
+appear in the tray.
+
+======== ANT not working on Arch =========
+
+I have my old laptop and new laptop pointed at the same video, same url.
+Only the old one can download.
+
+Many many details that *seem* irrelevant are different between the laptops,
+since one is using Arch + Plasma while the other is Ubuntu.  However,
+all the important things match:
+
+* The video in question is using a Flash player on both machines
+  (as made obvious by the right-click menu).
+
+* Both have the same settings within the plugin.
+
+* on about:addons, under Extensions:
+  * Both have ANT Video Downloader 2.4.7.48.
+  * Both have Adblock Plus 2.8.2.
+  * The only extra stuff on the old laptop are "Tab Mix Plus" and
+    "Ubuntu Modifications".  ANT still works with the latter disabled.
+
+* under plugins:
+  * Both have "Shockwave Flash 24.0 r0" under Plugins, which expands to
+    "Shockwave Flash 24.0.0.221" when clicked.
+  * Both also have the "OpenH264 Video Codec provided by Cisco Systems,
+    Inc. 1.6" plugin.
+  * The old laptop also has "Gnome Shell Integration". Eh.
+
+AN ASIDE:
+
+Don't leave vim open on files in the directory for an extension like ANT;
+firefox performs integrity checks on addons when it starts up and will
+remove addons that don't look right.  (e.g. due to a vim tempfile...)
 
 =========== END ============
 
