@@ -24,11 +24,11 @@ callable() {
 }
 
 # phonopy
-alias sym-pos="phonopy --sym -c POSCAR > symmetry"
-alias sym-con="phonopy --sym -c CONTCAR > symmetry"
+alias sym-pos='phonopy --sym -c POSCAR > symmetry'
+alias sym-con='phonopy --sym -c CONTCAR > symmetry'
 
 # Let sudo see things in our path.
-alias sudo="sudo env PATH=\"\$PATH\""
+alias sudo='sudo env PATH="$PATH"'
 
 # as if I'm ever going to use go again >_>
 export GOPATH=$HOME/cpp/go
@@ -38,26 +38,28 @@ PATH=$HOME/.cargo/bin:$PATH
 
 # binaries distributed inside haskell packages
 export PATH=$PATH:$HOME/.cabal/bin
-alias hoogle="hoogle --color --count=10"
+alias hoogle='hoogle --color --count=10'
 
 # Newer ghc versions:
 #   sudo add-apt-repository https://launchpad.net/~hvr/+archive/ubuntu/ghc
 export PATH=/opt/ghc/bin:$PATH
 
-alias cabal="cabal --require-sandbox"
-alias cabal-deps="echo >&2 \"No longer necessary. Try:  cabal new-build
+alias cabal='cabal --require-sandbox'
+alias cabal-deps='echo >&2 "No longer necessary. Try:  cabal new-build
 Failing that, the old def was:
-   cabal --require-sandbox install --dependencies-only -pj\"; false"
+   cabal --require-sandbox install --dependencies-only -pj"; false'
 
 # plz stop making me scroll through tons of noise to find error messages kthx
-alias context="context --nostatistics"
+alias context='context --nostatistics'
 
 # reduce likelihood of me ever accidentally typing `make -j` again
 alias make='make -j4'
 # disable X11 gui (never mind, this has been upgraded to ~/bin status)
 alias emacs='emacs -nw'
 
-alias min="vim -u NONE"
+alias min='vim -u NONE'
+
+alias biggest='du -s $(ls -A) | sort -g | tail -n10'
 
 # NOTE: swap has been upgraded to a script
 

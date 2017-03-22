@@ -31,14 +31,15 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
-     haskell
-     javascript
-     python
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
+     haskell
+     javascript
+     python
+     latex
      helm
      ;; auto-completion
      ;; better-defaults
@@ -58,7 +59,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages '(kakapo-mode flycheck)
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
@@ -300,6 +301,10 @@ executes.
  This function is mostly useful for variables that need to be set
 before packages are loaded. If you are unsure, you should try in setting them in
 `dotspacemacs/user-config' first."
+
+  (load "~/dotfiles/spacemacs.private/framegeometry")
+  (setq framegeometry-path "~/dotfiles/spacemacs.private/var/framegeometry")
+  (framegeometry-hatsudou!!)
   )
 
 (defun dotspacemacs/user-config ()
@@ -310,38 +315,56 @@ This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
 
+  ;; work around nasty interface-locking bugs in evil's forward-slash search.
+  ;; https://github.com/syl20bnr/spacemacs/issues/3623#issuecomment-284534269
+  (setq-default search-invisible t)
+
+  ;; kakapo-mode: Indent with tabs OR spaces; align with spaces.
+  (load "~/dotfiles/spacemacs.private/kakapo-settings")
+  (require 'kakapo-mode)
+  ;; Some elaborate mode-specific settings are in the settings file
+  (kakapoconf-global-init)
+
+  ;; Bothersome question when editing a symlinked file whose target is under source control.
   (setq vc-follow-symlinks nil)
-  (spacemacs/set-leader-keys "kk" 'evil-lisp-state)
+
+  (setq abbrev-file-name "~/dotfiles/spacemacs.private/abbrev_defs")
+
+  ;; 80 kilobytes? C'mon! 80 MEGABYTES!
+  (setq undo-limit 80000000)
+
+
+  (setq undo-strong-limit 120000000)
+
+  ;; make private/snippets/fundamental-mode work in fundamental-mode
+  ;; (FIXME: ummmm... these snippets still aren't working...)
+  (add-hook 'yas-minor-mode-hook
+            (lambda ()
+              (yas-activate-extra-mode 'fundamental-mode)))
 
   (add-to-list 'spacemacs-indent-sensitive-modes 'idris-mode)
   (with-eval-after-load 'idris-mode
-    (setq idris-stay-in-current-window-on-compiler-error t)
     (setq idris-enable-elab-prover t)
-    (dolist (x '("*idris-notes*" "*idris-holes*" "*idris-info*"))
-      (plist-put (cdr (assoc x popwin:special-display-config)) :noselect t)))
+    (setq idris-stay-in-current-window-on-compiler-error t)
 
-;;  ;; try as I might I cannot make it even marginally possible to edit existing haskell code that
-;;  ;; has tabs in it
-;;  (add-to-list 'spacemacs-indent-sensitive-modes 'haskell-mode)
-;;  (with-eval-after-load 'haskell-mode
-;;		(setq evil-auto-indent nil)
-;;    (setq evil-indent-convert-tabs nil))
-;;    (defmacro save-local (name)
-;;      "Execute BODY, then restore a variable's value from before the call."
-;;      (lambda (&rest body)
-;;        (let ((save-local--old ,name))
-;;          (unwind-protect
-;;            (progn ,@body)
-;;            (setq-local ,name save-local--old)))))
-  
-;;  (with-eval-after-load 'haskell-indentation
-;;    (define-minor-mode haskell-indentation-mode "he's dead, jim" t))
-;;  (with-eval-after-load 'haskell-mode
-;;    (advice-add 'haskell-mode :after (lambda () (setq-local indent-tabs-mode t))))
-  
+    ;; https://github.com/syl20bnr/spacemacs/issues/8354#issuecomment-279620030
+    (dolist (x '("*idris-notes*" "*idris-holes*" "*idris-info*"))
+      (plist-put (cdr (assoc x popwin:special-display-config)) :noselect t))
+
+    )
+
+  ;; NOTE: additional settings for haskell-mode in kakapo-settings
+  (add-to-list 'spacemacs-indent-sensitive-modes 'haskell-mode)
+
   (with-eval-after-load 'org-mode
     ;; a.k.a line-wrap
     (spacemacs/toggle-visual-line-navigation-on))
+
+  (with-eval-after-load 'ox
+    ;; Enabling this is necessary to use #+BIND: flags in org files, which modify variables.
+    ;; Unlike the "Local Variables:" functionality of emacs, there is no prompt,
+    ;;  so I feel uncomfortable leaving it on.
+    (setq org-export-allow-bind-keywords nil))
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -359,7 +382,8 @@ This function is called at the very end of Spacemacs initialization."
  '(haskell-compile-cabal-build-command "cd %s && cabal new-build --ghc-option=-ferror-spans")
  '(safe-local-variable-values
    (quote
-    ((idris-load-packages "pruviloj")
+    (
+     (idris-load-packages "pruviloj")
      (idris-load-packages list "pruviloj")
      (idris-load-packages \`
                           (pruviloj))))))

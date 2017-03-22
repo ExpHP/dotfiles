@@ -1,0 +1,16 @@
+-- Symlink into ~/.ghci
+
+:set -XOverloadedStrings
+:set -XRankNTypes
+:set -XQuasiQuotes
+:set prompt "\ESC[1;33m\STXλ\ESC[0;33m\STX>\ESC[m\STX "
+
+import Data.Text(Text)
+import Data.Vector(Vector)
+import qualified Data.Text as Text
+import qualified Data.List as List
+import qualified Data.Vector as Vector
+
+:def turtle const $ pure "import Turtle"
+:def aeson const $ pure "import Data.Aeson\nimport Data.Aeson.Lens\nimport Control.Lens"
+
