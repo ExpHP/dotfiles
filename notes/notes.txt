@@ -2250,10 +2250,10 @@ Many many details that *seem* irrelevant are different between the laptops,
 since one is using Arch + Plasma while the other is Ubuntu.  However,
 all the important things match:
 
+* Both have the same settings within the plugin.
+
 * The video in question is using a Flash player on both machines
   (as made obvious by the right-click menu).
-
-* Both have the same settings within the plugin.
 
 * on about:addons, under Extensions:
   * Both have ANT Video Downloader 2.4.7.48.
