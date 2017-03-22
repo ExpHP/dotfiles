@@ -126,4 +126,5 @@ export HISTFILESIZE=100000
 shopt -s histappend
 
 # Add to the history after each command finishes
-export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+NEWLINE=$'\n'
+export PROMPT_COMMAND="history -a $NEWLINE $PROMPT_COMMAND"

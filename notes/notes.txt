@@ -2045,6 +2045,17 @@ or after booting into the new OS:
     pacman -S jq
     pacman -S openmpi boost blas lapack
 
+    # can't go without the AUR
+    git clone https://aur.archlinux.org/package-query.git
+    cd package-query
+    makepkg -si   # NOTE: this asks for a password
+                  #       even if you are root
+    cd ..
+    git clone https://aur.archlinux.org/yaourt.git
+    cd yaourt
+    makepkg -si
+    cd ..
+
     # feel free to run these simultaneously...
     pip2 install jupyter numpy scipy pandas networkx
     pip3 install jupyter numpy scipy pandas networkx
@@ -2145,6 +2156,16 @@ and also do this:
 #### Once you have a desktop
 
     sudo pacman -S chromium firefox flashplugin
+
+#### Fonts
+
+The "infinality-bundle" package recommended in various places
+is down and the maintainer is out. Lookee here instead.
+
+    https://gist.github.com/cryzed/e002e7057435f02cc7894b9e748c5671
+
+Seems overall though that font-bundling packages are very ephemeral.
+The above link will probably far outdated by the next time I read this.
 
 #### THINGS I DID ON THE LAPTOP WHILE TRYING TO GET A WORKING DESKTOP, BUT I DON'T UNDERSTAND HOW THE THING I DID THAT MADE IT WORK ACTUALLY MADE IT WORK
 
