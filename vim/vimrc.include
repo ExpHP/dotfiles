@@ -9,6 +9,8 @@ let tmp += ["slimv"]          " (indirectly makes life miserable outside of lisp
                               "  setting 'filetype indent on' unconditionally inside
                               "  'slimv/plugin/paredit.vim'. Perhaps I should raise an
                               "  issue, or hack it?)
+let tmp += ["python-mode"]    " (automatically strips trailing whitespace, making it hard to
+                              "  write clean commits to other projects.)
 let s:disabled_plugins = tmp
 unlet tmp
 

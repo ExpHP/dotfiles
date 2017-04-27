@@ -27,39 +27,62 @@ values."
    ;; If non-nil layers with lazy install support are lazy installed.
    ;; List of additional paths where to look for configuration layers.
    ;; Paths must have a trailing slash (i.e. `~/.mycontribs/')
-   dotspacemacs-configuration-layer-path '()
+   dotspacemacs-configuration-layer-path
+   '(
+     ;; git submodule init && git submodule update
+     "~/dotfiles/spacemacs/external/TheBB"
+     )
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     markdown
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
+     ;; suggestions contained in the original .spacemacs
+     (auto-completion :variables
+                      auto-completion-return-key-behavior nil
+                      auto-completion-tab-key-behavior 'cycle
+                      auto-completion-complete-with-key-sequence "jk"
+                      auto-completion-complete-with-key-sequence-delay 0.1
+                      auto-completion-enable-help-tooltip 'manual
+                      )
+     ;; better-defaults
+     ;; spell-checking
+     ;; syntax-checking
+     ;; markdown
+
+     ;; language layers; straightforward
      haskell
      javascript
      python
      latex
-     helm
-     ;; auto-completion
-     ;; better-defaults
-     emacs-lisp
      idris
-     ;; git
-     ;; markdown
+     rust
+     emacs-lisp
+     yaml
      org
+
+     git ;; this adds explicit interaction with git
+     version-control ;; this adds highlighting/gutter info
+
+     helm
+
      (shell :variables
             shell-default-height 30
             shell-default-position 'bottom)
-     ;; spell-checking
-     ;; syntax-checking
-     ;; version-control
+
+     ;; hides . and .. in helm-find-files; from TheBB's config layers.
+     ;; (included via git submodule)
+     no-dots
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(kakapo-mode flycheck)
+   dotspacemacs-additional-packages '(kakapo-mode flycheck flycheck-rust)
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
@@ -131,8 +154,13 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(spacemacs-dark
-                         spacemacs-light)
+   dotspacemacs-themes '(lush
+                         ;; alect-black
+                         ;; sanityinc-tomorrow-bright
+                         ;; grandshell
+                         spacemacs-dark
+                         ;; spacemacs-light
+                         )
    ;; If non-nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
    ;; Default font, or prioritized list of fonts. `powerline-scale' allows to
@@ -257,8 +285,18 @@ values."
    ;; scrolling overrides the default behavior of Emacs which recenters point
    ;; when it reaches the top or bottom of the screen. (default t)
    dotspacemacs-smooth-scrolling t
-   ;; If non-nil line numbers are turned on in all `prog-mode' and `text-mode'
-   ;; derivatives. If set to `relative', also turns on relative line numbers.
+   ;; Control line numbers activation.
+   ;; If set to `t' or `relative' line numbers are turned on in all `prog-mode' and
+   ;; `text-mode' derivatives. If set to `relative', line numbers are relative.
+   ;; This variable can also be set to a property list for finer control:
+   ;; '(:relative nil
+   ;;   :disabled-for-modes dired-mode
+   ;;                       doc-view-mode
+   ;;                       markdown-mode
+   ;;                       org-mode
+   ;;                       pdf-view-mode
+   ;;                       text-mode
+   ;;   :size-limit-kb 1000)
    ;; (default nil)
    dotspacemacs-line-numbers nil
    ;; Code folding method. Possible values are `evil' and `origami'.
@@ -291,7 +329,7 @@ values."
    ;; `trailing' to delete only the whitespace at end of lines, `changed'to
    ;; delete only whitespace for changed lines or `nil' to disable cleanup.
    ;; (default nil)
-   dotspacemacs-whitespace-cleanup nil
+   dotspacemacs-whitespace-cleanup 'trailing
    ))
 
 (defun dotspacemacs/user-init ()
@@ -302,10 +340,162 @@ executes.
 before packages are loaded. If you are unsure, you should try in setting them in
 `dotspacemacs/user-config' first."
 
-  (load "~/dotfiles/spacemacs.private/framegeometry")
-  (setq framegeometry-path "~/dotfiles/spacemacs.private/var/framegeometry")
+  (load "~/dotfiles/spacemacs/framegeometry")
+  (setq framegeometry-path "~/dotfiles/spacemacs/var/framegeometry")
   (framegeometry-hatsudou!!)
   )
+
+(defun dotspacemacs//haskell-toggle-qualified ()
+  "toggle the qualified-ness of a single import in haskell"
+  ;; TODO: sensible behavior when multiple lines are marked
+  (interactive)
+  (goto-char (line-beginning-position))
+  (let ((from-qual   "import[[:space:]]+qualified[[:space:]]+")
+        (from-unqual "import[[:space:]]+")
+        (to-qual     "import qualified ")
+        (to-unqual   "import           "))
+    ;; (if it isn't an import line, don't do anything at all)
+    (if (looking-at-p "import")
+
+        (if (looking-at from-qual)
+            (replace-match to-unqual)
+          (looking-at from-unqual)
+          (replace-match to-qual)))))
+
+(defun dotspacemacs/retry-with-timer (time repeat function &rest args)
+  "Do `run-at-time' repeatedly until the function returns non-nil,
+up to some maximum number of times have been reached (or `nil' to keep
+trying forever; notice this differs from `run-at-time')."
+  (interactive)
+  (unless (<= repeat 0)
+    (unless (apply function args)
+      (apply #'run-at-time time nil
+             'dotspacemacs/retry-with-timer time (1- repeat) function args))))
+
+(defun dotspacemacs/latex-try-open-errors ()
+  " Attempt to open the latex error buffer, if it exists.
+Returns t on success, nil on failure."
+  (interactive)
+  (if (get-process "LatexMk")
+      nil ; still running
+    (save-selected-window
+      (TeX-error-overview)
+      t)))
+
+(defun dotspacemacs/latex-build ()
+  "Build a latex file. Now with 98% less carpal tunnel.
+
+I mean, *really*, 'C-c `'?
+Are you trying to kill us?"
+
+  (interactive)
+  (latex/build)
+  (dotspacemacs/retry-with-timer "1 sec" 10
+                                 'dotspacemacs/latex-try-open-errors)
+  )
+
+(defun dotspacemacs/brazenly-replace-things ()
+  "Now, this can't *possibly* go wrong."
+  (interactive)
+  (dolist (x '(("-="  "->")
+               ("=-"  "<-")
+               (";;"  "::")
+               (",./" "=>")))
+    (save-excursion (goto-char (point-min))
+                    ;; (replace-string . x) ;;
+                    (replace-string (car x) (cadr x)))))
+
+;;=========================================
+;;  This junk should be pulled out into a layer I guess?
+;;
+;;  But then, I'm not sure how to write a layer that doesn't depend on
+;;  any packages. (all the init functions are e.g. init-SOME-PACKAGE)
+;;
+;;  So I guess I need to make a package too?
+;;
+;;  Eugh. Whatever.
+
+(defun dotspacemacs/simulate-insert-char (val)
+  "A target for a key binding which tries to simulate inserting the key in such
+   a way that e.g. smartparens can intercept it, but without the possibility of
+   being recursively invoked;  that makes this a suitable target to use when swapping
+   two keys in a minor mode. (whereas keyboard macros would get in a recursion loop)
+   "
+    `(lambda ()
+      (interactive)
+      (insert ,val)
+      (run-hooks 'post-self-insert-hook)
+      ))
+
+(defun dotspacemacs/char-swapping-keymap (a b)
+  "Create a keymap that swaps keys in insert-state. A and B are strings;
+   the first character of A is swapped with the first character of B."
+  (apply 'append
+         (cl-mapcar (lambda (x y)
+                      `((,(kbd x) . ,(dotspacemacs/simulate-insert-char y))
+                        (,(kbd y) . ,(dotspacemacs/simulate-insert-char x))
+                        ))
+                    (split-string a "" t)
+                    (split-string b "" t))))
+
+(define-minor-mode shifted-numbers-mode
+  "Shifted Numbers mode (for US keyboard layout)"
+  nil
+  "#"
+  (dotspacemacs/char-swapping-keymap "1234567890" "!@#$%^&*()")
+  :global t)
+
+(define-minor-mode unshifted-braces-mode
+  "Shifted Brackets mode (for US keyboard layout)"
+  nil
+  "{"
+  (dotspacemacs/char-swapping-keymap "[]" "{}")
+  :global t)
+
+(define-minor-mode unshifted-underscore-mode
+  "Unshifted Underscore mode (for US keyboard layout)"
+  nil
+  "_"
+  (dotspacemacs/char-swapping-keymap "-" "_")
+  :global t)
+
+(define-minor-mode unshifted-plus-mode
+  "Unshifted Plus mode (for US keyboard layout)"
+  nil
+  "+"
+  (dotspacemacs/char-swapping-keymap "=" "+")
+  :global t)
+
+(define-minor-mode unshifted-quotes-mode
+  "Unshifted Quotes mode (for US keyboard layout)"
+  nil
+  "\""
+  (dotspacemacs/char-swapping-keymap "'" "\"")
+  :global t)
+
+(define-minor-mode unshifted-colon-mode
+  "Unshifted Colon mode (for US keyboard layout)"
+  nil
+  ":"
+  (dotspacemacs/char-swapping-keymap ";" ":")
+  :global t)
+
+(define-minor-mode unshifted-pipe-mode
+  "Unshifted Pipe mode (for US keyboard layout)"
+  nil
+  "|"
+  (dotspacemacs/char-swapping-keymap "\\" "|")
+  :global t)
+
+;; misnamed, but who wants unshifted-angle-mode?
+(define-minor-mode unshifted-angle-mode
+  "Unshifted Angle mode (for US keyboard layout)"
+  nil
+  "<"
+  (dotspacemacs/char-swapping-keymap ",." "<>")
+  :global t)
+
+;;=========================================
 
 (defun dotspacemacs/user-config ()
   "Configuration function for user code.
@@ -320,7 +510,7 @@ you should place your code here."
   (setq-default search-invisible t)
 
   ;; kakapo-mode: Indent with tabs OR spaces; align with spaces.
-  (load "~/dotfiles/spacemacs.private/kakapo-settings")
+  (load "~/dotfiles/spacemacs/kakapo-settings")
   (require 'kakapo-mode)
   ;; Some elaborate mode-specific settings are in the settings file
   (kakapoconf-global-init)
@@ -328,13 +518,79 @@ you should place your code here."
   ;; Bothersome question when editing a symlinked file whose target is under source control.
   (setq vc-follow-symlinks nil)
 
-  (setq abbrev-file-name "~/dotfiles/spacemacs.private/abbrev_defs")
+  (setq rust-indent-offset 4)
+
+  ;; Old habits die hard.  Accidentally quitting emacs sucks.
+  (evil-ex-define-cmd "q[uit]" nil)
+  (evil-ex-define-cmd "wq" nil)
+
+  (setq personal-abbrev-file-name "~/dotfiles/spacemacs/abbrev_defs")
+  (setq abbrev-file-name personal-abbrev-file-name)
+  (dolist (x '((haskell-mode . haskell-mode-hook))
+             (with-eval-after-load (car x)
+               (add-hook (cdr x)
+                         ;; electric-indent-mode insidiously replaces the abbrevs file!
+                         ;; ...I think?
+                         (lambda ()
+                           (electric-indent-mode 0)
+                           (abbrev-mode) ; this doesn't seem to actually
+                                         ; enable it.  Docs say to supply a
+                                         ; positive argument in interactive
+                                         ; use, and nil in noninteractive use.
+                           (read-abbrev-file personal-abbrev-file-name))))))
+
+  (with-eval-after-load 'rust-mode
+    (setq cargo-process--custom-path-to-bin "/usr/bin"))
+
+  (with-eval-after-load 'helm
+    (setq helm-ff-skip-boring-files t)
+    (dolist (x '("\\.hi$"))
+      (add-to-list 'helm-boring-file-regexp-list x)))
 
   ;; 80 kilobytes? C'mon! 80 MEGABYTES!
   (setq undo-limit 80000000)
-
-
   (setq undo-strong-limit 120000000)
+
+  (setq scroll-margin 10)
+
+  ;; bypass the transient mode on these because I use them to initiate
+  ;; search-and-replace ("*ciWstring<CR>n.n.n.n.n.n.")
+  (evil-global-set-key 'normal "*" 'evil-search-word-forward)
+  (evil-global-set-key 'normal "#" 'evil-search-word-backward)
+
+  ;; custom evil-lisp-state keybinds
+  ;; NOTE: (this works because SPC k and lisp-state share the same keymap)
+  (spacemacs/set-leader-keys
+    ;; these help clean up small formatting issues that can arise in lisp-state...
+    "k x" 'sp-delete-char ;; for the occasional extra space at the cursor...
+    "k =" 'evil-indent    ;; for when something doesn't use sp-newline
+
+    ;; preventative measures
+    "k C-j" 'sp-newline
+
+    ;; I've always felt that vim's j and k should have been flipped.
+    ;; I've long since gotten used to it in normal typing,
+    ;; but in lisp-state it somehow *still* feels absurd!
+    "k k" 'evil-lisp-state-next-closing-paren
+    "k j" 'evil-lisp-state-prev-opening-paren
+    )
+
+  (spacemacs/set-leader-keys
+    "t 1"  'shifted-numbers-mode
+    "t ["  'unshifted-braces-mode
+    "t ]"  'unshifted-braces-mode
+    "t -"  'unshifted-underscore-mode
+    "t ="  'unshifted-plus-mode
+    "t '"  'unshifted-quotes-mode
+    "t ;"  'unshifted-colon-mode
+    "t \\" 'unshifted-pipe-mode
+    "t ,"  'unshifted-angle-mode
+    "t ."  'unshifted-angle-mode
+    )
+
+  (spacemacs/set-leader-keys
+    "d f"  'flycheck-mode
+    )
 
   ;; make private/snippets/fundamental-mode work in fundamental-mode
   ;; (FIXME: ummmm... these snippets still aren't working...)
@@ -353,8 +609,94 @@ you should place your code here."
 
     )
 
+  (push '("*TeX errors*" :position bottom :height 8 :noselect t :dedicated t)
+    popwin:special-display-config)
+
+  (with-eval-after-load 'neotree
+    (setq neo-window-fixed-size nil))
+
+  (with-eval-after-load 'haskell-mode
+    (add-hook 'haskell-mode-hook
+              (lambda ()
+                (add-hook 'before-save-hook
+                          'dotspacemacs/brazenly-replace-things
+                          nil t))))
+
+  (with-eval-after-load 'haskell-mode
+    (spacemacs/declare-prefix-for-mode 'haskell-mode "mi" "haskell/intero")
+    (spacemacs/set-leader-keys-for-major-mode 'haskell-mode
+      "ii" 'intero-mode
+      "ir" 'intero-restart
+      "it" 'intero-targets
+      "dq" 'dotspacemacs//haskell-toggle-qualified
+      ))
+
   ;; NOTE: additional settings for haskell-mode in kakapo-settings
   (add-to-list 'spacemacs-indent-sensitive-modes 'haskell-mode)
+  (with-eval-after-load 'haskell-interactive-mode
+    (setq haskell-process-log t))
+
+  (with-eval-after-load 'haskell-mode
+    (setq haskell-process-suggest-remove-import-lines nil))
+
+  ;;------------------------------
+  ;; NOTE: general advice on intero + stack:
+
+  ;; * for local-filesystem deps:
+  ;;
+  ;;   1. You must have an entry under 'packages' in stack.yaml:
+  ;;
+  ;;           packages:
+  ;;           - location: path/to/package
+  ;;             extra-dep: true
+  ;;
+  ;;      without "extra-dep: true" you will get hidden-package errors everywhere
+  ;;      (the repl won't load them properly until you trick it into doing
+  ;;       "-package name", and for intero you'll be forced to open 'M-x intero-targets')
+  ;;
+  ;;      NOTE: I've only tried this with deps symlinked into a location inside
+  ;;      the current dir.  I don't know if you can use absolute paths.
+  ;;
+  ;;   2. Make sure there aren't two 'packages' lists (I've... made this mistake)
+  ;;
+  ;;   3. You don't need to list them in the "extra-deps" list in stack.yaml
+  ;;
+  ;;   4. You DO need to depend on them in *.cabal
+  ;;
+  ;;   5. Once deps are added to *.cabal, do a 'stack build'. (You will see
+  ;;      them get installed)
+  ;;
+  ;;   6. That should be it...?  (do 'M-x intero-restart' if it is active)
+
+  ;; * Typically, when intero-mode is started on a module in a test suite,
+  ;;   it will refuse to acknowledge the existence of any imported modules
+  ;;   from inside the test suite or its dependencies.
+  ;;   (the "module X is not part of any known package" sort of error
+  ;;    that occurs on import statements)
+  ;;
+  ;;   To fix, you should do two things:
+  ;;
+  ;;      1. (to fix dependencies)  Pop into a console and do "stack test".
+  ;;         You will see it download anything recently added to the build-depends
+  ;;         of the test suite.
+  ;;
+  ;;      2. (to fix intero) do "M-x intero-targets" and select all you see.
+  ;;         The test suite should be on that list.
+  ;;         You generally need to do this after each time you start "intero-mode".
+
+  ;; * Sometimes it may be observed that intero only reports errors on
+  ;;   import lines; once these are correct it reports the rest of the
+  ;;   file to have no errors, despite very clear mistakes.
+  ;;
+  ;;   When this occurs, an error is most likely occuring in another file.
+  ;;   Go visit any modules you import that are a part of your codebase.
+
+  ;; NOTE: Things that are still brooken and I'm not sure how to fix:
+
+  ;; * I keep seeing company provide completions inside comments/strings,
+  ;;   and nowhere else.  (i.e. exactly the set of locations where you
+  ;;   would NOT want completions)
+  ;;------------------------------
 
   (with-eval-after-load 'org-mode
     ;; a.k.a line-wrap
@@ -362,9 +704,18 @@ you should place your code here."
 
   (with-eval-after-load 'ox
     ;; Enabling this is necessary to use #+BIND: flags in org files, which modify variables.
-    ;; Unlike the "Local Variables:" functionality of emacs, there is no prompt,
+    ;; Unlike the "Local Voldemorts:" functionality of emacs, there is no prompt,
     ;;  so I feel uncomfortable leaving it on.
     (setq org-export-allow-bind-keywords nil))
+
+  (with-eval-after-load 'tex
+    (spacemacs/set-leader-keys-for-major-mode 'latex-mode
+      "b" 'dotspacemacs/latex-build
+      )
+
+    ;(evil-define-key 'insert LaTeX-mode-map (kbd "C-9") "\(")
+    ;(evil-define-key 'insert LaTeX-mode-map (kbd "C-0") "\)")
+    )
 )
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -380,14 +731,15 @@ This function is called at the very end of Spacemacs initialization."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(haskell-compile-cabal-build-command "cd %s && cabal new-build --ghc-option=-ferror-spans")
+ '(package-selected-packages
+   (quote
+    (company-quickhelp pos-tip helm-company helm-c-yasnippet fuzzy company-tern dash-functional tern company-statistics company-cabal company-auctex company-anaconda auto-yasnippet ac-ispell auto-complete mmm-mode markdown-toc markdown-mode gh-md winum toml-mode racer cargo rust-mode auctex-latexmk yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spacemacs-theme spaceline smeargle shell-pop restart-emacs rainbow-delimiters quelpa pyvenv pytest pyenv-mode py-isort popwin pip-requirements persp-mode pcre2el paradox orgit org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file neotree multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode live-py-mode linum-relative link-hint kakapo-mode json-mode js2-refactor js-doc intero info+ indent-guide idris-mode ido-vertical-mode hy-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-ag haskell-snippets google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word cython-mode company-ghci company-ghc column-enforce-mode coffee-mode cmm-mode clean-aindent-mode auto-highlight-symbol auto-compile auctex anaconda-mode aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line)))
  '(safe-local-variable-values
    (quote
-    (
-     (idris-load-packages "pruviloj")
+    ((idris-load-packages "pruviloj")
      (idris-load-packages list "pruviloj")
      (idris-load-packages \`
                           (pruviloj))))))
-
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -395,3 +747,17 @@ This function is called at the very end of Spacemacs initialization."
  ;; If there is more than one, they won't work right.
  )
 )
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (winum toml-mode racer cargo rust-mode auctex-latexmk yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spacemacs-theme spaceline smeargle shell-pop restart-emacs rainbow-delimiters quelpa pyvenv pytest pyenv-mode py-isort popwin pip-requirements persp-mode pcre2el paradox orgit org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file neotree multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode live-py-mode linum-relative link-hint kakapo-mode json-mode js2-refactor js-doc intero info+ indent-guide idris-mode ido-vertical-mode hy-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-ag haskell-snippets google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word cython-mode company-ghci company-ghc column-enforce-mode coffee-mode cmm-mode clean-aindent-mode auto-highlight-symbol auto-compile auctex anaconda-mode aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )

@@ -68,7 +68,7 @@ are missing (when they should probably be more)
 
        configure: pcap development files not found, wpcap won't be supported.
        configure: libhal development files not found, no legacy dynamic device support.
-       
+
        configure: Finished. Do 'make' to compile Wine.
 
    - If you see anything more serious that is missing, consider getting that dep, too.
@@ -111,7 +111,7 @@ which is far simpler than my previous solution of "tweak" scripts.
 The necessary manual edits are the following:
 
 Add this to ~/.bashrc
-    
+
     #-----------------------------------------------------
     # Stuff specifically bash-related (e.g. PS1 prompt)
     source /home/lampam/dotfiles/shell/bashrc.include
@@ -130,7 +130,7 @@ My zsh used a custom theme:
 
 There are some old scripts in ~/scripts/tweak that still
 appear to be worth running:
-    
+
     setup-python-imports.py  (because unfortunately there are python libs I still
                               use to this day which do not have a proper setup.py)
     disable-login-sound.sh
@@ -145,7 +145,7 @@ This was the entirety of my .vimrc as of 2016-08-11:
     " (note: there must be another file elsewhere, too, as I've noticed that the
     " 'backspace' setting still doesn't get set automatically)
     source /etc/vim/vimrc
-    
+
     source /home/lampam/dotfiles/vim/vimrc.include
 
 To set up ~/.vim/, I appear to have left myself with a multi-step process
@@ -292,11 +292,11 @@ To make the system search these directories for libraries at linking and runtime
 
 File: /etc/ld.so.conf.d/CUSTOM_local_biarch
 
-    # Biarch directories for manually built libraries 
+    # Biarch directories for manually built libraries
     /usr/local/lib32
     /usr/local/lib64
 
-	
+
 
 ========= BUILDING GLC ===========
 
@@ -431,11 +431,11 @@ Jan 13 2015
 
  -This disables the overlay scrollbar from popping up (and making window
     resizing difficult), while retaining its visual appearance.
-   
+
   This makes the scrollbar unusable, but it's not like I ever used it anyways.
 
   Mousewheel, page up/page down, and trackpoint scrolling all still work.
- 
+
     gsettings set com.canonical.desktop.interface scrollbar-mode 'overlay-touch'
 
 =========== RE-ENABLE SYSREQ STUFF (REISUB, ETC.) ===========
@@ -459,7 +459,7 @@ Jan 13 2015
 ============= ATTEMPT TO DISABLE VSYNC ==============
 
 Latest attempt to disable vsync
- 
+
  * added /etc/X11/xorg.conf
    (this was automatically moved to /etc/X11/xorg.conf.02042015 after the
     incident with Optimus detailed below)
@@ -564,7 +564,7 @@ I took a closer look at the directions in the example-site.cfg provided
     was able to find and link them correctly:
 
     $ python3
-    Python 3.4.3 (default, Apr  8 2015, 10:26:55) 
+    Python 3.4.3 (default, Apr  8 2015, 10:26:55)
     [GCC 4.8.1] on linux
     Type "help", "copyright", "credits" or "license" for more information.
     >>> import numpy
@@ -574,7 +574,7 @@ I took a closer look at the directions in the example-site.cfg provided
         language = f77
         define_macros = [('ATLAS_INFO', '"\\"3.8.4\\""')]
         libraries = ['lapack', 'ptf77blas', 'ptcblas', 'atlas']
-    
+
     [ ... snip ... ]
 
     blas_opt_info:
@@ -736,7 +736,7 @@ ERROR: home/lampam/Dropbox/ARTZ/FMBA/[LonE]_Nakagawa_Shoko_-_Fullmetal_Alchemist
 ERROR: home/lampam/dd-vaspruns/true-relax/WHAT-IS-WRONG/All-0.1-1e-5-1e-4-5/1.27/stubborn-workdir/WAVECAR failed verification -- update discarded.
 ERROR: home/lampam/dd-vaspruns/true-relax/WHAT-IS-WRONG/Damped-0.4-1e-5-1e-4-0/1.27/stubborn-workdir/WAVECAR failed verification -- update discarded.
 
-Interesting how two of the paths are so similar.  Not sure what to make of it... pure coincidence?  
+Interesting how two of the paths are so similar.  Not sure what to make of it... pure coincidence?
 
 ======= INSTALLING GIT ON KOMODO =======  May 26 2015
 
@@ -1024,7 +1024,7 @@ Neither him nor I have tried building exclusively with the `xl_r` module.
 
 On first compilation attempt for the libs, I got this:
     $ make
-    cpp -P -C   preclib.F >preclib.f90 
+    cpp -P -C   preclib.F >preclib.f90
     mpixlf90   -O3 -qstrict -qfree=f90 -qhot -qarch=qp -qtune=qp   -c -o preclib.o preclib.f
     "preclib.f", line 8.6: 1514-220 (S) Module symbol file for module preclib.mod is in a format not recognized by this compiler. Please compile the module with this compiler.
     ** preclib   === End of Compilation 1 ===
@@ -1170,16 +1170,16 @@ Followed it more or less to the letter, dependencies aside.  That is:
 
     # PART 2:  Working inside the LXC
     sudo lxc-start -nmy32bitbox
-    
+
     cd build/wine/build-wine32-tools
     ../wine-src/configure
     make -j9
-    
+
     cd ../build-wine32-combo
     ../wine-src/configure --with-wine64=../build-wine64 --with-wine-tools=../build-wine32-tools
     make -j9
     sudo make install      # to force some additional bits of compilation
-    
+
     sudo shutdown -h now   # to exit the lxc
 
 
@@ -1307,7 +1307,7 @@ root  26715  |                  \_ /bin/sh /usr/bin/os-prober
 root  27292  |                 |   \_ /bin/sh /usr/lib/os-probes/50mounted-tests /dev/sdc1
 root  27373  |                 |       \_ grub-mount /dev/sdc1 /var/lib/os-prober/mount
 root  26716  |                 \_ tr   ^
-root  26717  |                 \_ paste -s -d  
+root  26717  |                 \_ paste -s -d
 
 The line which should stand out here is the one ending in 'sdc1'.
 A quick `ls -l /dev/disk/by-id` revealed that /dev/sdc is the flash drive.
@@ -2043,7 +2043,8 @@ or after booting into the new OS:
     pacman -S zsh bash-completion zsh-completions
     pacman -S ssh
     pacman -S jq
-    pacman -S openmpi boost blas lapack
+    pacman -S openmpi boost openmp  # don't get blas/lapack yet!
+    pacman -S ntfs-3g    # the standard ntfs driver is read-only
 
     # can't go without the AUR
     git clone https://aur.archlinux.org/package-query.git
@@ -2056,9 +2057,37 @@ or after booting into the new OS:
     makepkg -si
     cd ..
 
-    # feel free to run these simultaneously...
-    pip2 install jupyter numpy scipy pandas networkx
-    pip3 install jupyter numpy scipy pandas networkx
+    # Make numpy faster; openblas beats the crap outta cblas
+    pacman -S openmp
+    yaourt openblas-lapack
+      # choose to edit the config file
+      # change to USE_OPENMP=1
+
+    # pip will by default install to /usr (not /usr/local), potentially
+    # making life miserable if you later want to install things through
+    # pacman.  Here's some packages known to be on the arch repo.
+    #
+    # If it's too late and you've already installed stuff from pip
+    # that is blocking pacman, be aware of the following command:
+    #
+    #     pip freeze
+    #
+    # which lists all installed packages and might help you find the
+    #  right name to give "pip uninstall". (which does NOT necessarily
+    #  match the name of the subdirectory inside site-packages)
+    #
+    # (half of these were found just by looking at the optional deps
+    #  of python-pandas)
+    arr=()
+    arr+=(jupyter jupyter-notebook)
+    arr+=(python-networkx python2-networkx)
+    arr+=(python-nose python2-nose)
+    arr+=(python-scipy python2-scipy)
+    arr+=(python-numexpr python2-numexpr)
+    arr+=(python-bottleneck python2-bottleneck)
+    arr+=(python-matplotlib python2-matplotlib)
+    arr+=(python-pandas python2-pandas)
+    pacman -S "${arr[@]}"
 
 
 don't forget drivers!
@@ -2167,6 +2196,26 @@ is down and the maintainer is out. Lookee here instead.
 Seems overall though that font-bundling packages are very ephemeral.
 The above link will probably far outdated by the next time I read this.
 
+#### CRUCIAL THINGS TO DO AFTER INSTALLING ANY DESKTOP ENVIRONMENT
+
+Replace the 'vim' package with 'gvim', because that package includes a CLI
+version of vim that is compiled with '+clipboard' and '+xterm_clipboard'.
+
+    sudo pacman -R vim
+    sudo pacman -S gvim
+
+
+#### CRUCIAL THINGS TO DO AFTER INSTALLING KDE
+
+Open the dash and type "Global shortcuts".
+Look under "kmserver".
+Observe these lovely keybindings:
+
+    Ctrl+Alt+Shift+PgDn : Halt without confirmation
+    Ctrl+Alt+Shift+PgUp : Reboot without confirmation
+
+Burn them with fire.
+
 #### THINGS I DID ON THE LAPTOP WHILE TRYING TO GET A WORKING DESKTOP, BUT I DON'T UNDERSTAND HOW THE THING I DID THAT MADE IT WORK ACTUALLY MADE IT WORK
 
 This is largely narrative written after the fact.  There are probably factual
@@ -2262,38 +2311,47 @@ once you're bored of using wpa_supplicant manually, enable some services:
 and then e.g. Plasma already has a network management widget that should
 appear in the tray.
 
-======== ANT not working on Arch =========
+========= LATEX ON ARCH ========== May 16 2017
 
-I have my old laptop and new laptop pointed at the same video, same url.
-Only the old one can download.
+    sudo pacman -S texlive-most
 
-Many many details that *seem* irrelevant are different between the laptops,
-since one is using Arch + Plasma while the other is Ubuntu.  However,
-all the important things match:
+Note that this doesn't install the "fourier" package correctly.
 
-* Both have the same settings within the plugin.
+    (/usr/share/texmf-dist/tex/latex/fourier/fmlfutmi.fd)
+    (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd)
+    (/usr/share/texmf-dist/tex/latex/amsfonts/umsb.fd) [1{/home/lampam/.texlive/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] (./projections.aux)
+    kpathsea: Running mktexpk --mfmode / --bdpi 600 --mag 0+458/600 --dpi 458 futr8rmktexpk: don't know how to create bitmap font for futr8r.
+    mktexpk: perhaps futr8r is missing from the map file.
+    kpathsea: Appending font creation commands to missfont.log.
+    )
+    !pdfTeX error: pdflatex (file futr8r): Font futr8r at 458 not found
+    ==> Fatal error occurred, no output PDF file produced!
 
-* The video in question is using a Flash player on both machines
-  (as made obvious by the right-click menu).
+This can be solved with manual intervention:
 
-* on about:addons, under Extensions:
-  * Both have ANT Video Downloader 2.4.7.48.
-  * Both have Adblock Plus 2.8.2.
-  * The only extra stuff on the old laptop are "Tab Mix Plus" and
-    "Ubuntu Modifications".  ANT still works with the latter disabled.
+Do ONE of the following. I'm not sure which is better.
+(try the -sys one.  Once you do the non-sys one, you effectively detach
+ yourself from the system config, and you're stuck with the consequences until...
+ well, I guess until you find the user-local config files and delete them)
 
-* under plugins:
-  * Both have "Shockwave Flash 24.0 r0" under Plugins, which expands to
-    "Shockwave Flash 24.0.0.221" when clicked.
-  * Both also have the "OpenH264 Video Codec provided by Cisco Systems,
-    Inc. 1.6" plugin.
-  * The old laptop also has "Gnome Shell Integration". Eh.
+    updmap --enable Map fourier.map
+    sudo updmap-sys --enable Map fourier.map
 
-AN ASIDE:
+========= nolimit on arch ========= April 21 2017
 
-Don't leave vim open on files in the directory for an extension like ANT;
-firefox performs integrity checks on addons when it starts up and will
-remove addons that don't look right.  (e.g. due to a vim tempfile...)
+I now set memory limits in /etc/security/limits.conf instead of bashrc.
+
+    lampam           hard    as              8000000
+
+With this, bypassing ulimit---for as infrequently as I need to do it---
+can be easily accomplished with a series of `su`s:
+
+    $ sudo su
+    # ulimit -v unlimited
+    # sudo su lampam
+    $ ulimit -v
+    unlimited
+
+> It's login shells all the way down, son!
 
 =========== END ============
-

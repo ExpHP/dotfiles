@@ -1,0 +1,3 @@
+[submodule "spacemacs/external/TheBB"]
+	path = spacemacs/external/TheBB
+	url = https://github.com/TheBB/spacemacs-layers

@@ -1,14 +1,13 @@
+;;; -*- lexical-binding: t -*-
+
 (cl-defun my-mode-hook (hook &key (kako t) (w 2) tabs (scold-spacemacs t) prog)
-  ;; FIXME: The lexical-let here is cargo-cult programming.
-  ;;        grepping all of the spacemacs source for 'lexical-let' yields only two matches,
-  ;;        so there is obviously an alternative solution; I just don't know what it is.
-  (lexical-let ((twidth w)
-                (tmode tabs)
-                (tkako-yn kako)
-                (prog prog)
-                (hook hook)
-                (scold-spacemacs scold-spacemacs)
-                (tkako-int (if kako 1 0)))
+  (let ((twidth w)
+        (tmode tabs)
+        (tkako-yn kako)
+        (prog prog)
+        (hook hook)
+        (scold-spacemacs scold-spacemacs)
+        (tkako-int (if kako 1 0)))
 
     (add-hook hook
               (lambda ()
@@ -17,7 +16,7 @@
                 (setq-local evil-shift-width twidth) ; evil < and > width
                 (setq-local tab-width twidth) ; hard-tab display width
                 (setq-local kakapoconf--has-local-control t)
-                
+
                 (when tkako-yn
                   ;; NOTE: I don't think there's any simple mechanism avaiable to recover any keybindings that we overwrite...?
                   (evil-local-set-key 'normal "O" 'kakapoconf/open-above)
@@ -47,6 +46,8 @@
     (haskell-mode-hook :w 4 :tabs nil
                        :prog ((haskell-indentation-mode 0)))
     (shell-mode-hook :w 4 :tabs t)
+    ;; sorry rustfmt, you're still not ready
+    (rust-mode-hook :w 4 :tabs t)
 
     ;; elisp is structured enough that auto-indentation is actually *a delight*.
     (emacs-lisp-mode-hook :kako nil :w 2 :tabs nil)))

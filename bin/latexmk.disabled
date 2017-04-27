@@ -4,7 +4,10 @@
 # the meaningless (to somebody who isn't developing pdflatex) debugging info
 # while still displaying error messages
 
-/usr/local/bin/latexmk "$@" |
+latexmk=$(which latexmk -a 2>/dev/null | grep -v dotfiles)
+[[ $latexmk ]] || { echo >&2 "cannot find true latexmk."; exit 1; }
+
+"$latexmk" "$@" |
 	# package-loading lines
 	grep -P --invert-match '^\(/usr/share/' |
 	# colorize errors; must be done last

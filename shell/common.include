@@ -3,6 +3,9 @@
 # This file is intended to be sourced by both .bashrc and .zshrc.
 # It contains environment variables, aliases, and other shell-agnostic things.
 
+# FIXME I think there's actually a lot of bash-specific things in here.
+#       kinda defeats the point >_>
+
 # this might already be there, but it also might not.
 # doesn't hurt to have it listed twice!
 PATH=$HOME/bin:$PATH
@@ -35,6 +38,9 @@ export GOPATH=$HOME/cpp/go
 
 # Sometimes rustup adds this, sometimes it has other things on its mind
 PATH=$HOME/.cargo/bin:$PATH
+
+# ayup
+PATH=$HOME/.local/bin:$PATH
 
 # binaries distributed inside haskell packages
 export PATH=$PATH:$HOME/.cabal/bin
@@ -77,6 +83,8 @@ fi
 
 # https://twitter.com/liamosaur/status/506975850596536320
 alias fuck='sudo $(history -p \!\!)'
+alias please='sudo $(history -p \!\!)'
+alias fucking=sudo
 
 # So it turns out that simply invoking `unity` -- without arguments! -- will
 #  kill your entire session immediately and without question.
@@ -97,6 +105,13 @@ if callable unzip2dir; then
 	alias unzip='echo >&2 "Disabled. (Use unzip2dir or /usr/bin/unzip)"; false'
 fi
 
+# Not done automatically on Arch.
+# (seems "ls" is colorized even without having done this; but it does affect "tree")
+[ "x$LS_COLORS" == x ] && callable dircolors && eval "$(dircolors --sh)"
+
+# sudoedit uses this
+export EDITOR=vim
+
 # cross compiler install location
 # NOTE: don't get your hopes up, I've still yet to successfully make one that can
 #  actually produce an executable.
@@ -105,20 +120,20 @@ export PATH=/opt/cross/bin:$PATH
 # Binaries in this repo!
 export PATH=$HOME/dotfiles/bin:$PATH
 
-# Bumper rail.
-# Limit memory for interactive bash prompts, because thrashing sucks.
-# To bypass, invoke 'nolimit' from *outside* of a bash process.
-if callable bc && [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
-	MAX_RAM_FRACTION=0.5
-	TOTAL_RAM=$(free -kt | sed -n '2p' | awk '{ print $2 }')
-	# (note: The purpose of "/ 1" here seems to be to floor the number)
-	MAX_OK=$(echo "($MAX_RAM_FRACTION * $TOTAL_RAM) / 1" | bc)
-	# just a sanity check. Maybe the output format of free changed... idunno,
-	# and i don't care, because a silly and pointless check is better than never
-	# being able to use a terminal again!
-	if [[ $MAX_OK -ge 10000 ]]; then
-		ulimit -v $MAX_OK
-		export NOLIMIT_TOO_LATE=1
-	fi
-fi
+# # Bumper rail.
+# # Limit memory for interactive bash prompts, because thrashing sucks.
+# # To bypass, invoke 'nolimit' from *outside* of a bash process.
+#if [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
+#	# use percents so we can do integer math, which doesn't require bc
+#	MAX_RAM_PERCENT=50
+#	TOTAL_RAM=$(free -kt | sed -n '2p' | awk '{ print $2 }')
+#	MAX_OK=$((MAX_RAM_PERCENT * TOTAL_RAM / 100))
+#	# just a sanity check. Maybe the output format of free changed... idunno,
+#	# and i don't care, because a silly and pointless check is better than never
+#	# being able to use a terminal again!
+#	if [[ $MAX_OK -ge 10000 ]]; then
+#		ulimit -v $MAX_OK
+#		export NOLIMIT_TOO_LATE=1
+#	fi
+#fi
 

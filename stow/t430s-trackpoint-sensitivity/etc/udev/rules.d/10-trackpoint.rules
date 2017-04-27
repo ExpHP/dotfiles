@@ -1,0 +1,1 @@
+ACTION=="add", KERNEL=="serio2", SUBSYSTEM=="serio", DRIVERS=="psmouse", RUN+="/usr/local/bin/_udev--trackpoint-sensitivity.sh"

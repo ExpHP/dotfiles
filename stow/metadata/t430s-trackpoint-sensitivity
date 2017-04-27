@@ -1,0 +1,8 @@
+/
+Increases sensitivity of trackpoint to combat RSI.
+
+After this you will need to do:
+
+    sudo udevadm control --reload
+
+This will require root.
