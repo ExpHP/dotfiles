@@ -35,11 +35,13 @@ values."
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
    '(
+     html
+     racket
      markdown
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
-     ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
-     ;; <M-m f e R> (Emacs style) to install them.
+     ;; Uncomment some layer names and press `SPC f e R' (Vim style) or
+     ;; `M-m f e R' (Emacs style) to install them.
      ;; ----------------------------------------------------------------
      ;; suggestions contained in the original .spacemacs
      (auto-completion :variables
@@ -64,6 +66,7 @@ values."
      emacs-lisp
      yaml
      org
+     common-lisp
 
      git ;; this adds explicit interaction with git
      version-control ;; this adds highlighting/gutter info
@@ -82,7 +85,13 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(kakapo-mode flycheck flycheck-rust)
+   dotspacemacs-additional-packages
+   '(
+     kakapo-mode
+     flycheck
+     flycheck-rust
+     dtrt-indent
+   )
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
@@ -152,7 +161,7 @@ values."
    ;; Default major mode of the scratch buffer (default `text-mode')
    dotspacemacs-scratch-mode 'text-mode
    ;; List of themes, the first of the list is loaded when spacemacs starts.
-   ;; Press <SPC> T n to cycle to the next theme in the list (works great
+   ;; Press `SPC T n' to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
    dotspacemacs-themes '(lush
                          ;; alect-black
@@ -172,7 +181,7 @@ values."
                                :powerline-scale 1.1)
    ;; The leader key
    dotspacemacs-leader-key "SPC"
-   ;; The key used for Emacs commands (M-x) (after pressing on the leader key).
+   ;; The key used for Emacs commands `M-x' (after pressing on the leader key).
    ;; (default "SPC")
    dotspacemacs-emacs-command-key "SPC"
    ;; The key used for Vim Ex commands (default ":")
@@ -187,9 +196,9 @@ values."
    ;; (default "C-M-m")
    dotspacemacs-major-mode-emacs-leader-key "C-M-m"
    ;; These variables control whether separate commands are bound in the GUI to
-   ;; the key pairs C-i, TAB and C-m, RET.
-   ;; Setting it to a non-nil value, allows for separate commands under <C-i>
-   ;; and TAB or <C-m> and RET.
+   ;; the key pairs `C-i', `TAB' and `C-m', `RET'.
+   ;; Setting it to a non-nil value, allows for separate commands under `C-i'
+   ;; and TAB or `C-m' and `RET'.
    ;; In the terminal, these pairs are generally indistinguishable, so this only
    ;; works in the GUI. (default nil)
    dotspacemacs-distinguish-gui-tab nil
@@ -198,7 +207,7 @@ values."
    ;; If non-nil, the shift mappings `<' and `>' retain visual state if used
    ;; there. (default t)
    dotspacemacs-retain-visual-state-on-shift t
-   ;; If non-nil, J and K move lines up and down when in visual mode.
+   ;; If non-nil, `J' and `K' move lines up and down when in visual mode.
    ;; (default nil)
    dotspacemacs-visual-line-move-text nil
    ;; If non-nil, inverse the meaning of `g' in `:substitute' Evil ex-command.
@@ -209,7 +218,7 @@ values."
    ;; If non-nil the default layout name is displayed in the mode-line.
    ;; (default nil)
    dotspacemacs-display-default-layout nil
-   ;; If non-nil then the last auto saved layouts are resume automatically upon
+   ;; If non-nil then the last auto saved layouts are resumed automatically upon
    ;; start. (default nil)
    dotspacemacs-auto-resume-layouts nil
    ;; Size (in MB) above which spacemacs will prompt to open the large file
@@ -236,12 +245,12 @@ values."
    ;; source settings. Else, disable fuzzy matching in all sources.
    ;; (default 'always)
    dotspacemacs-helm-use-fuzzy 'always
-   ;; If non-nil the paste micro-state is enabled. When enabled pressing `p`
+   ;; If non-nil the paste micro-state is enabled. When enabled pressing `p'
    ;; several times cycle between the kill ring content. (default nil)
    dotspacemacs-enable-paste-transient-state nil
    ;; Which-key delay in seconds. The which-key buffer is the popup listing
    ;; the commands bound to the current keystroke sequence. (default 0.4)
-   dotspacemacs-which-key-delay 0.4
+   dotspacemacs-which-key-delay 0.1
    ;; Which-key frame position. Possible values are `right', `bottom' and
    ;; `right-then-bottom'. right-then-bottom tries to display the frame to the
    ;; right; if there is insufficient space it displays it at the bottom.
@@ -266,7 +275,7 @@ values."
    ;; If non-nil the frame is maximized when Emacs starts up.
    ;; Takes effect only if `dotspacemacs-fullscreen-at-startup' is nil.
    ;; (default nil) (Emacs 24.4+ only)
-   dotspacemacs-maximized-at-startup nil
+   dotspacemacs-maximized-at-startup t
    ;; A value from the range (0..100), in increasing opacity, which describes
    ;; the transparency level of a frame when it's active or selected.
    ;; Transparency can be toggled through `toggle-transparency'. (default 90)
@@ -302,7 +311,7 @@ values."
    ;; Code folding method. Possible values are `evil' and `origami'.
    ;; (default 'evil)
    dotspacemacs-folding-method 'evil
-   ;; If non-nil smartparens-strict-mode will be enabled in programming modes.
+   ;; If non-nil `smartparens-strict-mode' will be enabled in programming modes.
    ;; (default nil)
    dotspacemacs-smartparens-strict-mode nil
    ;; If non-nil pressing the closing parenthesis `)' key in insert mode passes
@@ -315,6 +324,10 @@ values."
    dotspacemacs-highlight-delimiters 'all
    ;; If non-nil, advise quit functions to keep server open when quitting.
    ;; (default nil)
+   ;; PERSONAL NOTE: this sounds enticing, but you need to make sure everything
+   ;;                possible uses 'emacsclient --alternate-editor ""' instead
+   ;;                of plain old 'emacs' (which would create an endless horde
+   ;;                of undying servers)
    dotspacemacs-persistent-server nil
    ;; List of search tool executable names. Spacemacs uses the first installed
    ;; tool of the list. Supported tools are `rg', `ag', `pt', `ack' and `grep'.
@@ -324,13 +337,40 @@ values."
    ;; specified with an installed package.
    ;; Not used for now. (default nil)
    dotspacemacs-default-package-repository nil
+   ;; Format specification for setting the frame title.
+   ;; %a - the `abbreviated-file-name', or `buffer-name'
+   ;; %t - `projectile-project-name'
+   ;; %I - `invocation-name'
+   ;; %S - `system-name'
+   ;; %U - contents of $USER
+   ;; %b - buffer name
+   ;; %f - visited file name
+   ;; %F - frame name
+   ;; %s - process status
+   ;; %p - percent of buffer above top of window, or Top, Bot or All
+   ;; %P - percent of buffer above bottom of window, perhaps plus Top, or Bot or All
+   ;; %m - mode name
+   ;; %n - Narrow if appropriate
+   ;; %z - mnemonics of buffer, terminal, and keyboard coding systems
+   ;; %Z - like %z, but including the end-of-line format
+   dotspacemacs-frame-title-format "%I@%S"
+   ;; Format specification for setting the icon title format
+   ;; (default nil - same as frame-title-format)
+   dotspacemacs-icon-title-format nil
    ;; Delete whitespace while saving buffer. Possible values are `all'
    ;; to aggressively delete empty line and long sequences of whitespace,
-   ;; `trailing' to delete only the whitespace at end of lines, `changed'to
+   ;; `trailing' to delete only the whitespace at end of lines, `changed' to
    ;; delete only whitespace for changed lines or `nil' to disable cleanup.
    ;; (default nil)
    dotspacemacs-whitespace-cleanup 'trailing
+   ;; Either nil or a number of seconds. If non-nil zone out after the specified
+   ;; number of seconds. (default nil)
+   dotspacemacs-zone-out-when-idle nil
    ))
+
+(defun dotspacemacs//emacs-capture-p ()
+  "determine if we were called from capture-mode"
+  (equal "emacs-capture" (frame-parameter nil 'name)))
 
 (defun dotspacemacs/user-init ()
   "Initialization function for user code.
@@ -340,10 +380,12 @@ executes.
 before packages are loaded. If you are unsure, you should try in setting them in
 `dotspacemacs/user-config' first."
 
-  (load "~/dotfiles/spacemacs/framegeometry")
-  (setq framegeometry-path "~/dotfiles/spacemacs/var/framegeometry")
-  (framegeometry-hatsudou!!)
+  ;;; don't bother with this. dotspacemacs-maximized-at-startup is perfect.
+  ;; (load "~/dotfiles/spacemacs/framegeometry")
+  ;; (setq framegeometry-path "~/dotfiles/spacemacs/var/framegeometry")
+  ;; (framegeometry-hatsudou!!)
   )
+
 
 (defun dotspacemacs//haskell-toggle-qualified ()
   "toggle the qualified-ness of a single import in haskell"
@@ -355,12 +397,16 @@ before packages are loaded. If you are unsure, you should try in setting them in
         (to-qual     "import qualified ")
         (to-unqual   "import           "))
     ;; (if it isn't an import line, don't do anything at all)
-    (if (looking-at-p "import")
+    (when (looking-at-p "import")
 
-        (if (looking-at from-qual)
-            (replace-match to-unqual)
-          (looking-at from-unqual)
-          (replace-match to-qual)))))
+      (if (looking-at from-qual)
+          (replace-match to-unqual)
+        (looking-at from-unqual)
+        (replace-match to-qual)))))
+
+;; TODO do something with this
+;; (also, "vioiIiIiI..." selects progressively larger blocks by indentation)
+(defconst dotspacemacs/haskell-select-function "viioip")
 
 (defun dotspacemacs/retry-with-timer (time repeat function &rest args)
   "Do `run-at-time' repeatedly until the function returns non-nil,
@@ -420,7 +466,9 @@ Are you trying to kill us?"
    a way that e.g. smartparens can intercept it, but without the possibility of
    being recursively invoked;  that makes this a suitable target to use when swapping
    two keys in a minor mode. (whereas keyboard macros would get in a recursion loop)
-   "
+
+   FIXME:  Wow.  Words cannot describe just how broken this is.
+"
     `(lambda ()
       (interactive)
       (insert ,val)
@@ -497,6 +545,141 @@ Are you trying to kill us?"
 
 ;;=========================================
 
+;; implements David Allen's advice on page 123 to handle the in-box strictly one item at a time
+
+(defconst dotspacemacs/gtd-inbox-item-format "~/org/inbox/item-%03d.org")
+(defun dotspacemacs/gtd/path-is-inbox-item (path) (s-contains? "org/inbox/item" path))
+
+;; "Do the simplest thing that could possibly work."
+;; We need some way to identify when the inbox is empty,
+;;  and most other solutions I can think of have issues of atomicity,
+;;  or difficulty telling true inbox items apart from temp files.
+;;  Or difficulty escaping regexes.  You get the idea.
+;;
+;; A thousand calls to stat isn't THAT expensive...
+(defconst dotspacemacs/gtd-inbox-item-limit 999 "inclusive upper bound on item index")
+
+(defun dotspacemacs//gtd-inbox-push-new ()
+    "function-finding-location for org-capture-templates which visits a brand new file for each item"
+    (let ((fp (dotspacemacs//first-new-file dotspacemacs/gtd-inbox-item-format
+                                            ;; "Do the simplest thing that could possibly work."
+                                            ;; We need some way to identify when the inbox is empty,
+                                            ;;  and most other solutions I can think of have issues of atomicity,
+                                            ;;  or difficulty telling true inbox items apart from temp files.
+                                            dotspacemacs/gtd-inbox-item-limit
+                                            (lambda () (error "too many items in in-box!")))))
+
+      ;; The docstring of `org-capture-templates' says the function should "visit" the file, which is vague.
+      ;; My attempts using functions of the `find-file' family produced undesirable or even bizarre behavior, like double cursors.
+      ;;
+      ;; After some code sleuthing, this is all I could come up with that actually behaves like the other types of target spec.
+      (set-buffer (org-capture-target-buffer fp))
+
+      ;; HACK:  Man, talk about side-effects!
+      ;; We save now so that the file appears immediately in the filesystem.
+      ;; Otherwise, forgetting to close a capture window would cause any new captures to be inserted
+      ;;  into the same file.
+      (save-buffer)
+    ))
+
+(defun dotspacemacs//gtd-inbox-view-top ()
+    "open a file for an inbox item"
+    (interactive)
+    (let ((fp (dotspacemacs//first-existing-file dotspacemacs/gtd-inbox-item-format
+                                                 dotspacemacs/gtd-inbox-item-limit)))
+
+      (if fp
+          (progn
+            (find-file fp)
+            (org-cycle 16))
+        (message "nothing left to review!"))))
+
+;; (defun dotspacemacs//gtd/current-inbox-item-to-tickler (time)
+;;   "send an inbox item to the tickler"
+;;   )
+
+;; (defun dotspacemacs/gtd/refile-to-tickler (time)
+;;   "refile something to the tickler"
+;;   (unless (dotspacemacs/gtd/path-is-inbox-item (buffer-file-name))
+;;     (error "not in an inbox item!"))
+;;   (goto-char (point-min))
+;;   (org-schedule nil time)
+;;   (dotspacemacs/gtd//refile "~/org/tickle.org")
+;;   (if (s-blank-str? ()))
+;;   )
+
+;; (defun dotspacemacs/gtd//refile (file headline)
+;;   "non-interactively refile to a known destination.
+;; https://emacs.stackexchange.com/questions/8045/org-refile-to-a-known-fixed-location"
+;;   (let ((pos (save-excursion
+;;                (find-file file)
+;;                (org-find-exact-headline-in-buffer headline))))
+;;     (org-refile nil nil (list headline file nil pos))))
+
+(defun dotspacemacs//get-string-from-file (fp)
+  "Read an entire file to string. This is as bad of an idea as it sounds."
+  (with-temp-buffer
+    (insert-file-contents fp)
+    (buffer-string)))
+
+(defun dotspacemacs//file-is-blank (fp)
+  "Test if a file is all whitespace. DO NOT USE ON LARGE FILES."
+  (s-blank-str? (dotspacemacs//get-string-from-file fp)))
+
+(defun dotspacemacs//delete-blank-files (pattern limit)
+  "Used by inbox functions to auto-delete blank files.
+
+This is of course a terrible hack, but I think it's a fair bit safer than providing
+a delete-without-confirmation keybind."
+  (loop for i from 1 to limit
+        for fp = (format pattern i)
+        if (and (file-exists-p fp) (dotspacemacs//file-is-blank fp))
+        do (spacemacs/delete-file fp)))
+
+(defun dotspacemacs//first-new-file (pattern limit &optional limit-exceeded)
+  (dotspacemacs//delete-blank-files pattern limit) ; FIXME evil side-effect
+  (let ((limit-exceeded (or limit-exceeded (lambda () nil))))
+    (loop for i from 1
+          if (< limit i)
+          return (funcall limit-exceeded)
+          for fp = (format pattern i)
+          if (not (file-exists-p fp))
+          return fp)))
+
+(defun dotspacemacs//first-existing-file (pattern limit &optional limit-exceeded)
+  (dotspacemacs//delete-blank-files pattern limit) ; FIXME evil side-effect
+  (let ((limit-exceeded (or limit-exceeded (lambda () nil))))
+    (loop for i from 1
+          if (< limit i)
+          return (funcall limit-exceeded)
+          for fp = (format pattern i)
+          if (file-exists-p fp) ; <-- that's the only difference.  too bad I suck at macros
+          return fp)))
+
+;;=========================================
+
+;;; Org Capture
+;;; Part of a greater picture described here: http://www.diegoberrocal.com/blog/2015/08/19/org-protocol/
+
+(defun dotspacemacs//configure-org-capture-popups ()
+  ;; Thank you random guy from StackOverflow
+  ;; http://stackoverflow.com/questions/23517372/hook-or-advice-when-aborting-org-capture-before-template-selection
+
+  (defadvice org-capture
+      (after make-full-window-frame activate)
+    "Advise capture to be the only window when used as a popup"
+    (if (dotspacemacs//emacs-capture-p)
+        (delete-other-windows)))
+
+  (defadvice org-capture-finalize
+      (after delete-capture-frame activate)
+    "Advise capture-finalize to close the frame"
+    (if (dotspacemacs//emacs-capture-p)
+        (delete-frame)))
+)
+
+;;=========================================
+
 (defun dotspacemacs/user-config ()
   "Configuration function for user code.
 This function is called at the very end of Spacemacs initialization after
@@ -518,26 +701,81 @@ you should place your code here."
   ;; Bothersome question when editing a symlinked file whose target is under source control.
   (setq vc-follow-symlinks nil)
 
+  ;; FIXME this seems out of place.  Also, shouldn't it be in a with-eval-after-load?
   (setq rust-indent-offset 4)
+
+  (dotspacemacs//configure-org-capture-popups)
+
+  (require 'org-protocol)
+
+  (with-eval-after-load 'org-capture
+
+    ;; in-box capturing on SPC a o c c
+    ;;   - must be as easy as possible to throw something in here; 5 seconds from start to finish
+    ;;   - we use separate files per inbox item, to avoid the trap of wandering eyes
+    ;;   - captures a link from the point of invocation; it won't always be relevant,
+    ;;      but who cares? Nothing remains in the inbox for long.
+    (setq org-capture-templates '(("c" "inbox" entry
+                                   (function dotspacemacs//gtd-inbox-push-new)
+                                   "* %?\n  Captured: %T\n  %a")
+
+                                  ;; Inbox, from external applications
+                                  ("L" "DO NOT USE" entry
+                                   (function dotspacemacs//gtd-inbox-push-new)
+                                   "* %?\n  %i \n  Captured: %T\n  %a")
+                                  )
+          )
+
+    ;; captures should start in insert mode
+    (add-hook 'org-capture-mode-hook 'evil-insert-state)
+    )
+
+  ;; Targets for manual refiling.
+  (with-eval-after-load 'org
+    (setq org-refile-targets '(("~/org/tickle.org" :level . 1)
+                               ("~/org/projects.org" :level . 1)
+                               ("~/org/someday.org" :level . 2)
+                               ))
+
+    ;; org-refile does not automatically save the current file. This is annoying.
+    ;; It also does not save its changes to the destination file. THIS IS TERRIFYING.
+    (advice-add 'org-refile :after
+                (lambda (&rest _)
+                  (org-save-all-org-buffers)))
+
+    ;; personal package not wrapped in a layer
+    (load "~/dotfiles/spacemacs/org-action-verbs")
+    )
+
+  (add-to-list 'auto-mode-alist '("\\.gplot$" . gnuplot-mode))
+  (add-to-list 'auto-mode-alist '("\\.gplot.template$" . gnuplot-mode))
+  (add-to-list 'auto-mode-alist '("\\.gnuplot$" . gnuplot-mode))
+  (add-to-list 'interpreter-mode-alist '("gnuplot" . gnuplot-mode))
 
   ;; Old habits die hard.  Accidentally quitting emacs sucks.
   (evil-ex-define-cmd "q[uit]" nil)
   (evil-ex-define-cmd "wq" nil)
 
+  ;; My org capture system visits lots of files.
+  ;; Don't let that compromise the utility of SPC f r.
+  (with-eval-after-load 'recentf
+    (add-to-list 'recentf-exclude "/org/inbox/"))
+
   (setq personal-abbrev-file-name "~/dotfiles/spacemacs/abbrev_defs")
-  (setq abbrev-file-name personal-abbrev-file-name)
-  (dolist (x '((haskell-mode . haskell-mode-hook))
-             (with-eval-after-load (car x)
-               (add-hook (cdr x)
-                         ;; electric-indent-mode insidiously replaces the abbrevs file!
-                         ;; ...I think?
-                         (lambda ()
-                           (electric-indent-mode 0)
-                           (abbrev-mode) ; this doesn't seem to actually
-                                         ; enable it.  Docs say to supply a
-                                         ; positive argument in interactive
-                                         ; use, and nil in noninteractive use.
-                           (read-abbrev-file personal-abbrev-file-name))))))
+  ;;; Meh, abbrev mode isn't good enough.
+  ;; (setq abbrev-file-name personal-abbrev-file-name)
+  ;; (dolist (x '((haskell-mode . haskell-mode-hook))
+  ;;            (with-eval-after-load (car x)
+  ;;              (add-hook (cdr x)
+  ;;                        ;; electric-indent-mode insidiously replaces the abbrevs file!
+  ;;                        ;; ...I think?
+  ;;                        (lambda ()
+  ;;                          (electric-indent-mode 0)
+  ;;                          (abbrev-mode) ; this doesn't seem to actually
+  ;;                                        ; enable it.  Docs say to supply a
+  ;;                                        ; positive argument in interactive
+  ;;                                        ; use, and nil in noninteractive use.
+  ;;                          (read-abbrev-file personal-abbrev-file-name))))))
 
   (with-eval-after-load 'rust-mode
     (setq cargo-process--custom-path-to-bin "/usr/bin"))
@@ -573,6 +811,11 @@ you should place your code here."
     ;; but in lisp-state it somehow *still* feels absurd!
     "k k" 'evil-lisp-state-next-closing-paren
     "k j" 'evil-lisp-state-prev-opening-paren
+    )
+
+  (spacemacs/set-leader-keys
+    ;; slippery fingers, ya know
+    "s f" 'save-buffer
     )
 
   (spacemacs/set-leader-keys
@@ -615,6 +858,98 @@ you should place your code here."
   (with-eval-after-load 'neotree
     (setq neo-window-fixed-size nil))
 
+  (setq compilation-ask-about-save nil)
+  (with-eval-after-load 'slime
+    ;; annoying yes/no prompt every time you have a compile error
+    (setq slime-load-failed-fasl 'never)
+
+    ;; disable the debugger
+    (let ((text "(setf *debugger-hook* (lambda (c h) (declare (ignore h) (ignore c)) (abort)))"))
+
+      ;;  AGGGHGHGHGHGHGHGH
+      ;;  Nothing works!
+      ;;  NOTHING! GODDAMN! WORKS!!!!!!!
+
+      ;; NOTE: If you MANUALLY paste the above text into the repl and hit enter, it will,
+      ;;       in fact, disable the debugger. But if you try to do it in any sort of fashion
+      ;;       which can be automated, it won't work.
+
+      ;; I tried:
+      ;;
+      ;;   * putting the text in .sbclrc
+      ;;      (SLIME verifiably reads this file, but the debugger remains)
+      ;;
+      ;;   * M-: (slime-interactive-eval text)
+      ;;      (prints result of setf to a status minibuffer; debugger remains)
+      ;;
+      ;;   * M-: (slime-eval '<text recast as an emacs sexp>)
+      ;;      (slime debugger pops up with
+      ;;       "The variable SWANK-IO-PACKAGE::*DEBUGGER-HOOK* is unbound.")
+      ;;
+      ;;   * M-: (slime-repl-eval-string text)
+      ;;      (prints result directly into the REPL, and yet the debugger STILL REMAINS!)
+      ;;
+      ;;   * M-: (slime-repl-send-string text)
+      ;;      (same as slime-repl-eval-string.)
+      ;;
+      ;;   * replacing "setf" with "defparameter" in the above
+      ;;      (first the SLIME debugger pops up saying the symbol is protected,
+      ;;        but if you press 2 you can unlock it.
+      ;;        If you try again, it prints *DEBUGGER-HOOK* to the REPL...
+      ;;        ...but the debugger. still. remains.
+      ;;
+      ;;       Evaluating *debugger-hook* in the REPL after this still results in
+      ;;         #<FUNCTION SWANK:SWANK-DEBUGGER-HOOK>
+      ;;       even though setting/overwriting any other global variable works just fine:
+      ;;         M-: (slime-repl-send-string "(defparameter b 3)") ;; B evals to 3 in repl
+      ;;         M-: (slime-repl-send-string "(defparameter b 4)") ;; B now evals to 4
+      ;;      )
+      ;;
+      ;;   * replacing "setf" with "cl:defparameter", which is what the
+      ;;     interactive command `slime-repl-defparameter' uses internally.
+      ;;      (same result as defparameter)
+      ;;
+      ;;   * trying setf with swank/swank-debugger-hook instead of *debugger-hook*
+      ;;      (prints result of setf, no effect)
+      ;;
+      ;; Insofar as I can tell, nothing works except manual copy pasta!
+
+      ;; TEST CASE:
+      ;;   Go to the slime repl and enter the expression:  a
+      ;;
+      ;;   Desired behavior:
+      ;;      CL-USER> a
+      ;;      ; Evaluation aborted on #<UNBOUND-VARIABLE A {1004972D93}>.
+      ;;      CL-USER>
+      ;;
+      ;;   Observed behavior: (i.e. what I mean when I say "the debugger remains")
+      ;;      (opens debugger with "The variable A is unbound.")
+      )
+
+    ;; AHAH! NO WORMING YOUR WAY OUTTA THIS ONE!
+    ;; BURN IN HELL YOU MODAL PIECE OF SHIT
+    ;; DEATH TO THE EASY-MENU!!!
+    ;; DEATH TO THE EASY-MENU!!!
+    ;; HRRRRNGGGWRRRRRRRRRRRRRRRRRAAAAAAAAAAAAAAAAAAAAAAAAGHGHGHGHGHG
+    (add-hook 'sldb-hook 'sldb-quit)
+    ;;
+    ;; ...
+    ;;
+    ;; ...right, so.  The above line makes the swank debugger instantly quit.
+    ;; At this point, I am more or less thoroughly convinced that this is
+    ;; the closest we're ever gonna get to disabling the debugger (at least,
+    ;;  without having to explicitly type something into the repl every time)
+    ;;
+    ;; On the downside, I can no longer *manually* invoke it, either.
+    ;; ...Meh. I guess the two of us just weren't meant to be.
+    )
+
+  ;; Universally stop asking for permission to kill processes.
+  ;; NOTE: This is superior to modifying kill-buffer-query-functions,
+  ;;       which only impacts `SPC b d' (but not e.g. `SPC q q')
+  (defadvice process-query-on-exit-flag (around advice--process-query-on-exit-flag--never activate)
+    nil)
+
   (with-eval-after-load 'haskell-mode
     (add-hook 'haskell-mode-hook
               (lambda ()
@@ -623,12 +958,27 @@ you should place your code here."
                           nil t))))
 
   (with-eval-after-load 'haskell-mode
+    (add-hook 'haskell-mode-hook
+              (lambda ()
+                ;; I tried to give it a chance.  I really did.
+                ;; But even after >2 months, I still feel *nothing but relief* whenever I find
+                ;;  myself in a buffer where smartparens is disabled
+                (turn-off-smartparens-mode))
+              ))
+
+  (with-eval-after-load 'haskell-mode
     (spacemacs/declare-prefix-for-mode 'haskell-mode "mi" "haskell/intero")
     (spacemacs/set-leader-keys-for-major-mode 'haskell-mode
       "ii" 'intero-mode
       "ir" 'intero-restart
       "it" 'intero-targets
       "dq" 'dotspacemacs//haskell-toggle-qualified
+      ))
+
+  (with-eval-after-load 'org
+    ;; default keybind needs shift. blech
+    (spacemacs/set-leader-keys-for-major-mode 'org-mode
+      "r" 'org-refile
       ))
 
   ;; NOTE: additional settings for haskell-mode in kakapo-settings
@@ -698,9 +1048,9 @@ you should place your code here."
   ;;   would NOT want completions)
   ;;------------------------------
 
-  (with-eval-after-load 'org-mode
+  (with-eval-after-load 'org
     ;; a.k.a line-wrap
-    (spacemacs/toggle-visual-line-navigation-on))
+    (add-hook 'org-mode-hook 'spacemacs/toggle-visual-line-navigation-on))
 
   (with-eval-after-load 'ox
     ;; Enabling this is necessary to use #+BIND: flags in org files, which modify variables.
@@ -733,7 +1083,7 @@ This function is called at the very end of Spacemacs initialization."
  '(haskell-compile-cabal-build-command "cd %s && cabal new-build --ghc-option=-ferror-spans")
  '(package-selected-packages
    (quote
-    (company-quickhelp pos-tip helm-company helm-c-yasnippet fuzzy company-tern dash-functional tern company-statistics company-cabal company-auctex company-anaconda auto-yasnippet ac-ispell auto-complete mmm-mode markdown-toc markdown-mode gh-md winum toml-mode racer cargo rust-mode auctex-latexmk yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spacemacs-theme spaceline smeargle shell-pop restart-emacs rainbow-delimiters quelpa pyvenv pytest pyenv-mode py-isort popwin pip-requirements persp-mode pcre2el paradox orgit org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file neotree multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode live-py-mode linum-relative link-hint kakapo-mode json-mode js2-refactor js-doc intero info+ indent-guide idris-mode ido-vertical-mode hy-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-ag haskell-snippets google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word cython-mode company-ghci company-ghc column-enforce-mode coffee-mode cmm-mode clean-aindent-mode auto-highlight-symbol auto-compile auctex anaconda-mode aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line)))
+    (web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data racket-mode faceup symon string-inflection yapfify yaml-mode xterm-color ws-butler winum which-key web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toml-mode toc-org spaceline smeargle slime-company shell-pop restart-emacs rainbow-delimiters racer pyvenv pytest pyenv-mode py-isort popwin pip-requirements persp-mode pcre2el paradox orgit org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file neotree multi-term move-text mmm-mode markdown-toc magit-gitflow lush-theme lorem-ipsum livid-mode live-py-mode linum-relative link-hint kakapo-mode json-mode js2-refactor js-doc intero info+ indent-guide idris-mode hy-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-pydoc helm-purpose helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag haskell-snippets google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gh-md fuzzy flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump dtrt-indent diff-hl define-word cython-mode company-tern company-statistics company-quickhelp company-ghci company-ghc company-cabal company-auctex company-anaconda common-lisp-snippets column-enforce-mode coffee-mode cmm-mode clean-aindent-mode cargo browse-at-remote auto-yasnippet auto-highlight-symbol auto-compile auctex-latexmk aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(safe-local-variable-values
    (quote
     ((idris-load-packages "pruviloj")
@@ -747,17 +1097,3 @@ This function is called at the very end of Spacemacs initialization."
  ;; If there is more than one, they won't work right.
  )
 )
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (winum toml-mode racer cargo rust-mode auctex-latexmk yapfify yaml-mode xterm-color ws-butler window-numbering which-key web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spacemacs-theme spaceline smeargle shell-pop restart-emacs rainbow-delimiters quelpa pyvenv pytest pyenv-mode py-isort popwin pip-requirements persp-mode pcre2el paradox orgit org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file neotree multi-term move-text magit-gitflow macrostep lorem-ipsum livid-mode live-py-mode linum-relative link-hint kakapo-mode json-mode js2-refactor js-doc intero info+ indent-guide idris-mode ido-vertical-mode hy-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-pydoc helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-ag haskell-snippets google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump diff-hl define-word cython-mode company-ghci company-ghc column-enforce-mode coffee-mode cmm-mode clean-aindent-mode auto-highlight-symbol auto-compile auctex anaconda-mode aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )

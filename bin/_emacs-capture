@@ -1,0 +1,26 @@
+#!/bin/sh
+# _emacs-capture
+#
+# Invokes emacsclient as a pop-up, with *cough* "enhanced" support for org-protocol.
+
+# HACK: workaround for a kde-open bug (feature?) that might have
+#       eaten a colon from our argument, om nom nom
+argv=()
+for arg in "$@"; do
+    re='s_^org-protocol:/+capture:?/+_org-protocol://capture://_'
+    argv+=("$(echo -n "$arg" | sed -Ez "$re")")
+done
+
+# Notes:
+#                   -c   create frame
+#           -F (props)   use these props for the frame
+#  --alternate-editor=   used for its side-effect of automatically
+#                         starting a server if none are running.
+#
+# Properties:
+#       (name . "...")   Used in my init.el to detect capture windows.
+#   (fullscreen . nil)   Overrides an attribute that might be in default-frame-alist
+#                        (e.g. spacemacs users using dotspacemacs-maximized-at-startup)
+emacsclient --alternate-editor= -c \
+    -F "((name . \"emacs-capture\") (height . 10) (width . 80) (fullscreen . nil))" \
+    "${argv[@]}"

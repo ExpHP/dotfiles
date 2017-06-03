@@ -6,9 +6,7 @@
 # FIXME I think there's actually a lot of bash-specific things in here.
 #       kinda defeats the point >_>
 
-# this might already be there, but it also might not.
-# doesn't hurt to have it listed twice!
-PATH=$HOME/bin:$PATH
+source $HOME/dotfiles/shell/path.include
 
 # for my lame-ass script that I gave up on
 export VASP_POTCAR_DIR="$HOME/asd/VASP DATA/potentials"
@@ -33,22 +31,13 @@ alias sym-con='phonopy --sym -c CONTCAR > symmetry'
 # Let sudo see things in our path.
 alias sudo='sudo env PATH="$PATH"'
 
+alias h='history | grep'
+
 # as if I'm ever going to use go again >_>
 export GOPATH=$HOME/cpp/go
 
-# Sometimes rustup adds this, sometimes it has other things on its mind
-PATH=$HOME/.cargo/bin:$PATH
-
-# ayup
-PATH=$HOME/.local/bin:$PATH
-
-# binaries distributed inside haskell packages
-export PATH=$PATH:$HOME/.cabal/bin
 alias hoogle='hoogle --color --count=10'
 
-# Newer ghc versions:
-#   sudo add-apt-repository https://launchpad.net/~hvr/+archive/ubuntu/ghc
-export PATH=/opt/ghc/bin:$PATH
 
 alias cabal='cabal --require-sandbox'
 alias cabal-deps='echo >&2 "No longer necessary. Try:  cabal new-build
@@ -61,7 +50,7 @@ alias context='context --nostatistics'
 # reduce likelihood of me ever accidentally typing `make -j` again
 alias make='make -j4'
 # disable X11 gui (never mind, this has been upgraded to ~/bin status)
-alias emacs='emacs -nw'
+# alias emacs='emacs -nw'
 
 alias min='vim -u NONE'
 
@@ -71,7 +60,6 @@ alias biggest='du -s $(ls -A) | sort -g | tail -n10'
 
 # no more.
 # please. no more.
-PATH=~/syncbin:$PATH
 if callable sane-cp; then alias cp=sane-cp; fi
 if callable sane-mv; then alias mv=sane-mv; fi
 if callable trash; then
@@ -112,14 +100,6 @@ fi
 # sudoedit uses this
 export EDITOR=vim
 
-# cross compiler install location
-# NOTE: don't get your hopes up, I've still yet to successfully make one that can
-#  actually produce an executable.
-export PATH=/opt/cross/bin:$PATH
-
-# Binaries in this repo!
-export PATH=$HOME/dotfiles/bin:$PATH
-
 # # Bumper rail.
 # # Limit memory for interactive bash prompts, because thrashing sucks.
 # # To bypass, invoke 'nolimit' from *outside* of a bash process.
@@ -136,4 +116,3 @@ export PATH=$HOME/dotfiles/bin:$PATH
 #		export NOLIMIT_TOO_LATE=1
 #	fi
 #fi
-

@@ -1,0 +1,3 @@
+$XDG_DATA_HOME
+Configures xdg-open to use emacsclient for "org-protocol:" links,
+thereby enabling use of things like the "Org Capture" chrome plugin.

@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+# vim: ft=sh
+
+# path.include
+# PATH modifications aren't something I want to limit to just interactive shell prompts.
+# This file is suitable for linkage into $XDG_CONFIG_HOME/plasma-workspace/env/.
+
+# this might already be there, but it also might not.
+# doesn't hurt to have it listed twice!
+PATH=$HOME/bin:$PATH
+
+# Sometimes rustup adds this, sometimes it has other things on its mind
+PATH=$HOME/.cargo/bin:$PATH
+
+# ayup
+PATH=$HOME/.local/bin:$PATH
+
+# binaries distributed inside haskell packages
+# (FIXME: why is the one prepended while the rest are appended? accidental or deliberate?)
+PATH=$PATH:$HOME/.cabal/bin
+
+# Newer ghc versions:
+#   sudo add-apt-repository https://launchpad.net/~hvr/+archive/ubuntu/ghc
+PATH=/opt/ghc/bin:$PATH
+
+# cross compiler install location
+# NOTE: don't get your hopes up, I've still yet to successfully make one that can
+#  actually produce an executable.
+PATH=/opt/cross/bin:$PATH
+
+# Binaries in this repo!
+PATH=$HOME/dotfiles/bin:$PATH
+
+# utility scripts for code that gets transferred to supercomputers.
+PATH=$HOME/syncbin:$PATH
+

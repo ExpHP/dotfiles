@@ -967,6 +967,9 @@ set DNS servers "8.8.8.8,4.4.4.4".
 
 Greatest thing ever.
 
+NOTE: This works for github as well.  Just make sure your remotes use
+"ssh://git@github.com" instead of "https://github.com".
+
 ============ HIBERNATION ================= 23 September 2015
 
 To my understanding, hibernation is only enabled by default for a whitelist
@@ -2044,7 +2047,6 @@ or after booting into the new OS:
     pacman -S ssh
     pacman -S jq
     pacman -S openmpi boost openmp  # don't get blas/lapack yet!
-    pacman -S ntfs-3g    # the standard ntfs driver is read-only
 
     # can't go without the AUR
     git clone https://aur.archlinux.org/package-query.git
@@ -2056,6 +2058,11 @@ or after booting into the new OS:
     cd yaourt
     makepkg -si
     cd ..
+
+    # some odds and ends that can otherwise put a hiccup in your morning
+    pacman -S ntfs-3g      # the standard ntfs driver is read-only
+    pacman -S exfat-utils  # for formatting flash drives as exFAT
+    pacman -S dosfsutils   # for formatting flash drives as FAT32
 
     # Make numpy faster; openblas beats the crap outta cblas
     pacman -S openmp

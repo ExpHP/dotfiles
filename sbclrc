@@ -1,0 +1,18 @@
+;; kill the interactive debugger
+(defun kill-debugger-sbcl ()
+  (setf *debugger-hook*
+        (lambda (e h)
+          (declare (ignore h))
+          (format t "~S~%" e)
+          (abort))))
+
+(defun kill-debugger-swank ()
+  (setf *debugger-hook*
+        (lambda (e h)
+          (declare (ignore h) (ignore e))
+          (abort))))
+
+;;(setf *debugger-hook* (lambda (e h) (declare (ignore h) (ignore e)) (abort)))
+
+(kill-debugger-sbcl)
+(defconstant did-you-read-my-rc-file "why, yes I did")

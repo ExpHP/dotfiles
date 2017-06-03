@@ -1,26 +1,61 @@
-#!/bin/sh
+#!/bin/bash
+
+# should be using getopt, boo hoo
+OPT_DELETE=
+if [ "$1" == "--delete" ]; then
+	OPT_DELETE=-D
+	shift
+fi
 
 if [ x"$1" == x ]; then
-	echo >&2 "Please specify a thing to install."
+	echo >&2 "Usage:  ./load [--delete] THING-TO-INSTALL"
+	echo >&2 "Installable things are most directories in this directory."
 	exit 1
 fi
 
-if ! [ -e "$1" ]; then
+if ! [ -d "$1" ]; then
 	echo >&2 "That can't be installed."
 	exit 1
 fi
 
 if [ "$1" == metadata ]; then
-	echo >&2 "That can't be installed."
+	echo >&2 "'metadata' is special. That can't be installed."
 	exit 1
 fi
 
-name=${1%/}
-target=$(head -n1 metadata/$name)
+#---------------------------------------------------
+# Add XDG variables so we can use them where appropriate in metadata paths.
+#
+# fearfully (and probably buggily) hand-coded from the XDG spec.
 
-echo -ne '\033[0;33m'
+# FIXME this script WAS sh-compatible till I added this shit
+
+# (Bash's := operator can't help us write DRY code here because we need to export the variable.)
+# (note spec defines defaults in the case of "not set or empty" which corresponds to ":-")
+function export-default-expr() { echo "export $1=\${$1:-$2}"; }
+eval "$(export-default-expr XDG_DATA_HOME   '$HOME/.local/share')"
+eval "$(export-default-expr XDG_CACHE_HOME  '$HOME/.cache')"
+eval "$(export-default-expr XDG_DATA_DIRS   '/usr/local/share/:/usr/share/')"
+eval "$(export-default-expr XDG_CONFIG_HOME '$HOME/.config')"
+eval "$(export-default-expr XDG_CONFIG_DIRS '/etc/xdg')"
+#---------------------------------------------------
+
+name=${1%/}
+target=$(head -n1 metadata/$name | envsubst)
+
+tput setaf 11
 tail -n+2 metadata/$name
-echo -ne '\033[0m'
+if [ "$OPT_DELETE" == "" ]; then
+	tput bold
+	tput setaf 2
+	echo "Using gnu stow to install to '$target'"
+else
+	tput bold
+	tput setaf 1
+	echo "Using gnu stow to uninstall from '$target'"
+fi
+
+tput sgr0
 
 read -p "Are you sure? (Last chance to Ctrl-C) " -r
-stow "-t$target" $name
+stow $OPT_DELETE "-t$target" $name

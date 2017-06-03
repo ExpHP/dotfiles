@@ -40,7 +40,9 @@
 (defun kakapoconf/open-below () (interactive) (kakapo-open nil))
 
 (defconst kakapoconf/mode-defaults
-  '((python-mode-hook :w 4 :tabs t)
+  '(
+    ;; (python-mode-hook :w 4 :tabs t)
+    (python-mode-hook :kako nil :w 4 :tabs nil)
     ;; FIXME I should make a PR to haskell-mode to fix error span
     ;;  underlining for tabs
     (haskell-mode-hook :w 4 :tabs nil
