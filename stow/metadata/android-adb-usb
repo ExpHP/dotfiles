@@ -1,0 +1,9 @@
+$HOME
+Installs a comprehensive adb_usb.ini file, needed to authorize devices
+for interaction with adb.
+
+BEFORE LOADING:
+- Remove the existing ~/.android/adb_usb.ini (which is likely empty)
+
+This is a git subtree of:
+    https://github.com/apkudo/adbusbini

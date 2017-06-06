@@ -2361,4 +2361,32 @@ can be easily accomplished with a series of `su`s:
 
 > It's login shells all the way down, son!
 
+===========================
+
+* Android Development and debugging
+  <June 3 2017>
+
+ - Follow: https://wiki.archlinux.org/index.php/android
+ - ...with these modifications/notes:
+
+   - Here are the "setup steps" that accumulate over time for any new terminals
+     you open until you reboot:
+
+     #+BEGIN_SRC
+     $ source /etc/profile
+     $ bash  # give me back my prompt! >:3
+     $ newgrp sdkusers
+     $ newgrp adbusers
+     #+END_SRC
+
+   - Ignore "Adding udev Rules".  Don't worry about vendor ids.
+     - Instead, load dotfiles/stow/android-adb-usb .
+
+   - On the next step ('adb devices'), if you see 'unauthorized' instead
+     of 'device', check the phone screen. (It might be asking to authorize
+     the host key)
+
+   - You can ignore "Building Android" and onwards if you're just using
+     android-studio and adb.
+
 =========== END ============
