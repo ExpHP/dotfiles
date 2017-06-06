@@ -580,6 +580,36 @@ Are you trying to kill us?"
       ;; Otherwise, forgetting to close a capture window would cause any new captures to be inserted
       ;;  into the same file.
       (save-buffer)
+      ))
+
+
+;; NOTE ON CAPTURE FUNCTIONS:
+;;
+;; The docstring of `org-capture-templates' says the function should "visit" the file, which is vague.
+;; My attempts using functions of the `find-file' family produced undesirable or even bizarre behavior, like double cursors.
+;;
+;; After some code sleuthing, this is all I could come up with that actually behaves like the other types of target spec.
+;;
+;;       (set-buffer (org-capture-target-buffer fp))
+
+(defun dotspacemacs//gtd-inbox-push-new ()
+    "function-finding-location for org-capture-templates which visits a brand new file for each item"
+    (let ((fp (dotspacemacs//first-new-file dotspacemacs/gtd-inbox-item-format
+                                            ;; "Do the simplest thing that could possibly work."
+                                            ;; We need some way to identify when the inbox is empty,
+                                            ;;  and most other solutions I can think of have issues of atomicity,
+                                            ;;  or difficulty telling true inbox items apart from temp files.
+                                            dotspacemacs/gtd-inbox-item-limit
+                                            (lambda () (error "too many items in in-box!")))))
+
+      ;; See NOTE ON CAPTURE FUNCTIONS
+      (set-buffer (org-capture-target-buffer fp))
+
+      ;; HACK:  Man, talk about side-effects!
+      ;; We save now so that the file appears immediately in the filesystem.
+      ;; Otherwise, forgetting to close a capture window would cause any new captures to be inserted
+      ;;  into the same file.
+      (save-buffer)
     ))
 
 (defun dotspacemacs//gtd-inbox-view-top ()
@@ -593,6 +623,12 @@ Are you trying to kill us?"
             (find-file fp)
             (org-cycle 16))
         (message "nothing left to review!"))))
+
+(defun dotspacemacs//gtd-projectile-location-func ()
+  ;; See NOTE ON CAPTURE FUNCTIONS
+  (set-buffer (org-capture-target-buffer
+               (car (org-projectile:todo-files))))
+  )
 
 ;; (defun dotspacemacs//gtd/current-inbox-item-to-tickler (time)
 ;;   "send an inbox item to the tickler"
@@ -658,7 +694,7 @@ a delete-without-confirmation keybind."
 
 ;;=========================================
 
-;;; Org Capture
+;;; Org-capturing from external applications.
 ;;; Part of a greater picture described here: http://www.diegoberrocal.com/blog/2015/08/19/org-protocol/
 
 (defun dotspacemacs//configure-org-capture-popups ()
@@ -677,6 +713,11 @@ a delete-without-confirmation keybind."
     (if (dotspacemacs//emacs-capture-p)
         (delete-frame)))
 )
+
+;;=========================================
+
+(defvar dotspacemacs//org-capture-keymap (make-keymap)
+  "Keymap used in place of org's dumb interactive selection window. Manually maintained.")
 
 ;;=========================================
 
@@ -704,30 +745,62 @@ you should place your code here."
   ;; FIXME this seems out of place.  Also, shouldn't it be in a with-eval-after-load?
   (setq rust-indent-offset 4)
 
+  ;; config for captures made via org-protocol://
   (dotspacemacs//configure-org-capture-popups)
 
+  ;; Enable handler for org-protocol:// links.
+  ;; (This must be explicitly loaded since it doesn't fit into the spacemacs
+  ;;  design philosophy of "call function, auto-load module")
   (require 'org-protocol)
 
   (with-eval-after-load 'org-capture
+
+    (setq org-capture-templates nil)
 
     ;; in-box capturing on SPC a o c c
     ;;   - must be as easy as possible to throw something in here; 5 seconds from start to finish
     ;;   - we use separate files per inbox item, to avoid the trap of wandering eyes
     ;;   - captures a link from the point of invocation; it won't always be relevant,
     ;;      but who cares? Nothing remains in the inbox for long.
-    (setq org-capture-templates '(("c" "inbox" entry
-                                   (function dotspacemacs//gtd-inbox-push-new)
-                                   "* %?\n  Captured: %T\n  %a")
+    (defun dotspacemacs/capture-inbox () (interactive) (org-capture nil "c"))
+    (define-key dotspacemacs//org-capture-keymap "c" 'dotspacemacs/capture-inbox)
+    (add-to-list 'org-capture-templates '("c" "inbox" entry
+                                         (function dotspacemacs//gtd-inbox-push-new)
+                                         "* %?\n  Captured: %T\n  %a"))
 
-                                  ;; Inbox, from external applications
-                                  ("L" "DO NOT USE" entry
-                                   (function dotspacemacs//gtd-inbox-push-new)
-                                   "* %?\n  %i \n  Captured: %T\n  %a")
-                                  )
-          )
+    ;; projectile-based capturing on SPC a o c p
+    ;; There is already `org-projectile:capture-for-current-project' but it behaves strangely.
+    ;;  (generates two windows pointing to the same buffer.)
+    (defun dotspacemacs/capture-projectile () (interactive) (org-capture nil "p"))
+    (define-key dotspacemacs//org-capture-keymap "p" 'dotspacemacs/capture-projectile)
+    (add-to-list 'org-capture-templates '("p" "projectile" entry
+                                          (function dotspacemacs//gtd-projectile-location-func)
+                                          "* TODO %?\n  Captured: %T\n  %a"))
+
+    ;; Inbox, from external applications
+    (add-to-list 'org-capture-templates '("L" "DO NOT USE" entry
+                                          (function dotspacemacs//gtd-inbox-push-new)
+                                          "* %?\n  %i \n  Captured: %T\n  %a"))
 
     ;; captures should start in insert mode
     (add-hook 'org-capture-mode-hook 'evil-insert-state)
+    )
+
+  ;; load it now so that our keybinds are added and our functions exist
+  (require 'org-capture)
+
+  (spacemacs/set-leader-keys
+    ;; Replace org-capture's interactive selection window with a garden-variety prefix.
+    ;; This eliminates a bug where it is possible to enter your selection "too fast"
+    ;; (e.g. typing "SPC a o c p" too quickly will yank the kill ring)
+    "a o c" dotspacemacs//org-capture-keymap
+
+    ;; accidentally opening the calculator when trying to capture leads to misery
+    "a c" nil
+    "a c o" dotspacemacs//org-capture-keymap
+
+    ;; The built-in implementation for this guy seems buggy. Replace it with ours.
+    "a o p" 'dotspacemacs/capture-projectile
     )
 
   ;; Targets for manual refiling.
