@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -e
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
+DIR="$(dirname "$(readlink -f "$0")")"
+. "$DIR/backup-vars" || exit 1
+
+RSNAPSHOT=rsnapshot
+#RSNAPSHOT="rsnapshot -t"
+
+mkdir -p "TRIGGER_DIR"
+
+if [ ${SYNC_FIRST} -eq 1 ]
+then
+	echo "Performing backup (sync)"
+	$RSNAPSHOT sync
+	echo Rotating $INTERVAL_0
+	$RSNAPSHOT $INTERVAL_0
+else
+	echo "Performing backup (rotating $INTERVAL_0)"
+	$RSNAPSHOT $INTERVAL_0
+fi
+
+
+if [ -e "$TRIGGER_1" ]
+then
+	echo Found trigger: $TRIGGER_1
+	echo Rotating $INTERVAL_1
+	$RSNAPSHOT $INTERVAL_1
+	rm "$TRIGGER_1"
+	echo
+fi
+
+if [ -e "$TRIGGER_2" ]
+then
+	echo Found trigger: $TRIGGER_2
+	echo Rotating $INTERVAL_2
+	$RSNAPSHOT $INTERVAL_2
+	rm "$TRIGGER_2"
+	echo
+fi
+

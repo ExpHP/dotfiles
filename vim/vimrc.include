@@ -506,11 +506,12 @@ unlet tmp
 "   * In 'vimdiff', `do` gets and `dp` puts.
 "   * These are context sensitive; you must be aware of which window the cursor is in.
 "   * On american keyboards, `o` is right next to `p`.
-"   * At no point do you see the end result of `do` or `dp` because the text is folded immediately.
-" Sounds like a recipe for trouble.  Let's fix one of those issues.
+"   * As soon as you do `do` or `dp`, the text is folded immediately.
+"     You NEVER SEE THE RESULT OF YOUR ACTION.
 
-" FilterWritePost is the only event I managed to find that would affect both windows...
-autocmd FilterWritePost * set foldmethod=manual
+" Worse yet, vimdiff overrides 'foldmethod' when opening the other window!
+" This is the only solution... (and even then, it still collapses everything after the last fix)
+set diffopt+=context:999999999
 
 """""""""""""""""""""""""
 " Rust ctags

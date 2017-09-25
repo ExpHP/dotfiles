@@ -1,0 +1,47 @@
+
+
+Why does this exist?  Simple:
+1. Suppose you have a removable USB drive for backup.
+2. Suppose further that this drive is almost never connected to your computer.
+3. This means most scheduled backup jobs will fail.
+4. `cron` or even `anacron` has no retry mechanism (that I know of)
+    to detect a job that has failed and make a later attempt.
+
+ (if you expect your drive to always be connected, however, you probably don't
+  need this and anacron will suffice)
+
+How does this script resolve this issue?  Simple:
+1. Instead of scheduling `rsnapshot` itself, you schedule the
+    creation of empty "trigger" files.
+2. You MANUALLY invoke this script daily, after connecting the drive.
+   (the drive will automatically be mounted)
+3. This script will perform a backup, then look for triggers and
+   perform the corresponding rotations.
+
+==============================================================================
+SETUP
+
+1. Install `rsnapshot`.  Configure `/etc/rsnapshot.conf` to your liking.
+ a. When choosing your `snapshot_root`, make sure `rsnapshot` can't use the folder
+    when the drive isn't mounted.  One option is to make it a subdirectory of
+    the drive and set `no_create_root	1`.  Another is to use the mount point itself
+    as your `snapshot_root`, but make it immutable (`chattr +i /my/mount/point`)
+ b. Pick up to 3 intervals (the `retain` lines).  If you only plan to hook up the
+    drive daily, you may prefer to have daily-weekly-monthly over hourly-daily-weekly
+
+2. Edit `backup-vars` (the file itself hopefully explains things enough).
+   Most of the file is redundant information that should simply match
+    what is set in /etc/rsnapshot.conf (which I am too lazy to parse).
+
+3. Schedule creation of 'trigger files'
+   (NOTE: This is done as part of the gnu stow image)
+ a. These are empty files whose existence signal to our script that a certain
+    rotation should be performed (e.g. `rsnapshot weekly`)
+ b. Locations defined in `backup-vars`. (feel free to edit)
+ c. Set up `cron` or `anacron` jobs to `touch` them.  For a system which is not always
+    powered on, `anacron` will be more robust.  For ubuntu, simply install `anacron`
+    and add a script to i.e. `/etc/cron.weekly`.
+ d. No trigger is necessary for the first interval (it will always rotate).
+
+4. Use it!
+   Whenever you're ready to backup, plug in the drive and run `back-me-up`.

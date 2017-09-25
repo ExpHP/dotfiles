@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
+# config is in same directory as script ('/opt'-style)
+DIR="$(dirname "$(readlink -f "$0")")"
+. "$DIR/backup-vars" || exit 1
+
+BYUUID=/dev/disk/by-uuid/$DISK_UUID
+
+if [ ! -e "$BYUUID" ]
+then
+	echo $BYUUID: No such file
+	echo Is the drive connected?
+	exit 1
+fi
+
+if ! mount | grep -q "$MOUNT" ;
+then
+	echo NOTE: Mounting drive
+	# just in case it's already mounted by the user to /media/*
+	umount -f "$BYUUID" > /dev/null 2>&1
+	mkdir "$MOUNT"
+	mount "$BYUUID" "$MOUNT"
+fi
+

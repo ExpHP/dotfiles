@@ -1,0 +1,6 @@
+#!/bin/sh
+
+TRIGGER=/home/lampam/.back-me-up/MONTHLY
+
+touch "$TRIGGER"
+chown lampam:lampam "$TRIGGER"

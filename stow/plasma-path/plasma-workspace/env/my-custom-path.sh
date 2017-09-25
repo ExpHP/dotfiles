@@ -1,0 +1,1 @@
+/home/lampam/dotfiles/shell/path.include

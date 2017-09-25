@@ -18,7 +18,8 @@ import sys
 
 def main():
 	parser = argparse.ArgumentParser(description='Plot columnated data')
-	parser.add_argument('-F', default=' ', type=str, help='set field delimiter')
+	parser.add_argument('-F', default=None, # default for str.format
+		type=str, help='set field delimiter')
 	parser.add_argument('--subplot','-s',action='append',default=[],
 		help='subplot keyword arguments in the form name=python_expr')
 	parser.add_argument('--output','-o',

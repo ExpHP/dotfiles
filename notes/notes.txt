@@ -7,6 +7,9 @@ The general goal is that, after a new installation of the OS, if I encounter an 
 I have encountered before, then I can look in here (searching for a couple of keywords that I think
 I might have used) to find out what I did.
 
+=== WORDS I KEEP FORGETTING === 2017-08-14
+
+- pathological
 
 === CRITICAL THINGS TO DO AFTER INSTALLING UBUNTU === (last update: Aug 11 2016)
 
@@ -2037,7 +2040,7 @@ or after booting into the new OS:
     pacman -S git cmake
     pacman -S vim emacs
     pacman -S python{,2}{,-pip} ruby rustup
-    pacman -S ghc ghc-mod cabal-install
+    # pacman -S ghc ghc-mod cabal-install   # UPDATE: don't do this, see below
     pacman -S nodejs npm
     pacman -S pass gnupg pwgen
     pacman -S xorg-xinit       # has startx; not part of the 'xorg' group
@@ -2059,16 +2062,26 @@ or after booting into the new OS:
     makepkg -si
     cd ..
 
+    # don't ever install anything from AUR with `haskell-*` dependencies
+    # (see entry in notes.org from November 1 2017 about linker errors)
+    pacman -S ghc ghc-static
+    git clone https://github.com/haskell/cabal
+    git clone https://github.com/commercialhaskell/stack
+    (cd cabal/cabal-install && ./bootstrap.sh)
+    (cd stack && cabal install)
+
     # some odds and ends that can otherwise put a hiccup in your morning
     pacman -S ntfs-3g      # the standard ntfs driver is read-only
     pacman -S exfat-utils  # for formatting flash drives as exFAT
-    pacman -S dosfsutils   # for formatting flash drives as FAT32
+    # pacman -S dosfsutils   # for formatting flash drives as FAT32.
+    #                        # or perhaps don't; FAT32 sucks, and having it might tempt
+    #                        # you to pick it from gparted's list.
 
     # Make numpy faster; openblas beats the crap outta cblas
     pacman -S openmp
     yaourt openblas-lapack
       # choose to edit the config file
-      # change to USE_OPENMP=1
+      # in the _config= string, change to USE_OPENMP=1
 
     # pip will by default install to /usr (not /usr/local), potentially
     # making life miserable if you later want to install things through
@@ -2388,5 +2401,204 @@ can be easily accomplished with a series of `su`s:
 
    - You can ignore "Building Android" and onwards if you're just using
      android-studio and adb.
+
+===========================
+
+* Windows 7 os-prober troubles
+
+Three words.
+MOUNT. THE. DRIVE.
+
+THEN you can run 'update-grub' or 'grub-mkconfig -o /boot/grub/grub.cfg' as normal.
+You will see it print "Found Windows 7 on /dev/sda1" as one of its lines when
+  the os-prober rule runs.
+(you do not need to run 'os-prober' manually)
+
+Specifically *mount the one with the bootloader!*  On my desktop it's called
+"System Reserved" and if you mount it you might find a file "/bootmgr".
+
+===========================
+
+* Can't create ExFAT in gparted
+  ADDED: June 27 2017
+
+Answer:  That is correct.  [[http://gparted.org/features.php][You can't.]]
+         Just use mkfs.exfat instead.
+
+===========================
+
+* Can't log into CCI
+  ADDED: July 5 2017
+
+  Aparently password IS correct;
+  Tried using the password update form and it reported that the password was updated.
+  If a BS password is given it errors with "Current password does not match".
+
+  Colin cannot log in either, and also got success with the PW change form.
+
+  Stopped receiving Maintenance emails at the end of March.
+
+Resolution: After emailing support, the account was reactivated.
+            It was disabled due to inactivity.
+
+===========================
+
+* Colin's IDE
+  ADDED: July 10 2017
+
+  It's 'clion' from AUR.
+  On startup, choose "Custom cmake: /usr/bin/cmake".
+   (note: when not doing this, I got a segfault in the middle of some
+    random looking rule for building lammps)
+
+===========================
+
+* Note on the laptop SSD remounting as read-only
+  ADDED: August 27 2017
+
+  This is on the T430s, which has an SSD that uses mSATA (that's the one
+   that has the exact same form factor as PCIe)
+
+  Today, I received an overwhelmingly clear message about what it is I'm doing
+  that causes this issue to arise:
+
+  - Beyond a shadow of a doubt, the issue occurs when pressure is applied to
+    a certain area on the underside of the laptop.
+    (this area is at the center horiziontally, and just behind the center vertically
+     (as in, it is closer to the monitor than to me))
+
+    Unfortunately for me, I have a very strong tendency to hold it there (either on my
+    knee when I'm sitting or on the palm of my hand when standing) since it tends to
+    coincide with the laptop's center of gravity.
+
+    If memory serves me right, this also happens to be the precise location
+    where the SSD is installed.
+
+  - When the pressure is applied enough to cause problems, there is a noise (!!!).
+    When I finally discovered this, I gave myself two seconds to "play with fire"
+     and deliberately invoke the noise, trying to understand when exactly it sounds,
+     and burning the tone into memory.
+    - It sounds like a saw wave playing at a constant frequency near... 1700 Hz?
+      http://onlinetonegenerator.com/
+    - It begins to sound the moment the pressure applied crosses a certain threshold,
+      and cuts off as soon as the pressure decreases back below that threshold.
+    - It is very quiet.  My face must be right next to the system to hear it.
+      I've never even noticed it until now.
+    
+
+============================
+
+* Cabal linker errors
+  ADDED: September 1 2017
+
+Suddenly one day, after not using Haskell for a while:
+
+#+BEGIN_SRC
+$ cabal test
+Preprocessing library arithmoi-0.5.0.1...
+Preprocessing test suite 'spec' for arithmoi-0.5.0.1...
+Linking dist/build/spec/spec ...
+/usr/bin/ld: cannot find -lHStagged-0.8.5-DG0qxw3gXxx4NfDcDx4Iai
+/usr/bin/ld: cannot find -lHSregex-tdfa-1.2.2-JFeutuWiS2vGBM4qXQlqio
+/usr/bin/ld: cannot find -lHSregex-base-0.93.2-AYjYAsBidAc8f5XNm9b2Aa
+/usr/bin/ld: cannot find -lHSparsec-3.1.11-1CA7c0vSU7tJHGhveOjoXR
+/usr/bin/ld: cannot find -lHStext-1.2.2.2-3ENqlljngKa6xj1Go2fVWq
+/usr/bin/ld: cannot find -lHSbinary-0.8.3.0
+/usr/bin/ld: cannot find -lHSoptparse-applicative-0.13.2.0-J9tSV1D1M11JWNEbVQPonU
+/usr/bin/ld: cannot find -lHStransformers-compat-0.5.1.4-IuFogs8HAVUJBWVNMhtssu
+/usr/bin/ld: cannot find -lHSprocess-1.4.3.0
+/usr/bin/ld: cannot find -lHSdirectory-1.3.0.0
+/usr/bin/ld: cannot find -lHSunix-2.7.2.1
+/usr/bin/ld: cannot find -lHSbytestring-0.10.8.1
+/usr/bin/ld: cannot find -lHSfilepath-1.4.1.1
+/usr/bin/ld: cannot find -lHSansi-wl-pprint-0.6.8.1-E76ARGam2soH7nnUTX5qkH
+/usr/bin/ld: cannot find -lHSclock-0.7.2-6ZjQ4liQAtMEQ8sxJKD0xY
+/usr/bin/ld: cannot find -lHSasync-2.1.1.1-2GwQEYzLBsdIBCHbNA3HGy
+/usr/bin/ld: cannot find -lHSstm-2.4.4.1-iSYwp3RMY11sHCifJ3gtR
+/usr/bin/ld: cannot find -lHSansi-terminal-0.6.3.1-59sjf9WqHYuFAo9gQw9Bhp
+/usr/bin/ld: cannot find -lHSsmallcheck-1.1.2-LDYrF813cXx9pXAB4DnM94
+/usr/bin/ld: cannot find -lHSlogict-0.6.0.2-IvIE0u44i1X7ob5HesINuT
+/usr/bin/ld: cannot find -lHSmtl-2.2.1-BLKBelFsPB3BoFeSWSOYj6
+/usr/bin/ld: cannot find -lHSinteger-logarithms-1.0.2-IDuUvOgHWcrIzD9yrr4lsA
+/usr/bin/ld: cannot find -lHSQuickCheck-2.10.0.1-ALuGysu7txTB2VnkPyDuTq
+/usr/bin/ld: cannot find -lHStf-random-0.5-CJZw1ZWS5MOJlR60HqKEZL
+/usr/bin/ld: cannot find -lHSprimitive-0.6.2.0-4578caNkWQ54Gt1mxLF2Yh
+/usr/bin/ld: cannot find -lHStransformers-0.5.2.0
+/usr/bin/ld: cannot find -lHStemplate-haskell-2.11.1.0
+/usr/bin/ld: cannot find -lHSpretty-1.1.3.3
+/usr/bin/ld: cannot find -lHSghc-boot-th-8.0.2
+/usr/bin/ld: cannot find -lHSrandom-1.1-9tceXaeYIMZ4JrKq20Egog
+/usr/bin/ld: cannot find -lHStime-1.6.0.1
+/usr/bin/ld: cannot find -lHScontainers-0.5.7.1
+/usr/bin/ld: cannot find -lHSdeepseq-1.4.2.0
+/usr/bin/ld: cannot find -lHSarray-0.5.1.1
+/usr/bin/ld: cannot find -lHSbase-4.9.1.0
+/usr/bin/ld: cannot find -lHSinteger-gmp-1.0.0.1
+/usr/bin/ld: cannot find -lHSghc-prim-0.5.0.0
+/usr/bin/ld: cannot find -lHSrts
+collect2: error: ld returned 1 exit status
+`gcc' failed in phase `Linker'. (Exit code: 1)
+#+END_SRC
+
+From the Arch wiki:
+
+#+BEGIN_QUOTE
+GHC uses static linking by default and the -dynamic flag is needed to select dynamic linking. Since version 8.0.2-1, the Arch ghc package no longer contains static versions of the GHC boot libraries by default, nor do any of the haskell-* packages . Static versions of the GHC boot libraries may be installed separately through the ghc-static package, but no such equivalent exists for the haskell-* packages. Therefore, without -dynamic Haskell code and packages will generally fail to link unless the program depends only on boot packages and locally installed packages and ghc-static is installed.
+
+This also causes issues with Cabal trying to use the default static linking. To force dynamic linking in Cabal, edit ~/.cabal/config and add the line executable-dynamic: True.
+
+Dynamic linking is used for most Haskell modules packaged through pacman and is common for packages in the AUR. Since GHC provides no ABI compatibility between compiler releases, static linking is often the preferred option for local development outside of the package system.
+#+END_QUOTE
+
+Even with ~executable-dynamic: True~ and all Arch packages uninstalled except ~ghc~ and ~cabal-install~, I would get linker errors if I tried to upgrade from cabal 1.24 to 2.0 via ~cabal install cabal-install~ (with or without ~--enable-shared~).
+
+The final solution was to revert back to static:  If you uninstall all haskell packages except ~ghc~ and then install ~ghc-static~, this will remove all dynamic libraries.  (confirm by checking ~sudo updatedb && locate libHS~)
+
+To find out what Haskell packages I had to uninstall, I did:
+
+#+BEGIN_SRC(bash)
+pacman -Qsq '^haskell' | sudo pacman -R -
+#+END_SRC
+
+which didn't actually work (it just gave a bunch of errors about dependencies I would break), but thepackages on the left-hand side of those broken dependencies tells you which packages were manually installed.
+
+#+BEGIN_SRC(bash)
+sudo pacman -R --recursive ghc cabal-install xmonad stack idris hlint ghc-mod cabal-helper
+sudo updatedb && locate libHS  # good, nothing.
+sudo pacman -S ghc ghc-static
+sudo updatedb && locate libHS  # good, still nothing.
+(cd ~/asd/clone/cabal && rm -rf * && git reset --hard && cd cabal-install && ./bootstrap.sh)
+cabal update
+cd ~/asd/clone/arithmoi
+cabal new-test  # :D
+#+END_SRC
+
+===========================
+
+
+Note to self in case I get errors later from pacman:
+I disabled some files that have no business existing:
+
+    /usr/share/applications/org.bunkus.mkvinfo.desktop
+    /usr/share/applications/org.bunkus.mkvtoolnix-gui.desktop
+
+I renamed their extensions from `.desktop` to `.fucking-retarded`.
+
+============================
+
+2017-09-14
+
+Rust on blue gene Q
+
+I've finally gotten rust working on blue gene.
+Notes are in this markdown file:
+
+https://gist.github.com/ExpHP/930578ff5735b3efa6b3e3cd966d0be3
+
+In short:
+Rust-lang supports the powerpc64-unknown-linux-gnu target triple,
+and a subcommand 'cargo vendor' exists to help manage dependencies.
+
+Tags: BGQ
 
 =========== END ============

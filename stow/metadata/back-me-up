@@ -1,0 +1,15 @@
+/
+Install my personal backup system.
+
+This is the whole shebang.  The script, its own config and its
+meager documentation are all dumped into /opt.
+Config for other programs (e.g. cron jobs and rsnapshot.conf)
+are also included.
+
+You should install anacron and rsnapshot as well.
+On arch, this is the cronie package, and after installing it you
+should do:
+
+    sudo systemctl enable --now cronie.service
+
+This will require root.

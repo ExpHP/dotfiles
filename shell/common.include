@@ -17,11 +17,15 @@ export VASP_PSP_DIR="$HOME/asd/pymatgen_res"
 # this incredibly-descriptively named variable is for phonon
 export ISODATA=/usr/local/phon610/isobyu/
 
+export PYTHONSTARTUP="$HOME/dotfiles/python-startup.py"
+
 #----------------------------------------------
 
 callable() {
-	# NOTE: 'GNU which', as found on arch linux, writes to stderr on failure
-	which "$@" 1>/dev/null 2>/dev/null
+	# NOTE: 'GNU which', as found on arch linux, writes to stderr on failure.
+	# I'm not sure how portable the alias check is, but this should only result
+	#  in false negatives, which aren't a catastrophe.
+	which -- "$@" 1>/dev/null 2>/dev/null || alias -- "$@" 1>/dev/null 2>/dev/null
 }
 
 # phonopy
@@ -38,8 +42,9 @@ export GOPATH=$HOME/cpp/go
 
 alias hoogle='hoogle --color --count=10'
 
-
-alias cabal='cabal --require-sandbox'
+# Aliasing cabal is not necessary and in fact causes subtle problems.
+# You can set the sandbox option in ~/.cabal/config instead.
+#alias cabal='cabal --require-sandbox'
 alias cabal-deps='echo >&2 "No longer necessary. Try:  cabal new-build
 Failing that, the old def was:
    cabal --require-sandbox install --dependencies-only -pj"; false'
@@ -55,6 +60,16 @@ alias make='make -j4'
 alias min='vim -u NONE'
 
 alias biggest='du -s $(ls -A) | sort -g | tail -n10'
+
+# 1. Make a replacement for one of the most frequently used
+#    unix commands in existence
+# 2. Give it the most uncomfortable name possible to type
+#    on an american keyboard
+# 3. ???
+# 4. Profit
+#
+# (this could hurt us; it's not strictly a drop-in)
+if callable exa; then alias ls=exa; fi
 
 # NOTE: swap has been upgraded to a script
 
@@ -93,12 +108,27 @@ if callable unzip2dir; then
 	alias unzip='echo >&2 "Disabled. (Use unzip2dir or /usr/bin/unzip)"; false'
 fi
 
+# CAPS WHY
+if callable PCSX2 && ! callable pcsx2; then alias pcsx2=PCSX2; fi
+# and i can't even spell it anyways
+if callable pcsx2 && ! callable ps2; then alias ps2=pcsx2; fi
+
+if callable pacdiff; then
+	# pacdiff diffprog that downloads the old version and uses a threeway diff.
+	# It's unsuitable for other usages of DIFFPROG, so we use an alias with env.
+	alias pacdiff='DIFFPROG=_pacdiff-diffprog-ukhippo pacdiff'
+fi
+
 # Not done automatically on Arch.
 # (seems "ls" is colorized even without having done this; but it does affect "tree")
 [ "x$LS_COLORS" == x ] && callable dircolors && eval "$(dircolors --sh)"
 
 # sudoedit uses this
 export EDITOR=vim
+
+# I don't think setting this in bashrc is a terrible idea.
+# ...it isn't a terrible idea, right?!
+export OMP_NUM_THREADS=4
 
 # # Bumper rail.
 # # Limit memory for interactive bash prompts, because thrashing sucks.

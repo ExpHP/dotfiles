@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Wrapper around underscore-cli to switch between 'underscore print' and 'underscore pretty'
+#  based on isatty.
+
+if ! which underscore >/dev/null 2>/dev/null ; then
+    # let's take this chance to remind the user (a.k.a. me) that json-diff exists
+    # so that he doesn't later find himself without it during the morning commute
+    echo >&2 "Please install underscore-cli.  Also maybe check out json-diff too."
+    echo >&2 "    npm install -g underscore-cli json-diff"
+    exit 1
+fi
+
+# Ideally we would have a --pretty={never|always|AUTO} option,
+# but adding that would require reparsing all of underscore's options.
+#
+# So balls to that; auto it is.
+__JSON_OPT_PRETTY=auto
+
+# 'underscore print' and 'underscore pretty' conveniently
+# support precisely the same set of CLI args
+# so we can just swap em out
+if [ "$__JSON_OPT_PRETTY" == always ]; then
+    mode=pretty
+elif [ "$__JSON_OPT_PRETTY" == never ]; then
+    mode=print
+elif [ "$__JSON_OPT_PRETTY" == auto ]; then
+    mode=print
+    [ -t 1 ] && mode=pretty
+else
+    echo >&2 "Bad argument for --pretty"
+    exit 1
+fi
+
+underscore $mode "$@"

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Copyright (C) 2015 Michael Lamparski
+# Licensed under the WTFPL: http://www.wtfpl.net/about/
+
+# a vain attempt at performing MANUALLY INITIATED backups via
+#  `rsnapshot` to a REMOVABLE USB external hard drive, which
+#  MIGHT NOT always be connected (e.g. if this is a laptop).
+
+set -e
+
+# Rerun as root, to avoid babysitting for password prompts
+if [ "$EUID" -ne 0 ]
+then
+  echo NOTE: Re-running script as root
+  sudo $0
+  exit
+fi
+
+DIR="$(dirname "$(readlink -f "$0")")"
+
+"$DIR/mount-backup-drive"
+"$DIR/backup-and-rotate"
+

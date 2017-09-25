@@ -626,8 +626,21 @@ Are you trying to kill us?"
 
 (defun dotspacemacs//gtd-projectile-location-func ()
   ;; See NOTE ON CAPTURE FUNCTIONS
-  (set-buffer (org-capture-target-buffer
-               (car (org-projectile:todo-files))))
+  ;; Also:
+  ;;  - the built-in template can be generated with (org-projectile:project-todo-entry "p")
+  ;;  - said template calls (org-projectile:location-for-project) which will undesirably set the current buffer
+  ;;  - looking at the source yields this method of obtaining the filename
+  (let* ((project-name (org-projectile:project-heading-from-file (org-capture-get :original-file)))
+         (fp (funcall org-projectile:project-name-to-org-file project-name)))
+    (set-buffer (org-capture-target-buffer fp))
+
+    ;; move to EOF to ensure it always produces a new level-1 heading, regardless of the phase of the moon.
+    ;; (NOTE: I have no idea whether this actually does what I want it to, but it seems to work.
+    ;;        Testing the code manually doesn't cause any visual change, since apparently windows
+    ;;          have their own points?)
+    (with-current-buffer (org-capture-target-buffer fp)
+      (goto-char (point-max)))
+    )
   )
 
 ;; (defun dotspacemacs//gtd/current-inbox-item-to-tickler (time)
@@ -753,6 +766,9 @@ you should place your code here."
   ;;  design philosophy of "call function, auto-load module")
   (require 'org-protocol)
 
+  ;; This must be explicitly loaded because it changes how certain syntax in org files is understood.
+  (require 'org-inlinetask)
+
   (with-eval-after-load 'org-capture
 
     (setq org-capture-templates nil)
@@ -785,6 +801,9 @@ you should place your code here."
     ;; captures should start in insert mode
     (add-hook 'org-capture-mode-hook 'evil-insert-state)
     )
+
+  (with-eval-after-load 'org
+    (add-to-list 'org-babel-load-languages '(gnuplot . t)))
 
   ;; load it now so that our keybinds are added and our functions exist
   (require 'org-capture)
@@ -1159,7 +1178,19 @@ This function is called at the very end of Spacemacs initialization."
     (web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode company-web web-completion-data racket-mode faceup symon string-inflection yapfify yaml-mode xterm-color ws-butler winum which-key web-beautify volatile-highlights vi-tilde-fringe uuidgen use-package toml-mode toc-org spaceline smeargle slime-company shell-pop restart-emacs rainbow-delimiters racer pyvenv pytest pyenv-mode py-isort popwin pip-requirements persp-mode pcre2el paradox orgit org-projectile org-present org-pomodoro org-plus-contrib org-download org-bullets open-junk-file neotree multi-term move-text mmm-mode markdown-toc magit-gitflow lush-theme lorem-ipsum livid-mode live-py-mode linum-relative link-hint kakapo-mode json-mode js2-refactor js-doc intero info+ indent-guide idris-mode hy-mode hungry-delete htmlize hlint-refactor hl-todo hindent highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-pydoc helm-purpose helm-projectile helm-mode-manager helm-make helm-hoogle helm-gitignore helm-flx helm-descbinds helm-company helm-c-yasnippet helm-ag haskell-snippets google-translate golden-ratio gnuplot gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe git-gutter-fringe+ gh-md fuzzy flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-magit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu eshell-z eshell-prompt-extras esh-help elisp-slime-nav dumb-jump dtrt-indent diff-hl define-word cython-mode company-tern company-statistics company-quickhelp company-ghci company-ghc company-cabal company-auctex company-anaconda common-lisp-snippets column-enforce-mode coffee-mode cmm-mode clean-aindent-mode cargo browse-at-remote auto-yasnippet auto-highlight-symbol auto-compile auctex-latexmk aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line ac-ispell)))
  '(safe-local-variable-values
    (quote
-    ((idris-load-packages "pruviloj")
+    ((eval add-to-list
+           (quote org-babel-load-languages)
+           (quote
+            (python . t)))
+     (eval add-to-list
+           (quote org-babel-load-languages)
+           (quote
+            (shell . t)))
+     (eval add-to-list
+           (quote org-babel-load-languages)
+           (quote
+            (gnuplot . t)))
+     (idris-load-packages "pruviloj")
      (idris-load-packages list "pruviloj")
      (idris-load-packages \`
                           (pruviloj))))))

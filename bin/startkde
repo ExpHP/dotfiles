@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ "" != "$(which xmodmap 2>/dev/null)" ]; then
+    if [ -e "$HOME/.Xmodmap" ]; then
+        xmodmap "$HOME/.Xmodmap"
+    fi
+fi
+
+exec /usr/bin/startkde

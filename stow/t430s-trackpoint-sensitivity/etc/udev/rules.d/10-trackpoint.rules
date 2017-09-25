@@ -1,1 +1,8 @@
+# The following is for when the device is located at
+#   /sys/devices/platform/i8042/serio1/serio2
+#
+# (it was broken for a couple of kernel releases
+#  during July-October 2017 when a kernel bug kept
+#  assigning new ids to the device)
+#
 ACTION=="add", KERNEL=="serio2", SUBSYSTEM=="serio", DRIVERS=="psmouse", RUN+="/usr/local/bin/_udev--trackpoint-sensitivity.sh"

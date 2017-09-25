@@ -1,0 +1,41 @@
+
+#----------------------------
+# vars for auto mounting
+
+# mount point for backup drive
+# mounting the drive here should make /etc/rsnapshot.conf's snapshot_root
+#  become "available".  As in, it should only be possible to place files
+#  in `snapshot_root` when the drive is mounted.
+#
+# To accomplish this, you have a couple of options:
+# (a) let `snapshot_root` be a SUBDIRECTORY of this mount point, and set
+#     `no_create_root	1` in `/etc/rsnapshot.conf`, OR:
+# (b) let `snapshot_root` be the mount point itself, and make it immutable;
+#     `chattr +i /my/epic/mount/point`
+MOUNT=/mnt/ext4-backup
+
+# UUID of backup drive
+# The files in `/dev/disk/by-uuid` are symlinks, so just do `ls -l` and find
+#   the link to the right partition
+DISK_UUID=99b6ce57-9d93-4404-b8d8-844b9012758d
+
+
+#---------------------------
+# vars for backup-and-rotate
+
+# please grep /etc/rsnapshot.conf for "retain" and make sure the
+#  the FIRST THREE UNCOMMENTED INTERVALS MATCH!!!! (they probably don't!)
+INTERVAL_0=daily
+INTERVAL_1=weekly
+INTERVAL_2=monthly
+
+# Must match `/etc/rsnapshot.conf`'s sync_first
+SYNC_FIRST=1
+
+# Trigger files
+# You must set up something that creates these files periodically (they can be
+#  empty). I suggest anacron jobs.
+# When present, backup-and-rotate will do a rotation and delete the trigger file.
+TRIGGER_DIR="$HOME/.back-me-up"
+TRIGGER_1="$TRIGGER_DIR/WEEKLY"
+TRIGGER_2="$TRIGGER_DIR/MONTHLY"

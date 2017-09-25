@@ -1,0 +1,38 @@
+#!/bin/bash
+
+trap 'rm -f $prevfile ' EXIT
+
+mktmp() { mktemp -q -p ${2:-${TMPDIR:-/tmp}} "${1:-${0//*\//}}.XXXXXXXX" ; }
+
+prevfile=$(mktmp)
+
+download() {
+  echo "  > Previous version ($2) not in pacman cache; downloading from Arch Linux Archive...\n"
+  pushd /var/cache/pacman/pkg >/dev/null
+  curl -O# http://ala.seblu.net/packages/${1::1}/$1/$1-$2-$3.pkg.tar.xz
+  popd >/dev/null
+}
+
+
+if [[ "${1##*.}" == "pacnew" ]]; then
+  echo "--> Getting old version of $2\n"
+  pkgname=$(pacman -Qqo "$2")
+  echo "  > provided by $pkgname package\n"
+
+  # get the from/to versions of the latest upgrade
+  versions=($(awk '/upgraded '"$pkgname"' / {split($0,a,"[()]"); split(a[2],b)} END {printf "%s %s", b[1], b[3]}' /var/log/pacman.log))
+
+  # determine package architecture
+  [[ -e "/var/cache/pacman/pkg/${pkgname}-${versions[1]}-any.pkg.tar.xz" ]] && arch="any" || arch=$HOSTTYPE
+
+  # the cached 'from' package (download from ALA if missing)
+  cached="/var/cache/pacman/pkg/${pkgname}-${versions[0]}-${arch}.pkg.tar.xz"
+  [[ ! -e $cached ]] && download $pkgname ${versions[0]} $arch
+
+  # get 'from' version of the file
+  tar -xOJf $cached "${2:1}" >| $prevfile
+
+  meld "$1" "$2" "$prevfile"
+else
+  meld "$1" "$2"
+fi
