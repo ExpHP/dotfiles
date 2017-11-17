@@ -60,6 +60,9 @@ repo = 'PeterRincker/vim-argumentative'
 [[plugins]]
 repo = 'tpope/vim-surround'
 
+[[plugins]]
+repo = "jamessan/vim-gnupg"
+
 #-----------------
 # Colors
 
@@ -147,6 +150,9 @@ repo = 'manicmaniac/coconut.vim'
 
 [[plugins]]
 repo = 'idris-hackers/idris-vim'
+
+[[plugins]]
+repo = 'vmchale/ion-vim'
 
 #-------------------------------------
 # Python plugins:

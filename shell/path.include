@@ -5,6 +5,11 @@
 # PATH modifications aren't something I want to limit to just interactive shell prompts.
 # This file is suitable for linkage into $XDG_CONFIG_HOME/plasma-workspace/env/.
 
+export PATH
+export LIBRARY_PATH
+export LD_LIBRARY_PATH
+export C_INCLUDE_PATH
+
 # this might already be there, but it also might not.
 # doesn't hurt to have it listed twice!
 PATH=$HOME/bin:$PATH
@@ -14,6 +19,9 @@ PATH=$HOME/.cargo/bin:$PATH
 
 # ayup
 PATH=$HOME/.local/bin:$PATH
+LIBRARY_PATH=$HOME/.local/lib:$LIBRARY_PATH
+LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
+C_INCLUDE_PATH=$HOME/.local/include:$C_INCLUDE_PATH
 
 # binaries distributed inside haskell packages
 # (FIXME: why is the one prepended while the rest are appended? accidental or deliberate?)

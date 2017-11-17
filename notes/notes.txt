@@ -2109,6 +2109,18 @@ or after booting into the new OS:
     arr+=(python-pandas python2-pandas)
     pacman -S "${arr[@]}"
 
+(NOTE 2017-11-17): For reasons unbeknowest to me, it appears that some time
+ after I wrote the above I decided to install jupyter-notebook through pip.
+ Since I didn't document why, I can only assume it was due to a temporary lapse in judgement.
+ If I some day later find that I have made this same mistake, here's a list of all the
+ things I had to uninstall this time:
+
+    sudo pip uninstall pygments wcwidth ipython pyzmq
+    sudo pip uninstall jupyter-core jupyter-console jupyter-client jupyter-notebook
+    sudo pip uninstall pexpect pickleshare nbformat jsonschema
+    sudo pip uninstall traitlets ipython_genutils terminado tornado ptyprocess decorator
+    sudo pip uninstall jinja2 markupsafe
+
 
 don't forget drivers!
 

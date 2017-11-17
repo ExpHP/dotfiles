@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Private mode: does not record new history
+EXPHP_BASHRC_PRIVATE=1 bash

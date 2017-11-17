@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+# (this is really just a wrapper around sed.
+#  the only only purpose of using python is to provide targeted help
+#  messages and prevent arbitrary flags from being forwarded to sed)
+
+import argparse
+import sys
+import subprocess
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--inplace', '-i', action='store_true', help='inplace')
+parser.add_argument('FILE', nargs='*', help='Defaults to STDIN')
+args = parser.parse_args()
+
+if not args.FILE and sys.stdout.isatty():
+    print("No files specified, reading from STDIN...", file=sys.stderr)
+
+sed_args = ['sed', '-r', 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g']
+if args.inplace:
+    sed_args.append('-i')
+sed_args.append('--')
+sed_args.extend(args.FILE)
+
+sys.exit(subprocess.call(sed_args))

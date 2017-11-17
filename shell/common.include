@@ -35,7 +35,16 @@ alias sym-con='phonopy --sym -c CONTCAR > symmetry'
 # Let sudo see things in our path.
 alias sudo='sudo env PATH="$PATH"'
 
-alias h='history | grep'
+callable rg && alias h='history | rg'
+callable rg || alias h='history | grep'
+
+callable rlwrap && {
+    callable python2 && alias python2='rlwrap python2'
+    # this doesn't work, enable history in .gdbinit instead
+    # FIXME or that seems to only have saved commands I
+    #       wrote in the first run, and then never again...
+    #callable gdb && alias gdb='rlwrap gdb'
+}
 
 # as if I'm ever going to use go again >_>
 export GOPATH=$HOME/cpp/go

@@ -17,7 +17,7 @@ doTheSpecialPromptyThing() {
 
   local lbrace="$white["
   local rbrace="$white]"
-  local midbrace="$blue@"
+  local midbrace="$white@"
   if ! [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
     local lbrace="$red[["
     local rbrace="$red]]"
@@ -35,14 +35,18 @@ doTheSpecialPromptyThing() {
   # to ensure that the value of $? is preserved.
   PS1=""
   PS1+="$lbrace "
-  if [[ "$HOSTNAME" == lampam-ThinkPad-T430 ]]; then
-    # Username & time
+  if [[ "$HOSTNAME" == lampam-ThinkPad-T430 || $HOSTNAME == arch-t430s ]]; then
+    # Username & Time
     PS1+="$blue\\u"
     PS1+="$bracecolor $midbrace "
-    PS1+="$yellow\t"
+    if [[ $EXPHP_BASHRC_PRIVATE ]]; then
+      PS1+="$purple\t"
+    else
+      PS1+="$yellow\t"
+    fi
   else
     # Username & host
-    PS1+="$blue\\u@\\h"
+    PS1+="$green\\u@\\h"
   fi
   PS1+=" $rbrace "
 
@@ -114,17 +118,28 @@ shopt -s globstar
 shopt -s extglob
 #shopt -s failglob  # Wrecks with some tab-completions...
 
+shopt -s autocd
+
 # so readline has a vim mode
 set -o vi
 
 #------------------------------------------------------
 # replicate zsh's inc_append_history. Or at least, try to.
 
-export HISTCONTROL=ignoredups:erasedups
-export HISTSIZE=100000
-export HISTFILESIZE=100000
-shopt -s histappend
+if [[ $EXPHP_BASHRC_PRIVATE ]]; then
+    # use a temporary history file so that we can still see old commands,
+    #  but can't write back new ones
+    p=$(mktemp /tmp/tmp.XXXXXXXXXX)
+    cat $HISTFILE >>$p
+    HISTFILE=$p
+else
+    export HISTCONTROL=ignoredups:erasedups
+    # "like, infinity"
+    export HISTSIZE=100000000
+    export HISTFILESIZE=100000000
+    shopt -s histappend
 
-# Add to the history after each command finishes
-NEWLINE=$'\n'
-export PROMPT_COMMAND="history -a $NEWLINE $PROMPT_COMMAND"
+    # Add to the history after each command finishes
+    NEWLINE=$'\n'
+    PROMPT_COMMAND="history -a $NEWLINE $PROMPT_COMMAND"
+fi
