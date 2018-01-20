@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+module load gcc
+module load slurm
+
+export RUSTUP_HOME=$HOME/data/.rustup
+export CARGO_HOME=$HOME/data/.cargo
+export PATH=$CARGO_HOME/bin:$PATH
+
+. /cm/shared/apps/intel/bin/compilervars.sh intel64
+export PATH=/cm/shared/apps/mvapich2/intel/64/1.9/bin:$PATH
+
+export PATH=/home/lampam/bin:$PATH
+export PATH=/data/lampam/local-install/bin:$PATH
+export CPATH=/data/lampam/local-install/include:$CPATH
+export LD_LIBRARY_PATH=/data/lampam/local-install/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/data/lampam/local-install/lib64:$LD_LIBRARY_PATH
+export LIBRARY_PATH=/data/lampam/local-install/lib:$LIBRARY_PATH
+export LIBRARY_PATH=/data/lampam/local-install/lib64:$LIBRARY_PATH
+
+export VASP_PSP_DIR=/home/lampam/data/vasp/pseudopotentials-pymatgen/
+
+# scipy dependencies
+module load openblas lapack
+
+export PATH=/home/lampam/syncbin:$PATH
