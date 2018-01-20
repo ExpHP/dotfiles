@@ -27,6 +27,9 @@ C_INCLUDE_PATH=$HOME/.local/include:$C_INCLUDE_PATH
 # (FIXME: why is the one prepended while the rest are appended? accidental or deliberate?)
 PATH=$PATH:$HOME/.cabal/bin
 
+# FIXME uhh... what to do about the version number?
+PATH=$HOME/.gem/ruby/2.4.0/bin/:$PATH
+
 # Newer ghc versions:
 #   sudo add-apt-repository https://launchpad.net/~hvr/+archive/ubuntu/ghc
 PATH=/opt/ghc/bin:$PATH

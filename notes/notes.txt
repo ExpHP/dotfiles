@@ -1889,8 +1889,9 @@ Not connected.
     SSID=FiOS-KM0UW
     ...
 # SSID=FiOS-KM0UW
-# wpa_passphrase $SSID "the-network-password" >/etc/wpa_supplicant/fios.conf
-# wpa_supplicant -B -i$IF -Dnl80211 -c/etc/wpa_supplicant/fios.conf
+# CONF=/etc/wpa_supplicant/${SSID}.conf
+# wpa_passphrase $SSID "the-network-password" >$CONF
+# wpa_supplicant -B -i$IF -Dnl80211 -c$CONF
 # iw dev $IF link
 Connected to my:ma:ca:dd:re:ss (on wlp0s18f2u3)
 ...
@@ -2612,5 +2613,25 @@ Rust-lang supports the powerpc64-unknown-linux-gnu target triple,
 and a subcommand 'cargo vendor' exists to help manage dependencies.
 
 Tags: BGQ
+
+============================
+
+2018-01-19
+
+lammps-sys crate on matisse
+
+When compiling rsp2 on matisse, I got strange "undefined symbol" errors
+even though the library was clearly linked properly and had the listed symbols.
+
+Looking at the .rcgu0 file and liblammps.so in objdump and nm both showed names
+like `lammps_has_error`... however, `readelf -Ws` on the .rcgu0 finally revealed
+something peculiar.  There were names like `_ZN16lammps_has_error`.
+
+Looking at the generated bindings.rs revealed that erroneous `#[link_name]`
+attributes were being added to the file on matisse.
+
+It appears this is because the version of libclang available to me was old.
+bindgen has a workaround for this (`trust_clang_mangling(false)`).
+I added this to `lammps_sys`.
 
 =========== END ============

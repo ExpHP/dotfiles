@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+
+from textwrap import dedent
+import argparse
+import os
+import sys
+
+unlines = lambda s: ' '.join(dedent(s).splitlines()).rstrip()
+
+PROG = os.path.basename(sys.argv[0])
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='get probability of an event happening after multiple tries',
+    )
+
+    n_fmt_log = [] # used to infer --chance-format
+    ty = parse_chance
+    ty = _record_format(n_fmt_log, ty)
+    parser.add_argument(
+        'CHANCE', type=ty,
+        help='Chance of event occurring in one attempt. E.g. "0.5" or "50%".',
+    )
+
+    parser.add_argument(
+        '-n', type=parse_maybe_range(int), default=(1, 10),
+        help=unlines('''\
+            Number of attempts. A range may be given in the form MIN:MAX,
+            in which case a table is printed. MAX is inclusive.
+            [default: 1:10]
+            '''),
+    )
+
+    parser.add_argument(
+        '-C', '--chance-format',
+        choices=["auto", "percent", "standard"], default="auto",
+        help=unlines('''\
+            Output format for probabilities. "auto" infers from CHANCE.
+            [default: auto]
+            ''')
+    )
+
+    args = parser.parse_args()
+    chance_format = {
+        'auto': n_fmt_log.pop(0),
+        'percent': FMT_PERCENT,
+        'standard': FMT_ONE,
+    }[args.chance_format]
+
+    if chance_format is FMT_PERCENT:
+        fmt_chance = lambda x: f'{100 * x:7.2f}%'
+    elif chance_format is FMT_ONE:
+        fmt_chance = lambda x: f'{x:<7.5g}'
+    else: assert False, "complete switch"
+
+    if len(args.n) == 1:
+        num_trials, = args.n
+        _main__single(
+            chance=args.CHANCE,
+            num_trials=num_trials,
+            fmt_chance=fmt_chance,
+        )
+    elif len(args.n) == 2:
+        lo, hi = args.n
+        _main__table(
+            chance=args.CHANCE,
+            n_range=range(lo, hi+1),
+            fmt_chance=fmt_chance,
+        )
+    else: assert False, "complete switch"
+
+def _main__single(chance, num_trials, fmt_chance):
+    p = compute_prob(chance, num_trials)
+    print(fmt_chance(p))
+
+def _main__table(chance, n_range, fmt_chance):
+    print("TRIALS  CHANCE")
+    for n in n_range:
+        p = compute_prob(chance, n)
+        print(f'{n:>5}  {fmt_chance(p)}')
+
+# ------------------------------------------------------
+
+def compute_prob(chance, num_trials, min_successes=1, max_successes=None):
+    # uh... I forgot how to handle these cases.
+    assert min_successes == 1, "min_successes > 1 not yet implemented"
+    assert max_successes is None, "max_successes not yet implemented"
+
+    return 1 - (1 - chance) ** num_trials
+
+# ------------------------------------------------------
+
+def parse_maybe_range(ty):
+    def parse(s):
+        if ':' in s:
+            a, b = s.split(':', 1)
+            return (ty(a), ty(b))
+        else:
+            return (ty(s),)
+    return parse
+
+FMT_PERCENT = object() # Percent format
+FMT_ONE = object() # Rate of 0 to 1
+def _record_format(d, ty):
+    assert isinstance(d, list)
+    def parse(s):
+        if s.endswith('%'): d.append(FMT_PERCENT)
+        else: d.append(FMT_ONE)
+        return ty(s)
+    return parse
+
+def parse_chance(s):
+    factor = 1
+    if s.endswith('%'):
+        s = s[:-1]
+        factor = 0.01
+
+    return float(s) * factor
+
+# ------------------------------------------------------
+
+def warn(*args, **kw):
+    print(f'{PROG}:', *args, file=sys.stderr, **kw)
+
+def die(*args, code=1):
+    warn('Fatal:', *args)
+    sys.exit(code)
+
+# ------------------------------------------------------
+
+if __name__ == '__main__':
+    main()

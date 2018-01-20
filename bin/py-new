@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import sys
+import stat
+
+PROG = os.path.basename(sys.argv[0])
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Make a python script.',
+    )
+    parser.add_argument('PATH')
+    args = parser.parse_args()
+
+    if os.path.exists(args.PATH):
+        die('File already exists.')
+
+    with open(args.PATH, 'w') as f:
+        f.write(TEMPLATE)
+
+    chmod_x(args.PATH)
+
+S_IXALL = stat.S_IXUSR | stat.S_IXOTH | stat.S_IXGRP
+
+def chmod_x(path):
+    st = os.stat(path)
+    os.chmod(path, st.st_mode | S_IXALL)
+
+# ------------------------------------------------------
+
+TEMPLATE = '''
+#!/usr/bin/env python3
+
+import argparse
+import os
+import sys
+
+PROG = os.path.basename(sys.argv[0])
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='lel',
+    )
+    parser.add_argument('INPUT')
+    args = parser.parse_args()
+
+# ------------------------------------------------------
+
+def warn(*args, **kw):
+    print(f'{PROG}:', *args, file=sys.stderr, **kw)
+
+def die(*args, code=1):
+    warn('Fatal:', *args)
+    sys.exit(code)
+
+# ------------------------------------------------------
+
+if __name__ == '__main__':
+    main()
+'''[1:]
+
+# ------------------------------------------------------
+
+def warn(*args, **kw):
+    print(f'{PROG}:', *args, file=sys.stderr, **kw)
+
+def die(*args, code=1):
+    warn('Fatal:', *args)
+    sys.exit(code)
+
+# ------------------------------------------------------
+
+if __name__ == '__main__':
+    main()

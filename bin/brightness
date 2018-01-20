@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import sys
+
+PROG = os.path.basename(sys.argv[0])
+
+# screen brightness setter
+# because GODDAMMIT WHY IS EVERYTHING FUCKING BROKEN ALL THE TIME
+#
+# (I don't even know whether to blame arch, KDE, this laptop, or Monokuma)
+
+# normally this would be a bash one-liner as:
+#
+#    echo -n 600 | sudo tee /sys/class/backlight/intel_backlight/brightness
+#
+# but that has the troubles that 'sudo tee' is really annoying and prevents us from writing
+# the value at the end of the command where it is more easily modified,
+# and that the scale is device-dependent and can seem fairly arbitrary
+# (in my case, max_brightness is '4437'. Gross.)
+#
+# so now it is 'sudo brightness 15'
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Set screen brightness even if the key control is totally b0rked',
+    )
+
+    parser.add_argument('-d', '--device',
+        help='Full path (beginning from /) to backlight device in /sys.'
+        ' Defaults to searching in /sys/class/backlight,'
+        ' where it expects to find a unique entry.')
+    parser.add_argument('PERCENT', type=float, help='value from 0 to 100')
+    args = parser.parse_args()
+
+    if args.device is None:
+        args.device = search_for_backlight()
+
+    BrightnessDevice(args.device).set(args.PERCENT)
+
+def search_for_backlight():
+    path = '/sys/class/backlight'
+
+    children = os.listdir(path)
+
+    if not children:
+        die(f'No devices in {repr(path)}')
+    elif len(children) == 2:
+        die(f'More than one device in {repr(path)}')
+
+    return os.path.join(path, children[0])
+
+class BrightnessDevice:
+    def _path(self, name):
+        return os.path.join(self.root, name)
+
+    def _read(self, name):
+        with open(self._path(name)) as f:
+            return f.read()
+
+    def _write(self, name, value):
+        with open(self._path(name), 'w') as f:
+            f.write(str(value))
+
+    def __init__(self, devpath):
+        self.root = devpath
+        self.max = int(self._read('max_brightness'))
+
+    def set(self, percentage):
+        value = clip(round(self.max * percentage / 100), (0, self.max))
+        self._write('brightness', value)
+
+def clip(value, lohi):
+    lo, hi = lohi
+    assert lo <= hi
+    return min(max(value, lo), hi)
+
+def set_brightness(devpath):
+    os.path.join(devpath, 'max_brightness')
+
+# ------------------------------------------------------
+
+def warn(*args, **kw):
+    print(f'{PROG}:', *args, file=sys.stderr, **kw)
+
+def die(*args, code=1):
+    warn('Fatal:', *args)
+    sys.exit(code)
+
+# ------------------------------------------------------
+
+if __name__ == '__main__':
+    main()
