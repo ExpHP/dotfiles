@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+
+# gittool.ps1.include
+# sets a bunch of env vars describing git state output
+
+#------------------------
+
+# This file should be sourced.
+
+# I know of no reliable way to detect that on Bash 4.1, other than
+# having the 'return' command fail.
+
+# Therefore, every toplevel "return" should be written as an 'eval' of one of these.
+# If you typo the variable name, then God help you.
+# (SHELL!! The place where every attempt to refactor code makes it ten times worse!)
+__EXPHP_GITTOOL_FAIL='return 1 2>/dev/null || { echo >&2 "This script should be sourced."; exit 1; }'
+__EXPHP_GITTOOL_DONE='return 0 2>/dev/null || { echo >&2 "This script should be sourced."; exit 1; }'
+
+#-------------------------
+# Output variables
+
+# "Stringly booleans."
+# These are either an empty string (false) or something else (true).
+# Use the syntax [[ $VAR_NAME ]] to test them.
+EXPHP_GITTOOL_BRANCH=  # branch name (or "HEAD" when detached). If empty: not in a repo.
+EXPHP_GITTOOL_IS_BARE=
+EXPHP_GITTOOL_IS_DIRTY=
+EXPHP_GITTOOL_ERROR=   # contents is an error message
+
+# Integers
+EXPHP_GITTOOL_UNTRACKED=0
+EXPHP_GITTOOL_ADDITIONS=0
+EXPHP_GITTOOL_DELETIONS=0
+
+#-------------------
+# Given that this script is meant to be sourced in PS1,
+# there's not much we can meaningfully do on error without
+# making a nuisance of ourselves.
+#
+# Therefore, the design is deliberately one of "silent failure."
+# When the script fails, the output variables will be set to innocent
+# values indistinguishable from legitimate output.
+#
+# It will be necessary to check EXPHP_GITTOOL_ERROR to know if the script failed.
+
+__exphp_gittool_set_error() {
+    EXPHP_GITTOOL_IS_DIRTY=;
+    EXPHP_GITTOOL_UNTRACKED=0;
+    EXPHP_GITTOOL_ADDITIONS=0;
+    EXPHP_GITTOOL_DELETIONS=0;
+    EXPHP_GITTOOL_ERROR="$*";
+}
+
+__exphp_gittool_try() {
+    eval "$@" 2>/dev/null || {
+        __exphp_gittool_set_error "command failed: $*"
+        return 1
+    }
+}
+
+#------------------
+
+which git >/dev/null 2>/dev/null || {
+    __exphp_gittool_set_error "can't find 'git'"
+    eval $__EXPHP_GITTOOL_FAIL
+}
+
+EXPHP_GITTOOL_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"
+
+# Not a repo? We're finished.
+[[ $EXPHP_GITTOOL_BRANCH ]] || eval $__EXPHP_GITTOOL_DONE
+
+# Test bareness.
+__EXPHP_GITTOOL_TEMP="$(__exphp_gittool_try git rev-parse --is-bare-repository)" || eval $__EXPHP_GITTOOL_FAIL
+case "$__EXPHP_GITTOOL_TEMP" in
+    true)
+        EXPHP_GITTOOL_IS_BARE=1
+        eval $__EXPHP_GITTOOL_DONE ;;
+    false)
+        ;;
+    *)
+        __exphp_gittool_set_error 'could not parse `git rev-parse --is-bare-repository`'
+        eval $__EXPHP_GITTOOL_FAIL ;;
+esac
+
+EXPHP_GITTOOL_IS_BARE=
+EXPHP_GITTOOL_IS_DIRTY=$(__exphp_gittool_try git status --porcelain) || eval $__EXPHP_GITTOOL_FAIL
+EXPHP_GITTOOL_UNTRACKED=$(__exphp_gittool_try git ls-files --others --exclude-standard | wc -l 2>/dev/null)
+[[ ${PIPESTATUS[0]} -eq 0 ]] || eval $__EXPHP_GITTOOL_FAIL
+
+# decode --shortstat output, which omits counts that are zero.
+[[ $EXPHP_GITTOOL_IS_DIRTY ]] && {
+    __EXPHP_GITTOOL_TEMP=($(__exphp_gittool_try git diff --shortstat)) || eval $__EXPHP_GITTOOL_FAIL
+
+    while [[ $__EXPHP_GITTOOL_TEMP ]]; do
+        case "${__EXPHP_GITTOOL_TEMP[1]}" in
+            file*)
+                # "4 files changed"
+                # (this is the equivalent of 'shift' for an array)
+                __EXPHP_GITTOOL_TEMP=("${__EXPHP_GITTOOL_TEMP[@]:3}")
+                ;;
+            insertion*)
+                # "4 insertions(+),"
+                EXPHP_GITTOOL_ADDITIONS="${__EXPHP_GITTOOL_TEMP[0]}"
+                __EXPHP_GITTOOL_TEMP=("${__EXPHP_GITTOOL_TEMP[@]:2}")
+                ;;
+            deletion*)
+                # "4 deletions(-)"
+                EXPHP_GITTOOL_DELETIONS="${__EXPHP_GITTOOL_TEMP[0]}"
+                __EXPHP_GITTOOL_TEMP=("${__EXPHP_GITTOOL_TEMP[@]:2}")
+                ;;
+            *)
+                __exphp_gittool_set_error 'Could not parse `git diff --shortstat`'
+                eval $__EXPHP_GITTOOL_FAIL
+                ;;
+        esac
+    done
+}
+
+# Now, if you don't mind, I'm going to go find a pillow and
+# scream into it for several minutes, and hope that I shall
+# never have to touch this file again.
+eval $__EXPHP_GITTOOL_DONE
+

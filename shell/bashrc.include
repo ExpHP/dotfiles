@@ -59,42 +59,28 @@ doTheSpecialPromptyThing() {
   # Git branch
   if which git >/dev/null; then
     PS1+="\$(
-
-      __PS1_GIT_BRANCH=\$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-      if [[ \$__PS1_GIT_BRANCH ]]; then
-        __PS1_GIT_BARE=\$(git worktree list --porcelain | grep '^bare$')
-
-        if [[ \$__PS1_GIT_BARE ]]; then
-          __PS1_GIT_DIRTY=
-          __PS1_GIT_UNTRACKED=0
-          __PS1_GIT_ADDITIONS=0
-          __PS1_GIT_DELETIONS=0
-        else
-          __PS1_GIT_DIRTY=\$(git status --porcelain 2>/dev/null)
-          __PS1_GIT_UNTRACKED=\$(git ls-files --others --exclude-standard | wc -l 2>/dev/null)
-          __PS1_GIT_ADDITIONS=\$(git diff --shortstat | awk '{ print \$4 }' 2>/dev/null)
-          __PS1_GIT_DELETIONS=\$(git diff --shortstat | awk '{ print \$6 }' 2>/dev/null)
-        fi
+      . \$HOME/dotfiles/shell/gittool.ps1.include
+      if [[ \$EXPHP_GITTOOL_BRANCH ]]; then
         echo -n \"$none(\"
 
-        if [[ \$__PS1_GIT_BARE ]]; then
+        if [[ \$EXPHP_GITTOOL_IS_BARE ]]; then
           echo -n \"${cyan}bare\"
-        elif [[ \$__PS1_GIT_DIRTY ]]; then
-          echo -n \"$yellow\$__PS1_GIT_BRANCH\"
+        elif [[ \$EXPHP_GITTOOL_IS_DIRTY ]]; then
+          echo -n \"$yellow\$EXPHP_GITTOOL_BRANCH\"
         else
-          echo -n \"$green\$__PS1_GIT_BRANCH\"
+          echo -n \"$green\$EXPHP_GITTOOL_BRANCH\"
         fi
 
         echo -n \"$none\"
-        if   [[ \$__PS1_GIT_UNTRACKED -gt 0 ]]; then
-          echo -n \" •\$__PS1_GIT_UNTRACKED\"
+        if   [[ \$EXPHP_GITTOOL_UNTRACKED -gt 0 ]]; then
+          echo -n \" •\$EXPHP_GITTOOL_UNTRACKED\"
         fi
 
-        if [[ \$__PS1_GIT_DELETIONS -gt 0 ]]; then
-          echo -n \" ${red}-\$__PS1_GIT_DELETIONS\"
+        if [[ \$EXPHP_GITTOOL_DELETIONS -gt 0 ]]; then
+          echo -n \" ${red}-\$EXPHP_GITTOOL_DELETIONS\"
         fi
-        if [[ \$__PS1_GIT_ADDITIONS -gt 0 ]]; then
-          echo -n \" $green+\$__PS1_GIT_ADDITIONS\"
+        if [[ \$EXPHP_GITTOOL_ADDITIONS -gt 0 ]]; then
+          echo -n \" $green+\$EXPHP_GITTOOL_ADDITIONS\"
         fi
         echo -n \"$none) \"
       fi
