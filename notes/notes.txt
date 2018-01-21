@@ -618,6 +618,108 @@ To install pip after installing Python2.7 (from the command line):
 
     python -m ensurepip
 
+#------------   Update 2017-01-21
+
+Building python on systems with custom install locations is now a bit trickier than before.
+
+## Symptoms
+
+`make` appears to succeed, but `make install` fails while trying to install pip:
+
+```text
+Traceback (most recent call last):
+  File "/data/lampam/asd/clone/cpython/Lib/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/data/lampam/asd/clone/cpython/Lib/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/data/lampam/asd/clone/cpython/Lib/ensurepip/__main__.py", line 5, in <module>
+    sys.exit(ensurepip._main())
+  File "/data/lampam/asd/clone/cpython/Lib/ensurepip/__init__.py", line 204, in _main
+    default_pip=args.default_pip,
+  File "/data/lampam/asd/clone/cpython/Lib/ensurepip/__init__.py", line 117, in _bootstrap
+    return _run_pip(args + [p[0] for p in _PROJECTS], additional_paths)
+  File "/data/lampam/asd/clone/cpython/Lib/ensurepip/__init__.py", line 27, in _run_pip
+    import pip
+  File "/tmp/tmppxo4cj6h/pip-9.0.1-py2.py3-none-any.whl/pip/__init__.py", line 28, in <module>
+  File "/tmp/tmppxo4cj6h/pip-9.0.1-py2.py3-none-any.whl/pip/vcs/mercurial.py", line 9, in <module>
+  File "/tmp/tmppxo4cj6h/pip-9.0.1-py2.py3-none-any.whl/pip/download.py", line 36, in <module>
+  File "/tmp/tmppxo4cj6h/pip-9.0.1-py2.py3-none-any.whl/pip/utils/glibc.py", line 4, in <module>
+  File "/data/lampam/asd/clone/cpython/Lib/ctypes/__init__.py", line 7, in <module>
+    from _ctypes import Union, Structure, Array
+ModuleNotFoundError: No module named '_ctypes'
+make: *** [install] Error 1
+```
+
+Searching the stdout and stderr of `make` reveals the following
+
+```text
+INFO: Could not locate ffi libs and/or headers
+
+Python build finished successfully!
+The necessary bits to build these optional modules were not found:
+_lzma                 _tkinter
+To find the necessary bits, look in setup.py in detect_modules() for the module's name.
+
+
+The following modules found by detect_modules() in setup.py, have been
+built by the Makefile instead, as configured by the Setup files:
+atexit                pwd                   time
+
+
+Failed to build these modules:
+_ctypes
+
+running build_scripts
+```
+
+## Explanation
+
+The issue is threefold:
+
+* `_ctypes` is not considered to be a critical component of cpython.
+  This is why `make` reports success.
+* Building `_ctypes` depends on libffi. (`ffi.h` and `libffi.so`)
+* Even once libffi is installed,
+  cpython's setup.py uses **unconventional means** to search for libffi,
+  which will fail if you have it installed to a custom prefix.
+  **`CPATH` and `{LD_,}LIBRARY_PATH` are not enough.**
+  Instead, it looks at **`LDFLAGS` and `LIBFFI_INCLUDEDIR`** (see below).
+
+## Resolution
+
+### Build and Install libffi
+
+Clone the libffi repo and do `make && make install`.
+
+### Manually install libffi's binary (?)
+
+libffi's `make install` does not install the `libtool` binary,
+which will have been written to a directory named after your target triple.
+*I'm not sure if this is required,* but I manually installed this to preempt
+any possible version mismatch issues caused by the existing libtool in /usr/bin.
+
+### Export the specific config flags that `cpython` is looking for.
+
+cpython's setup.py manually searches for libffi, and does not care about
+the typical environment vars.  Instead, you must do the following:
+
+```bash
+# (note: this can all be done after ./configure)
+
+export LIBFFI_INCLUDEDIR="/path/to/install-dir/include"
+
+# DO NOT PUT A SPACE AFTER -L.
+# SETUP.PY ACTUALLY PARSES THIS.
+export LDFLAGS="-L/path/to/install-dir/lib" # or lib64 if necessary
+```
+
+### Build cpython
+
+```sh
+./configure --enable-optimizations --prefix=$HOME/data/local-install
+make -j4 && make install
+```
+
 ============================
 
 VIM CommandT plugin
