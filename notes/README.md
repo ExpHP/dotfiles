@@ -1,4 +1,4 @@
-# Notes
+# Notes ([`notes.md`](notes.md))
 
 Hm. This seems out of place here.
 
