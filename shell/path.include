@@ -45,3 +45,13 @@ PATH=$HOME/dotfiles/bin:$PATH
 # utility scripts for code that gets transferred to supercomputers.
 PATH=$HOME/syncbin:$PATH
 
+#----------------------------------------------
+
+# ensure no empty components are in PATH-like vars,
+# because POSIX defines these as equivalent to '.',
+# because POSIX hates you.
+__pathrc_strip_empty() { echo "$*" | sed -E -e 's/^:*//' -e 's/:*$//' -e 's/:+/:/g'; }
+PATH=$(__pathrc_strip_empty "$PATH")
+LIBRARY_PATH=$(__pathrc_strip_empty "$LIBRARY_PATH")
+LD_LIBRARY_PATH=$(__pathrc_strip_empty "$LD_LIBRARY_PATH")
+C_INCLUDE_PATH=$(__pathrc_strip_empty "$C_INCLUDE_PATH")

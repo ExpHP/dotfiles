@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # gittool.ps1.include
-# sets a bunch of env vars describing git state output
+# Intended to be run by PS1.
+# Sets a bunch of env vars describing git state output.
 
 #------------------------
 
@@ -22,10 +23,10 @@ __EXPHP_GITTOOL_DONE='return 0 2>/dev/null || { echo >&2 "This script should be 
 # "Stringly booleans."
 # These are either an empty string (false) or something else (true).
 # Use the syntax [[ $VAR_NAME ]] to test them.
-EXPHP_GITTOOL_BRANCH=  # branch name (or "HEAD" when detached). If empty: not in a repo.
-EXPHP_GITTOOL_IS_BARE=
-EXPHP_GITTOOL_IS_DIRTY=
-EXPHP_GITTOOL_ERROR=   # contents is an error message
+EXPHP_GITTOOL_BRANCH=    # branch name (or "HEAD" when detached). If empty: not in a repo.
+EXPHP_GITTOOL_IS_BARE=   # (contents are unspecified beyond truthiness)
+EXPHP_GITTOOL_IS_DIRTY=  # (contents are unspecified beyond truthiness)
+EXPHP_GITTOOL_ERROR=     # contents is an error message
 
 # Integers
 EXPHP_GITTOOL_UNTRACKED=0
@@ -77,16 +78,45 @@ case "$__EXPHP_GITTOOL_TEMP" in
         EXPHP_GITTOOL_IS_BARE=1
         eval $__EXPHP_GITTOOL_DONE ;;
     false)
+        EXPHP_GITTOOL_IS_BARE=
         ;;
     *)
         __exphp_gittool_set_error 'could not parse `git rev-parse --is-bare-repository`'
         eval $__EXPHP_GITTOOL_FAIL ;;
 esac
 
-EXPHP_GITTOOL_IS_BARE=
-EXPHP_GITTOOL_IS_DIRTY=$(__exphp_gittool_try git status --porcelain) || eval $__EXPHP_GITTOOL_FAIL
-EXPHP_GITTOOL_UNTRACKED=$(__exphp_gittool_try git ls-files --others --exclude-standard | wc -l 2>/dev/null)
-[[ ${PIPESTATUS[0]} -eq 0 ]] || eval $__EXPHP_GITTOOL_FAIL
+# Writing to a tempfile is necessary to run 'git status --porcelain' in a way that
+# lets us check the return code.
+{
+    mkdir -p /tmp/ps1-gittool 1>/dev/null 2>/dev/null &&
+    __EXPHP_GITTOOL_TMPFILE=$(mktemp -p /tmp/ps1-gittool 2>/dev/null) &&
+    [[ $__EXPHP_GITTOOL_TMPFILE ]] && [[ -f $__EXPHP_GITTOOL_TMPFILE ]]
+} || {
+    __exphp_gittool_set_error 'Could not make temp files'
+    eval $__EXPHP_GITTOOL_FAIL
+}
+
+# despite the intent for the caller to use this like a boolean,
+# we internally use it as an array for economy purposes.
+# It holds the lines of `git status --porcelain`
+EXPHP_GITTOOL_IS_DIRTY=()
+__exphp_gittool_try git status --porcelain >$__EXPHP_GITTOOL_TMPFILE || eval $__EXPHP_GITTOOL_FAIL
+readarray EXPHP_GITTOOL_IS_DIRTY <$__EXPHP_GITTOOL_TMPFILE || {
+    \rm -f 2>/dev/null $__EXPHP_GITTOOL_TMPFILE
+    __exphp_gittool_set_error 'Error reading temp file'
+    eval $__EXPHP_GITTOOL_FAIL
+}
+
+
+\rm -f 2>/dev/null $__EXPHP_GITTOOL_TMPFILE
+
+EXPHP_GITTOOL_UNTRACKED=0
+for __EXPHP_GITTOOL_TEMP in "${EXPHP_GITTOOL_IS_DIRTY[@]}"; do
+    case $__EXPHP_GITTOOL_TEMP in
+        "??"*) ((EXPHP_GITTOOL_UNTRACKED++)) ;;
+        *) ;;
+    esac
+done
 
 # decode --shortstat output, which omits counts that are zero.
 [[ $EXPHP_GITTOOL_IS_DIRTY ]] && {

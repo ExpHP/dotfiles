@@ -5,6 +5,6 @@ set history expansion on
 show history
 
 # stop prompting on Ctrl-D
-define hook-quit
-    set confirm off
-end
+#define hook-quit
+#    set confirm off
+#end

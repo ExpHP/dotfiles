@@ -90,7 +90,14 @@ if callable trash; then
 	alias rm='echo >&2 "rm disabled, use can or /usr/bin/rm"; false'
 	alias can=trash
 	# why oh why is restore-trash interactive?! :/
-	alias uncan=restore-trash
+	# 2018-02-13: It's now obvious to me that this is because multiple deleted
+	#             files may have the same path.  That said, I can think of many
+	#             ways to make the experience less of a chore. It's on github
+	#             (https://github.com/andreafrancia/trash-cli), written in
+	#             python, and very tempting to fork...
+	# NOTE: name changed at some point
+	callable restore-trash && alias uncan=restore-trash # old
+	callable trash-restore && alias uncan=trash-restore # new
 fi
 
 # https://twitter.com/liamosaur/status/506975850596536320
@@ -127,6 +134,8 @@ if callable pacdiff; then
 	# It's unsuitable for other usages of DIFFPROG, so we use an alias with env.
 	alias pacdiff='DIFFPROG=_pacdiff-diffprog-ukhippo pacdiff'
 fi
+
+callable pacman && alias arch-orphans='pacman -Qtdq'
 
 # Not done automatically on Arch.
 # (seems "ls" is colorized even without having done this; but it does affect "tree")
