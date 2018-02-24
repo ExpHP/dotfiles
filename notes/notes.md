@@ -2591,6 +2591,8 @@ some GUI prompt for a password. Let's fix that:
     pkill gpg               # kill any broken agents that are still running.
     gpg --import priv.keys  # this should succeed now.
 
+**NOTE 2018-02-24:** I have a new pinentry program in dotfiles/bin which is more versatile than `pinentry-tty`.
+
 Oddly, this is enough to let you decode messages with the key, but not
 to encode them with the public key.  For that, you need to "trust" it:
 
@@ -3062,4 +3064,18 @@ exit 1 # (copy-pasta guard)
 make user-misc  # WRONG! this is invalid, the lammps docs are lying to you
 make yes-user   # WRONG! that will get ALL the user packages, which will require ALL the libs
 make yes-lib    # WRONG! that way lies sorrow, much much sorrow, death is inevitable
+```
+
+<!------------------------------->
+# adaptive PGP pinentry
+
+**(2018-02-24)**
+
+`dotfiles/bin` now has an adaptive pinentry that appears in the console
+when possible and in a gui when necessary.
+
+It needs to be manually set up:
+
+```
+echo 'pinentry-program /home/exp/dotfiles/bin/pinentry-exphp' >>~/.gnupg/gpg-agent.conf
 ```
