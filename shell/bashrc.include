@@ -28,14 +28,20 @@ doTheSpecialPromptyThing() {
      gitgud=1
   fi
 
-
+  local my_machine
+  local tmp
+  for tmp in \
+    lampam-ThinkPad-T430\
+    arch-t430s\
+    dd-arch\
+  ; do [[ $HOSTNAME == $tmp ]] && my_machine=1; done
 
   # == STATIC REGION ==
   # no command substitutions may be used before the error indicator,
   # to ensure that the value of $? is preserved.
   PS1=""
   PS1+="$lbrace "
-  if [[ "$HOSTNAME" == lampam-ThinkPad-T430 || $HOSTNAME == arch-t430s ]]; then
+  if [[ $my_machine ]]; then
     # Username & Time
     PS1+="$blue\\u"
     PS1+="$bracecolor $midbrace "

@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 # To be run from PYTHONSTARTUP
+
 from sys import stdout as ___stdout
 def history(file=___stdout):
     import readline
@@ -18,12 +19,18 @@ import json
 import time
 import shutil
 import subprocess
-import argparse
 import math
-import numpy
-np = numpy
-try: import yaml
+
+try: import argparse
 except: pass
+try: import numpy; np = numpy
+except: pass
+try:
+    from ruamel.yaml import YAML as yaml
+    yaml = yaml()
+except:
+    try: import yaml
+    except: pass
 
 def pmg():
     global Poscar

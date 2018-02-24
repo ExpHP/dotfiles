@@ -1,0 +1,4 @@
+# readline rc file
+
+# Use colors like 'ls' in TAB-TAB completions
+set colored-stats on

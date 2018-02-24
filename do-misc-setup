@@ -1,0 +1,156 @@
+#!/usr/bin/env bash
+
+#----------------------------------
+# Metadata (embedded for great justice)
+
+files=(
+	gdbinit .gdbinit
+	ghci .ghci
+	inputrc .inputrc
+	sbclrc .sbclrc
+	stylish-haskell.yaml .stylish-haskell.yaml
+)
+
+#----------------------------------
+
+OPT_FIXIT=
+
+usage() {
+    echo "Check/fix status of miscellaneous dotfiles"
+    echo "usage: $(basename $0) (-h | --help)"
+    echo "       $(basename $0) [OPTIONS]..."
+}
+
+TEMP=`getopt -o hf --long help,fix -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+while true ; do
+    case "$1" in
+        -h|--help)
+            usage
+            echo ""
+            echo "Options"
+            echo " -h,--help  You did it!"
+            echo " -f,--fix   Automatically fix simple problems."
+            echo "            This option is generally conservative, so that"
+            echo "            problems with any uncertainty at all still require"
+            echo "            manual intervention."
+            exit 0;;
+        -f|--fix) OPT_FIXIT=1; shift;;
+        --) shift; break;;
+        *) echo "We dun goofed!"; exit 1;;
+    esac
+done
+
+[[ $# -ne 0 ]] && {
+	usage >&2
+	echo >&2 "error: this utility takes no positional arguments"
+	exit 1
+}
+
+#----------------------------------
+# Init/depsearch
+
+GREP=
+for s in rg grep; do
+	which $s >/dev/null 2>/dev/null && {
+		GREP=$s
+		break
+	}
+done
+[[ ! $GREP ]] && {
+	echo >&2 "FATAL: Please install grep."
+	exit 1
+}
+
+#----------------------------------
+# Constants/helpers
+
+BOLD="$(tput bold)"
+RED="$(tput setaf 1)"
+GREEN="$(tput setaf 2)"
+YELLOW="$(tput setaf 3)"
+BLUE="$(tput setaf 4)"
+MAGENTA="$(tput setaf 5)"
+CYAN="$(tput setaf 6)"
+SGR0="$(tput sgr0)"
+
+wrapcolor() {
+	printf "%s" "$1" # color
+	printf "%s" "$2" # message
+	printf "%s" "$SGR0" # uncolor
+}
+
+showstatus() {
+	color=$1; shift
+	status=$1; shift
+	file=$1; shift
+	message=$1; shift
+
+	wrapcolor "${BOLD}" "["
+	wrapcolor "${BOLD}$color" "$(printf "%s" "$status")"
+	wrapcolor "${BOLD}" "]"
+	wrapcolor "${BOLD}" " ${file}:"
+	echo " $message"
+}
+
+s_good()    { showstatus $GREEN  "   ok  " "$1" "$2"; }
+s_bad()     { showstatus $RED    "  bad  " "$1" "$2"; }
+s_fixed()   { showstatus $CYAN   " fixed " "$1" "$2"; }
+s_error()   { showstatus $RED    " error " "$1" "$2"; }
+s_wtf()     { showstatus $RED    "  ???  " "$1" "$2"; }
+s_fixable() { showstatus $YELLOW "fixable" "$1" "$2"; }
+
+#----------------------------------
+# script
+
+actions=()
+while [[ $files ]]; do
+	name="${files[0]}"
+	target_searchstring="dotfiles/${files[0]}"
+	target="$HOME/dotfiles/${files[0]}"
+	link="$HOME/${files[1]}"
+	files=("${files[@]:2}") # iterate
+
+	# broken link
+	if [[ ! -e $link && -L $link ]]; then
+		old=$(readlink "$link")
+		if [[ $OPT_FIXIT ]]; then
+			ln -sf "$target" "$link"
+			if [[ $? -eq 0 && -e $link ]]; then
+				s_fixed "$name" "(-f) Replaced broken link at $link (was: $old)"
+			else
+				s_error "$name" "Failed to replace broken link at $link (pointing to: $old)"
+			fi
+		else
+			s_fixable "$name" "Use -f to fix the broken link at $link (pointing to: $old)"
+		fi
+	# missing link
+	elif [[ ! -e $link && ! -L $link ]]; then
+		if [[ $OPT_FIXIT ]]; then
+			ln -s "$target" "$link"
+			if [[ $? -eq 0 && -e $link ]]; then
+				s_fixed "$name" "(-f) Link created at $link"
+			else
+				s_error "$name" "Failed to create link at $link"
+			fi
+		else
+			s_fixable "$name" "Use -f to fix the missing link at $link"
+		fi
+	elif [[ -L $link ]]; then
+		if [[ "$(realpath "$link")" == "$(realpath "$target")" ]]; then
+			s_good "$name" "Link exists."
+		else
+			s_bad "$name" "$link points to an unexpected location."
+		fi
+	elif [[ -f $link ]]; then
+		if grep "$target_searchstring" "$link" >/dev/null 2>/dev/null; then
+			s_good "$name" "File mentions dotfile."
+		else
+			s_bad "$name" "$link exists but does not mention the dotfile."
+		fi
+	else
+		s_wtf "$name" "$link is wierd. Weird? Weird."
+	fi
+done
+
