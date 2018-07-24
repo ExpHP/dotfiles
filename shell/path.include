@@ -45,6 +45,14 @@ PATH=$HOME/dotfiles/bin:$PATH
 # utility scripts for code that gets transferred to supercomputers.
 PATH=$HOME/syncbin:$PATH
 
+# new idea: automatically source files named `env` located at the top of
+#           an `/opt/` subdirectory
+for __pathrc_tmp_path in /opt/*/env; do
+    if [[ -x $__pathrc_tmp_path ]]; then # in case of evil no-match bash glob
+        source "$__pathrc_tmp_path"
+    fi
+done
+
 #----------------------------------------------
 
 # ensure no empty components are in PATH-like vars,

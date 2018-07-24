@@ -52,6 +52,8 @@ callable rlwrap && {
 # as if I'm ever going to use go again >_>
 export GOPATH=$HOME/cpp/go
 
+export COCONUT_STYLE=monokai
+
 alias hoogle='hoogle --color --count=10'
 
 # Aliasing cabal is not necessary and in fact causes subtle problems.
@@ -150,6 +152,9 @@ export EDITOR=vim
 # I don't think setting this in bashrc is a terrible idea.
 # ...it isn't a terrible idea, right?!
 export OMP_NUM_THREADS=4
+
+# lammps-sys
+export RUST_LAMMPS_MAKEFILE=$HOME/dotfiles/lammps-Makefile.omp
 
 # # Bumper rail.
 # # Limit memory for interactive bash prompts, because thrashing sucks.

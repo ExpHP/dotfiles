@@ -3079,3 +3079,240 @@ It needs to be manually set up:
 ```
 echo 'pinentry-program /home/exp/dotfiles/bin/pinentry-exphp' >>~/.gnupg/gpg-agent.conf
 ```
+
+<!------------------------------->
+# HP 2055dn printer
+
+**(2018-04-25)**
+
+In short, I still haven't gotten this to work
+
+## Definitely true things:
+
+* You should install `hplip` so that the right model shows up under Model in CUPS.
+
+## Other notes
+
+* To get the CUPS administration page to actually present a password prompt, I need to use Firefox (not Chromium).  Why? Idunno.
+* Colin was able to connect with a socket URL and IP: `socket://128.113.x.y`.  Note: He used the KDE tools instead of the CUPS administration page.
+* For some reason right now my machine can resolve an IP for the address `icmp2055dn.phys.rpi.edu` but I was unable to use it in a socket URL.
+
+<!------------------------------->
+# Transferring files to/from Android
+
+**(2018-04-28)**
+
+*Sooooo...*
+
+Turns out MTP on Linux is a nightmare.
+
+Here's what to do about it:
+
+1. **REBOOT YOUR PHONE.** The MTP file scanner on the device itself may not run very frequently. And when it doesn't run, the phone communicates old filesystem information to the computer. So if the filesystem you see after step 2 does not reflect the current state of the filesystem on the phone, it's because you **need to reboot it.**
+2. Don't trust KDE's device popup. (if you click it, it will give a "path does not exist error"). Instead, manually mount it with a tool called "simple-mtpfs"
+
+   ```
+   sudo pikaur -S simple-mtpfs
+   sudo reboot -h now # always reboot after installing MTP related stuff.
+                      # MTP is terrible.
+   simple-mtpfs --device 1 ~/mnt
+   ```
+
+<!------------------------------->
+# GIMX
+
+**(2018-06-03)**
+
+GIMX is a tool for allowing a PC to spoof a PlayStation 3 controller.
+
+## Building
+
+The README doesn't mention this (or anything about how to build), but there's submodules.
+
+```sh
+git submodule init
+git submodule update
+make -kj4    # -k to 'keep going' on error
+```
+
+I got this error:
+
+```
+display.c:11:10: fatal error: ncursesw/ncurses.h: No such file or directory
+ #include <ncursesw/ncurses.h>
+          ^~~~~~~~~~~~~~~~~~~~
+```
+
+And fixed it by following a suggestion on Reddit to `#include <curses.h>` instead.
+
+(**note:** on my system, there is a file called `cursesw.h`, which by name would appear to be the more correct choice; but when I tried it there were a bunch of syntax errors, and I haven't felt the need to look further into it since `curses.h` seems to work)
+
+Then there is the matter of installation.
+
+## Installation
+
+**Hooooooo boy.**
+
+This is a goddamn mess of epic proportions.
+
+### Installing to a custom prefix
+
+**Do not run `sudo make install`.**
+
+* `make install` wants to install everything to `/usr`.  **I wouldn't.**  The installation includes unrelated files, including a copy of `bdaddr` from the `bluez-utils` package, which will inevitably cause pacman conflicts.
+* Their makefiles defines the installation prefix in an... unorthodox manner:
+  ```Makefile
+  # (unfortunately this appears in many, many files due to recursive make)
+  prefix=$(DESTDIR)/usr
+  ```
+  I honestly can't imagine what they were going for.
+
+I highly recommend **giving it its own dedicated install directory,** so that some bullshit can be addressed later.
+
+```
+sudo DESTDIR=/opt/GIMX make install
+sudo tee -a /opt/GIMX/env <<'HERE'
+export PATH=/opt/GIMX/usr/bin:$PATH
+export LD_LIBRARY_PATH=/opt/GIMX/usr/lib:$LD_LIBRARY_PATH
+HERE
+sudo chmod +x /opt/GIMX/env
+```
+
+and source `/opt/GIMX/env` in `.bashrc`.
+
+### Unsetting the SETUID bits
+
+After installing it, I noticed something strange.  `ldd` would report that all libraries could be successfully found, yet `gimx` would still fail with linker errors.
+
+```
+$ gimx
+gimx: error while loading shared libraries: libgimxlog.so: cannot open shared object file: No such file or directory
+$ ldd $(which gimx) | grep libgimx
+        libgimxlog.so => /opt/GIMX/usr/lib/libgimxlog.so (0x00007f468fd9b000)
+        libgimxhid.so => /opt/GIMX/usr/lib/libgimxhid.so (0x00007f468fb94000)
+        libgimxgpp.so => /opt/GIMX/usr/lib/libgimxgpp.so (0x00007f468f990000)
+        libgimxcontroller.so => /opt/GIMX/usr/lib/libgimxcontroller.so (0x00007f468f781000)
+        libgimxinput.so => /opt/GIMX/usr/lib/libgimxinput.so (0x00007f468f56b000)
+        libgimxuhid.so => /opt/GIMX/usr/lib/libgimxuhid.so (0x00007f468f367000)
+        libgimxpoll.so => /opt/GIMX/usr/lib/libgimxpoll.so (0x00007f468f164000)
+        libgimxprio.so => /opt/GIMX/usr/lib/libgimxprio.so (0x00007f468ef62000)
+        libgimxserial.so => /opt/GIMX/usr/lib/libgimxserial.so (0x00007f468ed5e000)
+        libgimxtimer.so => /opt/GIMX/usr/lib/libgimxtimer.so (0x00007f468eb5b000)
+        libgimxusb.so => /opt/GIMX/usr/lib/libgimxusb.so (0x00007f468e954000)
+```
+
+The explanation lies in the file permissions.
+
+```
+$ ls -l /opt/GIMX/usr/bin
+total 1920
+-rwsr-sr-x 1 root root  19288 Jun  3 12:39 bdaddr
+-rwsr-sr-x 1 root root  13752 Jun  3 12:39 ds4tool
+-rwsr-sr-x 1 root root 267584 Jun  3 12:39 gimx
+-rwxr-xr-x 1 root root 631496 Jun  3 12:39 gimx-config
+-rwxr-xr-x 1 root root 407024 Jun  3 12:39 gimx-fpsconfig
+-rwxr-xr-x 1 root root 408576 Jun  3 12:39 gimx-launcher
+-rwxr-xr-x 1 root root 168272 Jun  3 12:39 gimx-loader
+-rwsr-sr-x 1 root root  13136 Jun  3 12:39 hcirevision
+-rwsr-sr-x 1 root root  13008 Jun  3 12:39 sixaddr
+```
+
+Notice the 's' flags on many of the binaries.  This is the SETUID flag.
+
+> Ahhh, so *that's* why they include `bdaddr`.  **Wait, what the fuck!??**
+
+Clean up this egregious safety issue:
+
+```
+sudo chmod ug-s /opt/GIMX/usr/bin/*
+```
+
+Unfortunately, after having done this, you will find that Matheiu had reasons (not good reasons, but reasons nonetheless) for doing this.  Notice that four of the commands are not +s (e.g. `gimx-config`). These are meant to be userspace. They use config files and logs in your own user directory, and then call `gimx`.  (apparently it used to use `gksu`, but there were no doubt setups in which this method was not available)
+
+I don't actually know what the solution to this problem is.
+
+<!------------------------------->
+# Building old rust versions
+
+**(2018-06-13)**
+
+When I tried to build rust from a commit circa December 2016, bootstrapping failed trying to download the `stage0` compiler from a dead amazonaws URL.  Solution:
+
+* Create the `build/TARGET-TRIPLE/stage0` directory and put symlinks to the system `rustc` and `cargo` there (the ones provided by rustup).
+* Comment out the part of `src/bootstrap/bootstrap.py` that downloads rustc.
+* Try building (`x.py build`).  Probably it will die quickly due to the use of a now-removed nightly feature.  Try installing old rust stable versions and setting them as overrides until it works.
+* If you still have no luck, `cargo-rustc-bisect` is capable of downloading even old nightlies that `rustup` somehow refuses to. In the `cargo-rustc-bisect` repo:
+  ```rustc
+  cargo new lol   # cargo-rustc-bisect demands a test-dir, whether it uses it or not
+  cargo run -- --install 2016-12-23 --test-dir lol
+  ```
+  and it will appear in the `rustup` toolchain list.
+
+<!------------------------------->
+# Simulating a slow hard drive
+
+**(2018-06-14)**
+
+http://planet.jboss.org/post/debugging_tip_how_to_simulate_a_slow_hardisk
+
+In summary
+
+```sh
+# as root
+"cat > /etc/nbd-server/config" <<EOF
+[generic]
+[test]
+    exportname = /home/lampam/test_nbd
+    copyonwrite = false
+EOF
+
+# make blank test file
+dd if=/dev/zero of=/home/lampam/test_nbd bs=1G count=1
+
+sudo systemctl start nbd
+# monitor with
+journalctl -f --unit nbd
+
+# newer versions don't accept a port number
+sudo nbd-client -N test  127.0.0.1   /dev/nbd0
+
+# connect and format
+sudo mkfs /dev/nbd0 
+sudo mkdir /mnt/nbd
+# sync option is important to not allow the kernel to cheat!
+sudo mount -o sync /dev/nbd0 /mnt/nbd
+sudo chmod a+rwx /mnt/nbd
+# disconnect
+sudo umount /mnt/nbd
+sudo nbd-client -d /dev/nbd0
+sudo systemctl stop nbd
+
+# connect through trickle, throttled to 20kbps
+trickle -d 20 -u 20 -v nbd-server -d
+sudo nbd-client -N test  127.0.0.1 /dev/nbd0
+sudo mount -o sync /dev/nbd0 /mnt/nbd
+```
+
+<!------------------------------->
+# When I open my laptop and see a blank screen
+
+**(2018-07-19)**
+
+I finally figured it out.  This happens occassionally after the following sequence of events:
+
+- I close the lid with a monitor attached.  (the machine will not suspend)
+- The machine does not suspend due to the monitor. Oops.
+- I open the lid, wait for everything to show up, detach the monitor, wait for visual feedback (screen should flicker once), and close the lid again.
+- Machine suspends.
+
+Next time I open the lid, my system resumes from suspend but the screen might appear to remain off (not even backlit).
+I can move to another tty using Ctrl+Alt+Fn, and those show up fine, but the screen turns back off if I return to the tty hosting X.
+
+The solution is actually embarrasingly simple:
+
+**Hit the projector key.**
+
+I guess the above sequence of events confuses plasma into using an incorrect monitor setup.
+
+I saw messages in journalctl from kscreen about not using a configuration because "this is not what the user wants!", but did not have the presence of mind to record them.
+

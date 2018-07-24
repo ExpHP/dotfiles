@@ -3,10 +3,36 @@ from __future__ import print_function
 # To be run from PYTHONSTARTUP
 
 from sys import stdout as ___stdout
-def history(file=___stdout):
+def history(pattern=None, n=15, file=___stdout):
     import readline
-    for i in range(readline.get_current_history_length()):
-        print(str(readline.get_history_item(i)), file=file)
+    if pattern is None:
+        match = lambda s: True
+    elif isinstance(pattern, str):
+        match = lambda s: pattern in s
+    else: raise TypeError
+
+    out = []
+    for i in reversed(range(readline.get_current_history_length())):
+        line = str(readline.get_history_item(i))
+        if not match(line):
+            continue
+
+        out.append(line)
+        if n is not None and len(out) >= n:
+            break
+    out = out[::-1]
+
+    if file is None:
+        return out
+    else:
+        for line in out:
+            print(line, file=file)
+
+def mpl():
+    global plt
+    global mpl
+    import matplotlib.pyplot as plt
+    import matplotlib as mpl
 
 # Jesus H. Christ why haven't I done this sooner
 #   - Me, November 2017
@@ -37,6 +63,8 @@ def pmg():
     global Structure
     global Lattice
     global pymatgen
+    global SpacegroupAnalyzer
     import pymatgen
     from pymatgen import Structure, Lattice
     from pymatgen.io.vasp import Poscar
+    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
