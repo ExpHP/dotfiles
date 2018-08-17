@@ -705,6 +705,8 @@ To install pip after installing Python2.7 (from the command line):
 
 ## Update 2018-01-21: Python 3.7 trickiness
 
+**Further updated 2018-08-13 due to even more insanity.**
+
 ### `libffi` trickiness
 Building python on systems with custom install locations is now a bit trickier than before
 now that cpython no longer bundles libffi as of 3.7.
@@ -770,20 +772,33 @@ The issue is threefold:
   cpython's setup.py uses **unconventional means** to search for libffi,
   which will fail if you have it installed to a custom prefix.
   **`CPATH` and `{LD_,}LIBRARY_PATH` are not enough.**
-  Instead, it looks at **`LDFLAGS` and `LIBFFI_INCLUDEDIR`** (see below).
+  Instead:
+  * When I initially wrote this section (which was probably on an unreleased
+    3.7 alpha?), it looked at **`LDFLAGS` and `LIBFFI_INCLUDEDIR`** (see below).
+  * **(update)** In a later attempt to build from the 3.7 release commit,
+    I found that it no longer cares about env vars; it NEEDS them to be in the Makefile.
 
 #### Resolution
 
-**Build and Install libffi:**
-Clone the libffi repo and do `make && make install`.
+
+##### Build and Install libffi
+*Don't bother with the github repo* unless you know you have recent-ish autotools,
+because the git-hosted source does not include the `configure` script.
+Instead, download it from http://sourceware.org/libffi/ .
+
+<!-- Maybe don't do this?
 
 **Manually install libffi's binary (?):**
 libffi's `make install` does not install the `libtool` binary,
 which will have been written to a directory named after your target triple.
 *I'm not sure if this is required,* but I manually installed this to preempt
 any possible version mismatch issues caused by the existing libtool in /usr/bin.
+-->
 
-**Export the specific config flags that `cpython` is looking for:**
+<!-- No longer applicable. (initial instructions (2018-01-21))
+
+##### Set the specific env vars that `cpython` is looking for:
+
 cpython's setup.py manually searches for libffi,
 and *does not care about the typical environment vars!*
 Instead, you must do the following:
@@ -791,18 +806,64 @@ Instead, you must do the following:
 ```bash
 # (note: this can all be done after ./configure)
 
-export LIBFFI_INCLUDEDIR="/path/to/install-dir/include"
+# notice libffi doesn't put the header under PREFIX/include, but rather under PREFIX/lib
+# where it is versioned.
+export LIBFFI_INCLUDEDIR="/path/to/install-dir/lib/libffi-3.2.1/include"
 
 # DO NOT PUT A SPACE AFTER -L.
 # SETUP.PY ACTUALLY PARSES THIS.
-export LDFLAGS="-L/path/to/install-dir/lib" # or lib64 if necessary
+export LDFLAGS="-L/path/to/install-dir/lib64 $LDFLAGS"
 ```
+-->
 
-**Build cpython**
+##### Build cpython
+
+To build the 3.7 release, you need to make sure that the Makefile definition
+for `LDFLAGS` includes the right -L flag for libffi, and that `LIBFFI_INCLUDEDIR`
+is properly defined.
+
+These are accomplished by supplying the following variables to `configure`.
 
 ```sh
-./configure --enable-optimizations --prefix=$HOME/data/local-install
+./configure --enable-optimizations --prefix=$HOME/local-install \
+    CPPFLAGS="-I $HOME/local-install/lib/libffi-3.2.1/include" \
+    LDFLAGS="-L$HOME/local-install/lib64"
+
 make -j4 && make install
+```
+
+### `openssl`
+
+If the python build fails due to an out-of-date OpenSSL, don't worry, it's easy to build.
+
+**Git repo:** https://github.com/openssl/openssl
+
+#### Versioning
+
+Their versioning scheme is weird; instead of a patch number, they have a patch letter.
+This means that `1.1.0h` is more recent than `1.1.0`.
+
+**On komodo:** I deliberately built an outdated `1.0.2o` release to avoid having to update Perl.
+
+#### Building it shared
+
+The default is to build a static lib, but that gave me the following when I tried to build cpython:
+
+```
+gcc -pthread -fPIC -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -std=c99 -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Werror=implicit-function-declaration -fprofile-use -fprofile-correction -DMODULE_NAME="sqlite3" -DSQLITE_OMIT_LOAD_EXTENSION=1 -IModules/_sqlite -I/usr/include -I./Include -I/home/lampam/local-install/include -I. -I/home/lampam/local-install/lib/libffi-3.2.1/include -I/usr/local/include -I/data/lampam/build/cpython/Include -I/data/lampam/build/cpython -c /data/lampam/build/cpython/Modules/_sqlite/connection.c -o build/temp.linux-x86_64-3.7/data/lampam/build/cpython/Modules/_sqlite/connection.o
+/data/lampam/build/cpython/Modules/_sqlite/connection.c: In function ‘_pysqlite_connection_begin’:
+/data/lampam/build/cpython/Modules/_sqlite/connection.c:387: error: implicit declaration of function ‘sqlite3_prepare_v2’
+/data/lampam/build/cpython/Modules/_ssl.c: In function ‘PySSL_get_context’:
+/data/lampam/build/cpython/Modules/_ssl.c:6024: note: file /home/lampam/build/cpython/build/temp.linux-x86_64-3.7/data/lampam/build/cpython/Modules/_ssl.gcda not found, execution counts estimated
+gcc -pthread -shared -L/home/lampam/local-install/lib64 build/temp.linux-x86_64-3.7/data/lampam/build/cpython/Modules/_ssl.o -L/usr/kerberos/lib64 -L/home/lampam/local-install/lib -L/home/lampam/local-install/lib64 -L/usr/local/lib -lssl -lcrypto -ldl -lz -o build/lib.linux-x86_64-3.7/_ssl.cpython-37m-x86_64-linux-gnu.so
+/usr/bin/ld: /home/lampam/local-install/lib64/libssl.a(s3_meth.o): relocation R_X86_64_32 against `a local symbol' can not be used when making a shared object; recompile with -fPIC
+/home/lampam/local-install/lib64/libssl.a: could not read symbols: Bad value
+```
+
+To resolve this, two flags should be added to the config script.
+
+```
+./config -fPIC shared --prefix=$HOME/local-install
 ```
 
 ### cython trickiness
@@ -876,6 +937,33 @@ pip3 install Tempita
 python3 tools/cythonize.py  # regen everything with the correct flags
 pip3 install . --upgrade
 ```
+
+### `openssl` certification problems when using `pip` on komodo (2018-08-13)
+
+```
+Collecting bottleneck
+  Downloading https://files.pythonhosted.org/packages/05/ae/cedf5323f398ab4e4ff92d6c431a3e1c6a186f9b41ab3e8258dff786a290/Bottleneck-1.2.1.tar.gz (105kB)
+    100% |████████████████████████████████| 112kB 3.0MB/s 
+    Complete output from command python setup.py egg_info:
+    Download error on https://pypi.python.org/simple/numpy/: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1045) -- Some packages may not be found!
+    Couldn't find index page for 'numpy' (maybe misspelled?)
+    Download error on https://pypi.python.org/simple/: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1045) -- Some packages may not be found!
+    No local packages or working download links found for numpy
+```
+
+...*Sigh.* Yeah, looks like my method of building/installing libssl was not quite right?
+
+Things I tried:
+
+* Making doubly-damn sure my newly built `libssl` was linked right (checking cpython build output for -L flags, checking `LIBRARY_PATH/LD_LIBRARY_PATH`, etc.)
+* Adding `--trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org` to the pip call
+* Copying over files that appeared to be missing from `<ssl-install-prefix>/ssl`. (the contents of `ssl/certs`, and `ssl/cert.pem`.  I used `rsync -Lr` to resolve symlinks when copying from my Arch Linux's `/etc/ssl`)
+* Doing the above, and additionally supplying `--cert $HOME/local-install/ssl/cert.pem` to pip.
+* Triple checking the location of every single executable involved in the invocation of pip
+
+None of it appeared to have any effect at all; I still have the exact same error message.  So I'm just going to have to copy over individual packages and install them manually.  Ho, hum.
+
+(These kind of twilight zone issues where nothing ever changes are usually a sign of serious PEBKAC... but merely knowing it's probably my fault isn't enough to help me find it!)
 
 ### 'h5py' trickiness
 
@@ -3315,4 +3403,80 @@ The solution is actually embarrasingly simple:
 I guess the above sequence of events confuses plasma into using an incorrect monitor setup.
 
 I saw messages in journalctl from kscreen about not using a configuration because "this is not what the user wants!", but did not have the presence of mind to record them.
+
+<!------------------------------->
+# Building RSP2 on Komodo
+
+**(2018-08-15)**
+
+So many things have needed to be done for this.  Unfortunately I did not record most error messages:
+
+* Python 3.7 required by `rsp2`
+* newer versions of OpenSSL and libffi required by Python 3.7
+* newer version of `cython` required by pip3
+    * ...but I could never get pip3 to actually download anything.  SSL errors.
+* `scipy` required by `rsp2`
+* a newer `binutils` because... hell if I remember.  I think it was because at some point I tried replacing `netlib` with a different LAPACK implementation and encountered a bug in `ld` (but after building `binutils` I soon ran into another error that I can't remember and went back to `netlib`).
+* `cmake` more recent than Colin's version required by `netlib-src`
+* autotools more recent than the system version required by the `libffi-sys` crate.
+    * I did not do this and instead patched the crate to bring back `pkg-config`-based searching for shared libraries. (because I mean, c'mon, I just built libffi myself!!)
+* `libclang` required by the `bindgen` crate
+* `llvm` required by `clang`
+* `gcc` more recent than Colin's version required to build `llvm`, as that version had a bug
+
+And some miscellaneous other things:
+
+* The `make` automatic environment vars `CC`, `FC`, `CXX`, `LD`, `AR`, and `AS` should be set for a variety of reasons.
+  I adjusted the `~/apps/gcc/*/env` scripts to do this.
+* Sometimes object files appear in the `vendor/` source for one of the crates related to `openblas`, because they are for some reason written to the cached source in `.cargo`. These can make `cargo` mad at you when it sees them change.  If you see them, delete the offending source from `.cargo` and `vendor` on your local machine and rerun `cargo vendor`
+
+Here's logs of what error messages I had the presence of mind to record:
+
+**`gcc` bug encountered while building `llvm`** (fixed (?) by updating from GCC 4.9.0 to GCC 7.2.0)
+```
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp: In constructor ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = {anonymous}::ClobberWalker::DefPath; Walker = {anonymous}::ClobberWalker]’:
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:594:5: error: conversion from ‘const llvm::NoneType’ to non-scalar type ‘llvm::Optional<unsigned int>’ requested
+     generic_def_path_iterator() = default;
+     ^
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp: In member function ‘llvm::iterator_range<{anonymous}::ClobberWalker::generic_def_path_iterator<{anonymous}::ClobberWalker::DefPath, {anonymous}::ClobberWalker> > {anonymous}::ClobberWalker::def_path({anonymous}::ClobberWalker::ListIndex)’:
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:622:72: note: synthesized method ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = {anonymous}::ClobberWalker::DefPath; Walker = {anonymous}::ClobberWalker]’ first required here 
+     return make_range(def_path_iterator(this, From), def_path_iterator());
+                                                                        ^
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp: In constructor ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = const {anonymous}::ClobberWalker::DefPath; Walker = const {anonymous}::ClobberWalker]’:
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:594:5: error: conversion from ‘const llvm::NoneType’ to non-scalar type ‘llvm::Optional<unsigned int>’ requested
+     generic_def_path_iterator() = default;
+     ^
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp: In member function ‘llvm::iterator_range<{anonymous}::ClobberWalker::generic_def_path_iterator<const {anonymous}::ClobberWalker::DefPath, const {anonymous}::ClobberWalker> > {anonymous}::ClobberWalker::const_def_path({anonymous}::ClobberWalker::ListIndex) const’:
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:627:47: note: synthesized method ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = const {anonymous}::ClobberWalker::DefPath; Walker = const {anonymous}::ClobberWalker]’ first required here 
+                       const_def_path_iterator());
+                                               ^
+```
+
+<!------------------------------->
+# Building gcc
+
+**(2018-08-18)**
+
+### The dependencies
+
+IMPORTANT!!!!
+
+When you try to configure gcc it will spit out errors about needing MPFR, MPC, etc.
+**The version numbers listed in this error message are wrong for GCC 7.2.0.**
+
+But fear not:
+
+* **There is a script at `contrib/download_dependencies`.**
+* It will download the correct versions, unzip them, and make symlinks in locations that are checked by GCC's build system.
+* As long as those symlinks exist **you do not need to build them yourself.  They will be built when you build GCC.**  This should make things many times easier.
+
+```
+DEST=$HOME/apps/gcc/8.2.0
+
+contrib/download_dependencies
+./configure --prefix=$DEST --enable-languages=c,c++,fortran && make && make install
+```
+
+**NOTE:** On my first attempt I ran with `--enable-languages=all` and had `make -j4`.  This gave a weird error about "no rule for `(something-i-forget).h.in`" which persisted on repeated attempts to run `make`, even without `-j4`.  So I wiped everything clean (`rm -rf` all but `.git` and `git reset --hard`) and used the command written above.  I decided to ctrl-C and add back the `-j4` after a couple of minutes when it looked like the dependencies were all done being built.
+
 
