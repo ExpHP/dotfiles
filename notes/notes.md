@@ -3517,7 +3517,7 @@ contrib/download_dependencies
 
 There is a utility called `flock` which atomically aquires a lockfile.  Luckily it is avaiable on Komodo.
 
-However.... thankfully, I had the presence of mind to test it before using it:
+However.... thankfully, I had the presence of mind to test it before using it.
 
 **test-lockfile**
 ```bash
@@ -3602,21 +3602,17 @@ lock() {
 
 but still ended up with 1% of race conditions going through.  I don't know how to force the filesystem to syncronize all updates to a given file across all nodes before reading from it.
 
-The only surefire solution I see is the following:
+## Things that do work
 
-**Master and slave processes:**
+**`xargs`'s `--max-procs` (`-P`) option**
 
-...and that turned out to be a miserable failure too.  A shell script cannot do nonblocking reads of named pipes, and they will keep blocking on a pipe even after it is deleted.  This made proper cleanup basically impossible.  So screw it.
+```
+echo "${inputs[@]}" | xargs -n1 -P3 -- bash -c 'some-script $0'
+```
 
-I decided to just have my jobs iterate over the inputs in random order.  Together with a primitive lockfile (however prone to race conditions it may be), this really ought to suffice for 99.999% of situations.
+This option of `xargs` can be used to simulate a semaphore, and it works far more effectively than gnu parallel's semaphore ever has.  With this, you can have a single slurm job that gives a dedicated node to each of three processes, by having `some-script` call `srun -N1` to allocate a job step using one process.
 
-Geeze.
-
-**Colin's solution: `xargs`**
-
-It turns out `xargs` can be used for SPMC communication.
-
-TODO: check out his script
+Newer versions of `xargs` also have `--process-slot-var=VARNAME` which will assign unique integers to a variable for each of the running commands
 
 <!------------------------------->
 # `no space left on device` while building scipy
@@ -3649,5 +3645,47 @@ oh, and also.  I highly doubt I'll ever run into this again, but:
 ```
 
 apparently the cython on Arch does not yet have the fix for 3.7 compatibility? (cython 28.5).  I decided to just install scipy directly through `pacman` instead.
+
+<!------------------------------->
+# Bash 4.x on komodo
+
+I built it, but don't know what to do with it.
+
+### Difficulty changing the default shell.
+
+I can't use `chsh`.
+Initially to get around this I tried some trick where `.bash_profile` did something like this:
+
+```bash
+module use $HOME/apps/bash/4.4
+module load bash
+exec $BASH --rcfile $HOME/.bashrc.for-reals
+```
+
+and this seemed to work, but...
+
+### My built `bash` binary segfaults
+
+```
+$ ls **/*.so
+Segmentation fault
+```
+
+...so making it the default shell seems like a bad idea.
+
+(oddly, `make check` in the bash source tree succeeds just fine)
+
+### Trouble with slurm when calling it from `$PATH`
+
+After the prior discovery I tried a more conservative approach:
+
+* Load the `bash` module in `.bashrc`
+* When I want to use bash-4.x features, I can just call `bash` to start a nested shell
+
+I tried this, but discovered that my `sbatch` scripts no longer knew about the `module` function.
+
+### In summary
+
+Just don't.  I moved the module to a `DO-NOT-USE` directory.
 
 <!------------------------------->
