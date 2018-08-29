@@ -49,8 +49,11 @@ import math
 
 try: import argparse
 except: pass
-try: import numpy; np = numpy
+try:
+    import numpy; np = numpy
+    numpy.set_printoptions(linewidth=float('inf'))
 except: pass
+
 try:
     from ruamel.yaml import YAML as yaml
     yaml = yaml()

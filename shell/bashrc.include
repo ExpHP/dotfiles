@@ -106,14 +106,25 @@ doTheSpecialPromptyThing
 # cleanup
 unset -f doTheSpecialPromptyThing
 
-shopt -s globstar
-shopt -s extglob
+__bashrc__is_bash_ge_3() {
+    [[ ${BASH_VERSION#1.} == $BASH_VERSION ]] && return 1
+    [[ ${BASH_VERSION#2.} == $BASH_VERSION ]] && return 1
+    return 0
+}
+__bashrc__is_bash_ge_4() {
+    __bashrc__is_bash_ge_3 || return 1
+    [[ ${BASH_VERSION#3.} == $BASH_VERSION ]] && return 1
+    return 0
+}
+
+__bashrc__is_bash_ge_4 && shopt -s globstar
+__bashrc__is_bash_ge_3 && shopt -s extglob
 #shopt -s failglob  # Wrecks with some tab-completions...
 
-shopt -s autocd
+__bashrc__is_bash_ge_4 && shopt -s autocd
 
 # so readline has a vim mode
-set -o vi
+__bashrc__is_bash_ge_3 && set -o vi
 
 #------------------------------------------------------
 # replicate zsh's inc_append_history. Or at least, try to.

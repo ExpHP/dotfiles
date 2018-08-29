@@ -3404,7 +3404,7 @@ I guess the above sequence of events confuses plasma into using an incorrect mon
 
 I saw messages in journalctl from kscreen about not using a configuration because "this is not what the user wants!", but did not have the presence of mind to record them.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Building RSP2 on Komodo
 
 **(2018-08-15)**
@@ -3416,23 +3416,26 @@ So many things have needed to be done for this.  Unfortunately I did not record 
 * newer version of `cython` required by pip3
     * ...but I could never get pip3 to actually download anything.  SSL errors.
 * `scipy` required by `rsp2`
+* `spglib` required by `rsp2`
 * a newer `binutils` because... hell if I remember.  I think it was because at some point I tried replacing `netlib` with a different LAPACK implementation and encountered a bug in `ld` (but after building `binutils` I soon ran into another error that I can't remember and went back to `netlib`).
-* `cmake` more recent than Colin's version required by `netlib-src`
+* Newer `cmake` (`2.8.12.2 -> 3.12.1`) required by `netlib-src`
 * autotools more recent than the system version required by the `libffi-sys` crate.
     * I did not do this and instead patched the crate to bring back `pkg-config`-based searching for shared libraries. (because I mean, c'mon, I just built libffi myself!!)
 * `libclang` required by the `bindgen` crate
 * `llvm` required by `clang`
-* `gcc` more recent than Colin's version required to build `llvm`, as that version had a bug
+* Newer `gcc` (`4.9.0 -> 8.2.0`) required to build `llvm`, as 4.9 had a bug
+* Newer OpenMPI (`1.4.2 -> 3.1.1`) because rsmpi uses constants and types that are not available in version 1.x of the spec.
 
 And some miscellaneous other things:
 
 * The `make` automatic environment vars `CC`, `FC`, `CXX`, `LD`, `AR`, and `AS` should be set for a variety of reasons.
   I adjusted the `~/apps/gcc/*/env` scripts to do this.
 * Sometimes object files appear in the `vendor/` source for one of the crates related to `openblas`, because they are for some reason written to the cached source in `.cargo`. These can make `cargo` mad at you when it sees them change.  If you see them, delete the offending source from `.cargo` and `vendor` on your local machine and rerun `cargo vendor`
+* The modulefile on komodo for `mkl/10.3.5` points to nonexistent paths; I made a new one with correct paths.
 
 Here's logs of what error messages I had the presence of mind to record:
 
-**`gcc` bug encountered while building `llvm`** (fixed (?) by updating from GCC 4.9.0 to GCC 7.2.0)
+**`gcc` bug encountered while building `llvm`** (fixed by updating from GCC 4.9.0 to GCC 7.2.0)
 ```
 /home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp: In constructor ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = {anonymous}::ClobberWalker::DefPath; Walker = {anonymous}::ClobberWalker]’:
 /home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:594:5: error: conversion from ‘const llvm::NoneType’ to non-scalar type ‘llvm::Optional<unsigned int>’ requested
@@ -3450,6 +3453,13 @@ Here's logs of what error messages I had the presence of mind to record:
 /home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:627:47: note: synthesized method ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = const {anonymous}::ClobberWalker::DefPath; Walker = const {anonymous}::ClobberWalker]’ first required here 
                        const_def_path_iterator());
                                                ^
+```
+
+**`automake 1.16` needs a newer perl** (resolved by building automake 1.12 instead)
+```
+help2man: can't get `--help' info from automake-1.16
+Try `--no-discard-stderr' if option outputs to stderr
+make: *** [doc/automake-1.16.1] Error 2
 ```
 
 <!------------------------------->
@@ -3480,3 +3490,164 @@ contrib/download_dependencies
 **NOTE:** On my first attempt I ran with `--enable-languages=all` and had `make -j4`.  This gave a weird error about "no rule for `(something-i-forget).h.in`" which persisted on repeated attempts to run `make`, even without `-j4`.  So I wiped everything clean (`rm -rf` all but `.git` and `git reset --hard`) and used the command written above.  I decided to ctrl-C and add back the `-j4` after a couple of minutes when it looked like the dependencies were all done being built.
 
 
+<!------------------------------->
+# debugging on komodo (or: why you can't just yet)
+
+(2018-08-23)
+
+* The latest gdb 0.8.1 doesn't support python 3.7 yet due to improper use of cpython internal APIs.
+* when I tried to build gdb from master, perl (still komodo's old version) segfaulted.
+  Sigh... one of these days I'll have no choice but to build perl.
+* lldb 6.0.0 requires libedit.  Okay, taken care of.
+* lldb 6.0.0 requires a version of Python2 with support for `except Type as ident:` syntax.
+  (komodo's 2.4 predates this).
+* I've built Python3 3 times on this machine, and don't particularly feel like building Python2
+  right now.
+
+<!------------------------------->
+# lockfiles and slurm
+
+(2018-08-24)
+
+**The idea:** Have multiple independent slurm jobs (each using -N1) picking inputs from a single source.  Each input should only be computed once.
+
+**The problem:** This requires claiming a directory somehow in a way not subject to race conditions.
+
+## Things that didn't work
+
+There is a utility called `flock` which atomically aquires a lockfile.  Luckily it is avaiable on Komodo.
+
+However.... thankfully, I had the presence of mind to test it before using it:
+
+**test-lockfile**
+```bash
+#!/usr/bin/env bash
+# spawn several processes simultaneously
+for p in $(seq 1 1 5); do (
+    # iterate through inputs in a fixed sequence
+    # (highly likely to create race conditions)
+    for i in $(seq 1 1 300); do
+        echo "$$.$p: check $i"
+        output=lockfile-test-out/$i
+        lock=$output/lock
+        winner=$output/winner
+        mkdir -p $output
+
+        # zip forward to maximize race potential
+        [[ -e $winner ]] && continue
+
+        ( # Lock without race conditions
+            flock -nx 200 || exit 1   # -x: exclusive (write) lock
+                                      # -n: nonblocking
+                                      # exit only exits the subshell
+            [[ ! -e $winner ]] && {
+                # (redundant, but not unreasonable, mkdir that nonetheless
+                #  amplifies race conditions due to the time spent)
+                mkdir -p $output
+                echo $$.$p >>$winner
+            }
+            # lock is released when subshell exits
+        ) 200>$lock
+    done
+)&
+done
+wait # otherwise slurm will kill the children
+```
+
+When working properly, every `winner` file should end up with one line (for 300 lines total). You can see that `flock` works fine for competition between processes on the same node (or at least, for children of the same process):
+
+```sh
+$ vim ./test-lockfiles # comment out the flock line
+$ rm -rf lockfile-test-out && sbatch -N1 ./test-lockfiles
+$ cat lockfile-test-out/*/winner | wc -l
+1415
+$ vim ./test-lockfiles # restore the flock line
+$ rm -rf lockfile-test-out && sbatch -N1 ./test-lockfiles
+$ cat lockfile-test-out/*/winner | wc -l
+300
+```
+
+Unfortunately, **flock is insufficient for dealing with processes on multiple nodes.**
+
+```sh
+$ rm -rf lockfile-test-out && sbatch -N1 ./test-lockfiles && sbatch -N1 ./test-lockfiles && sbatch -N1 ./test-lockfiles
+$ cat lockfile-test-out/*/winner | wc -l
+616
+```
+
+When that failed I tried dumb hacks like this:
+
+```sh
+lock() {
+    me=$1 # identifier for this process
+    pidfile=$2 # lockfile
+
+    # make a pidfile in a manner that presents an extremely small, but not
+    # necessarily zero, window where multiple processes may enter a race.
+    [[ -e "$pidfile" ]] && return 1
+    echo $me >>$pidfile
+
+    # At this point, processes on different compute nodes may momentarily
+    # see different contents in $pidfile. Let's give the networked
+    # filesystem some time to resolve these inconsistencies.
+    #
+    # Unfortunately even 1 whole second is not enough.
+    sync # <-- done on a whim; not sure if it even makes a difference
+    sleep 5
+
+    # winner takes all
+    [[ "$(head -n1 "$pidfile")" == "$me" ]]
+}
+```
+
+but still ended up with 1% of race conditions going through.  I don't know how to force the filesystem to syncronize all updates to a given file across all nodes before reading from it.
+
+The only surefire solution I see is the following:
+
+**Master and slave processes:**
+
+...and that turned out to be a miserable failure too.  A shell script cannot do nonblocking reads of named pipes, and they will keep blocking on a pipe even after it is deleted.  This made proper cleanup basically impossible.  So screw it.
+
+I decided to just have my jobs iterate over the inputs in random order.  Together with a primitive lockfile (however prone to race conditions it may be), this really ought to suffice for 99.999% of situations.
+
+Geeze.
+
+**Colin's solution: `xargs`**
+
+It turns out `xargs` can be used for SPMC communication.
+
+TODO: check out his script
+
+<!------------------------------->
+# `no space left on device` while building scipy
+
+**(2018-08-26)**
+
+**Wow.** I've never seen anything like this before.
+
+On my system, the tempfs filesystem at `/tmp` is ~8GB large.  This might have something to do with my use of `ulimit -v`.  I am not sure.  But in any case, **building and installing `scipy` now requires more than 8GB of space in `/tmp`.**  If you get this error, you'll need to remount the tempfs.
+
+```
+sudo mount -o remount,size=16G /tmp
+```
+
+**_Wow._**
+
+...
+
+oh, and also.  I highly doubt I'll ever run into this again, but:
+
+```
+    scipy/cluster/_vq.c:9862:13: error: ‘PyThreadState’ {aka ‘struct _ts’} has no member named ‘exc_value’; did you mean ‘curexc_value’?
+         tstate->exc_value = local_value;
+                 ^~~~~~~~~
+                 curexc_value
+    scipy/cluster/_vq.c:9863:13: error: ‘PyThreadState’ {aka ‘struct _ts’} has no member named ‘exc_traceback’; did you mean ‘curexc_traceback’?
+         tstate->exc_traceback = local_tb;
+                 ^~~~~~~~~~~~~
+                 curexc_traceback
+```
+
+apparently the cython on Arch does not yet have the fix for 3.7 compatibility? (cython 28.5).  I decided to just install scipy directly through `pacman` instead.
+
+<!------------------------------->

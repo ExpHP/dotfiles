@@ -58,8 +58,22 @@ done
 # ensure no empty components are in PATH-like vars,
 # because POSIX defines these as equivalent to '.',
 # because POSIX hates you.
-__pathrc_strip_empty() { echo "$*" | sed -E -e 's/^:*//' -e 's/:*$//' -e 's/:+/:/g'; }
-PATH=$(__pathrc_strip_empty "$PATH")
-LIBRARY_PATH=$(__pathrc_strip_empty "$LIBRARY_PATH")
-LD_LIBRARY_PATH=$(__pathrc_strip_empty "$LD_LIBRARY_PATH")
-C_INCLUDE_PATH=$(__pathrc_strip_empty "$C_INCLUDE_PATH")
+
+# also, despite the manpage saying "use POSIX -E for portability", some versions
+# of gnu sed don't support that flag, and you must use -r
+__pathrc__find_sed_E() {
+    { echo a | sed -E s/a/a/ >/dev/null 2>/dev/null; } && { echo "-E"; return 0; }
+    { echo a | sed -r s/a/a/ >/dev/null 2>/dev/null; } && { echo "-r"; return 0; }
+    return 1
+}
+
+__pathrc__sed_E=$(__pathrc__find_sed_E) && {
+    __pathrc_strip_empty() { echo "$*" | sed $__pathrc__sed_E -e 's/^:*//' -e 's/:*$//' -e 's/:+/:/g'; }
+    PATH=$(__pathrc_strip_empty "$PATH")
+    LIBRARY_PATH=$(__pathrc_strip_empty "$LIBRARY_PATH")
+    LD_LIBRARY_PATH=$(__pathrc_strip_empty "$LD_LIBRARY_PATH")
+    C_INCLUDE_PATH=$(__pathrc_strip_empty "$C_INCLUDE_PATH")
+    unset -f __pathrc_strip_empty
+}
+unset -f __pathrc__find_sed_E
+unset __pathrc__sed_E
