@@ -119,7 +119,6 @@ __bashrc__is_bash_ge_4() {
 
 __bashrc__is_bash_ge_4 && shopt -s globstar
 __bashrc__is_bash_ge_3 && shopt -s extglob
-#shopt -s failglob  # Wrecks with some tab-completions...
 
 __bashrc__is_bash_ge_4 && shopt -s autocd
 
