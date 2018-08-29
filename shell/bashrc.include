@@ -24,7 +24,7 @@ doTheSpecialPromptyThing() {
     local midbrace="$red⚡"
   fi
   local gitgud=
-  if which git >/dev/null; then
+  if which git >/dev/null 2>/dev/null; then
      gitgud=1
   fi
 
@@ -63,7 +63,7 @@ doTheSpecialPromptyThing() {
 
   # == DYNAMIC REGION ==
   # Git branch
-  if which git >/dev/null; then
+  if which git >/dev/null 2>/dev/null; then
     PS1+="\$(
       . \$HOME/dotfiles/shell/gittool.ps1.include
       if [[ \$EXPHP_GITTOOL_BRANCH ]]; then
