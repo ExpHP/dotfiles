@@ -9,6 +9,8 @@ export PATH
 export LIBRARY_PATH
 export LD_LIBRARY_PATH
 export C_INCLUDE_PATH
+export PKG_CONFIG_PATH
+export MANPATH
 
 # this might already be there, but it also might not.
 # doesn't hurt to have it listed twice!
@@ -22,6 +24,8 @@ PATH=$HOME/.local/bin:$PATH
 LIBRARY_PATH=$HOME/.local/lib:$LIBRARY_PATH
 LD_LIBRARY_PATH=$HOME/.local/lib:$LD_LIBRARY_PATH
 C_INCLUDE_PATH=$HOME/.local/include:$C_INCLUDE_PATH
+PKG_CONFIG_PATH=$HOME/.local/lib/pkgconfig:$PKG_CONFIG_PATH
+MANPATH=$HOME/.local/share/man:$MANPATH
 
 # binaries distributed inside haskell packages
 # (FIXME: why is the one prepended while the rest are appended? accidental or deliberate?)
@@ -44,6 +48,9 @@ PATH=$HOME/dotfiles/bin:$PATH
 
 # utility scripts for code that gets transferred to supercomputers.
 PATH=$HOME/syncbin:$PATH
+
+# arch linux doesn't search this path for binaries
+which pacman 2>/dev/null 1>/dev/null && PATH=/usr/bin/core_perl:$PATH
 
 # new idea: automatically source files named `env` located at the top of
 #           an `/opt/` subdirectory
@@ -73,6 +80,9 @@ __pathrc__sed_E=$(__pathrc__find_sed_E) && {
     LIBRARY_PATH=$(__pathrc_strip_empty "$LIBRARY_PATH")
     LD_LIBRARY_PATH=$(__pathrc_strip_empty "$LD_LIBRARY_PATH")
     C_INCLUDE_PATH=$(__pathrc_strip_empty "$C_INCLUDE_PATH")
+    PKG_CONFIG_PATH=$(__pathrc_strip_empty "$PKG_CONFIG_PATH")
+    # NOTE: don't adjust MANPATH, because man interprets an empty entry as meaning to search
+    #       the system man paths. (and without that entry, it will not!)
     unset -f __pathrc_strip_empty
 }
 unset -f __pathrc__find_sed_E

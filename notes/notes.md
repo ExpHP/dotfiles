@@ -3398,11 +3398,31 @@ I can move to another tty using Ctrl+Alt+Fn, and those show up fine, but the scr
 
 The solution is actually embarrasingly simple:
 
-**Hit the projector key.**
+**Hit the projector key.** (`XF86Display`)
 
 I guess the above sequence of events confuses plasma into using an incorrect monitor setup.
 
 I saw messages in journalctl from kscreen about not using a configuration because "this is not what the user wants!", but did not have the presence of mind to record them.
+
+**(2018-09-12)**
+
+OH FFS WHY WOULD THEY DO THIS
+
+...so...today I tried this and it didn't work.  After rebooting and trying the projector key, the reason is obvious: Now when you hit the key it opens a small overlay in the CENTER OF THE GODDAMN SCREEN that you have to interact with WITH YOUR MOUSE.  No keyboard keys appear to do anything to it (including repeated presses of the projector)
+
+**What imbicile designed a Switch Displays menu that requires a working display!?!**
+
+To future me, when this happens again:  **Good luck.**
+
+...
+
+And maybe try this: (I don't know if it will work!) **(Update 2018-10-11: IT WORKS!!!!!)**
+
+```
+xrandr --output LVDS-1 --auto
+```
+
+I suggest typing that into the Ctrl+Alt+F2 Linux console where you can see it, then Ctrl+Alt+F1 and blindly log in, open a new Konsole, do an Up-Enter, and pray.
 
 <!-- ----------------------------->
 # Building RSP2 on Komodo
@@ -3689,3 +3709,205 @@ I tried this, but discovered that my `sbatch` scripts no longer knew about the `
 Just don't.  I moved the module to a `DO-NOT-USE` directory.
 
 <!------------------------------->
+# clion "Mark Directory as..." workaround
+
+**Problem:** Rust projects in clion lack a "Mark Directory as..." option because they aren't CMake projects.  This leads clion to, of course, assume that EVERYTHING is project source files, and so it indexes way more than it needs to.
+
+**Solution:** Add a single line to `.idea/misc.xml` to trick CLion into believing the project is a CMake project.
+
+**`misc.xml`**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <!-- vvv this line !!!!! vvv -->
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  ...
+```
+
+And there you go; right clicking on the directory tree in clion should now have a "Mark Directory as..." option.
+
+(note: when you next start clion, it will make a cmake-build-debug folder; open Settings and go to "Build, Execution, and Deployment > CMake" to disable rid of that.)
+
+
+
+<!------------------------------->
+# More garbage with komodo
+
+(2018-09-21)
+
+You can't do `srun -N1 some-mpi-app` on komodo where `some-mpi-app` was built against my `openmpi` 3.x build, because it requires pmi support from slurm.  I cannot build `openmpi` 3.x against slurm's PMI because `pmi.h` is nowhere to be found. `apps/slurm/2.2.4/` doesn't even have an `include` dir! (it does have a `libpmi.so`, though...)
+
+I'm now working around this with an `sstep` helper script that runs an sbatch script as a job step synchronously, something that cannot easily be done in Slurm 2.2.4 which lacks `sbatch --wait`.
+
+<!------------------------------->
+
+# `vagrant` test cluster for `slurm`
+
+The `archlinux/archlinux` vagrant box has two providers: `libvirt` and `virtualbox`.
+
+The `virtualbox` package in the arch repo seems horribly broken as of August 2018 (I got errors about nonexistent kernel modules), so go with `libvirt`.
+
+```
+sudo pacman -S libvirt qemu dnsmasq vagrant # necessary
+sudo pacman -S virt-manager virt-viewer # good debugging tools
+```
+
+* Verify hardware support for KVM: https://wiki.archlinux.org/index.php/KVM#Checking_support_for_KVM
+
+* Check that vendor-appropriate KVM module is loaded
+
+```
+lsmod | grep kvm
+```
+
+If you see `kvm` but do not see either `kvm_intel` or `kvm_amd` (and attempting to `modprobe kvm-intel` gives "Operation not supported"), check that virtualization is not disabled in your BIOS settings.
+
+* Install vagrant plugins
+
+```
+vagrant box add archlinux/archlinux
+# choose libvirt at the interactive prompt
+
+vagrant plugin install pkg-config  # the other plugin fails to install without this
+vagrant plugin install vagrant-libvirt
+```
+
+### Debugging tips
+
+**Find state and names of all libvirt domains:**
+
+```
+sudo virsh list
+```
+
+If `vagrant ssh` or `vagrant up` blocks forever, try **viewing the primary monitor.** This will let you see e.g. the BIOS screen on a domain that refuses to boot.
+
+```
+sudo virt-viewer --connect qemu:///session cluster_server1
+```
+
+For **broadly useful info on an image file:** (format, size...)
+
+```
+$ sudo qemu-img info /var/lib/libvirt/images/cluster-fast_vagrant_box_image_0.img
+image: /var/lib/libvirt/images/cluster-fast_vagrant_box_image_0.img
+file format: qcow2
+virtual size: 20G (21474836480 bytes)
+disk size: 3.3G
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    lazy refcounts: false
+    refcount bits: 16
+    corrupt: false
+```
+
+If you want to **check the filesystem directly on an image file,** try `guestfish`.
+
+```
+sudo guestfish /var/lib/libvirt/images/cluster-fast_vagrant_box_image_0.img
+
+><fs> run
+><fs> mount /dev/sda2 /
+><fs> ls /etc
+```
+
+### libguestfs/`guestfish`
+
+(**Note:** This no longer fully applies as, in the end, I came upon a solution which does not rely on that script. However, I'll keep it here because `guestfish` is useful for debugging images that you are trying to package for vagrant)
+
+One optional script I use (for saving a prebuilt image) requires libguestfs for its `guestfish` command.
+
+```
+sudo pikaur -S libguestfs
+```
+
+If one of its AUR dependencies, `hivex`, dies during its configure script with:
+
+```
+checking for mmap... (cached) yes
+checking for bindtextdomain... yes
+checking for pod2man... no
+configure: error: pod2man must be installed
+==> ERROR: A failure occurred in build().
+    Aborting...
+```
+
+...sigh.  I don't really know what to say here. So, here's the thing.
+
+* The binaries it wants are in `/usr/bin/core_perl`.
+* You'd think that adding this to your `PATH` would resolve the error.  For some reason, however... it does not.  Yes, I verified that the variable is exported.  Yes, I verified that the binary can be found by `which`.  There are forces at work here beyond my understanding. :/
+* Adding symlinks to `/usr/bin` DOES resolve the error.
+
+It only needs them to make documentation, so... let's do this quickly, quietly, and get it over with.
+
+```sh
+# ew ew gross ewww
+sudo ln -s core_perl/pod2man /usr/bin
+sudo ln -s core_perl/pod2text /usr/bin
+
+pikaur -S libguestfs
+
+# THIS NEVER HAPPENED
+sudo rm /usr/bin/pod2man
+sudo rm /usr/bin/pod2text
+```
+
+### Fixing issues while packaging boxes
+
+Packaging a libvirt box is NOT easy.  Even beginning with a valid box, you cannot just `halt` it and package it.  In the final steps of your provisioning script, you need to burn bridges and basically *undo* a bunch of changes that took place inside the box during `vagrant up`.
+
+If you run into problems, you're unlikely to find much help by searching the symptoms.  Almos all of the fixes I had to make felt completely esoteric and took hours to figure out.
+
+The best thing to do is **find code that makes `libvirt` packages.** Look at all of the unsightly hacks therein, and figure out which ones apply to your system.
+
+E.g.:
+
+* https://github.com/cgwalters/qcow2-to-vagrant/blob/master/qcow2-to-vagrant
+* https://github.com/jakobadam/packer-qemu-templates  (look in the various `scripts` subfolders)
+
+One other thing:  You can't just pack a `qcow2` image directly from `/var/lib/libvirt/images`, because it is stored as a diff against another image.  (check `qemu-img info`, you'll see what I mean).  **Use `qemu-img convert` to convert it into `raw` format, then back into `qcow2` to normalize it.**
+
+<!------------------------------->
+
+# CLion not finding python modules nested under subdir
+
+(2019-01-23)
+
+In rsp2 I have this sort of directory structure:
+
+```
+rsp2
+└── src
+    ├── io
+    ├── python
+    │   └── rsp2
+    ├── structure
+    └── tasks
+```
+
+`rsp2/src/python` is both a Cargo package root (it contains a `Cargo.toml`) and a python root (it contains the python package `rsp2`).  When I write other python scripts that try to use this module, I get a "not found" error.
+
+CLion doesn't make it easy to add a path to `PYTHONPATH`.  It can only add source roots and content roots automatically.  Content roots don't even exist in CLion even though the option to add them to `PYTHONPATH` is there (they're a PyCharm thing). So we're stuck with source roots.
+
+What is a source root?  It's a folder "Marked as Source" in the project tree. Unfortunately, you are forbidden from marking a directory as source if it lies within another directory that is already marked as source.  Therefore, you must:
+
+* Unmark `rsp2/src` as source.
+* Mark every subdirectory of `rsp2/src` (including `rsp2/src/python`) as source.
+
+<!------------------------------->
+
+# Laptop failing to suspend
+
+(2019-03-28)
+
+After an update to my arch packages, my ThinkPad T430s now sometimes fails to suspend when the lid is closed, going into a state where the power button blinks and fans can be heard spinning.
+
+Things tried:
+
+- Downgrading to `linux-lts` kernel (did not work)
+- This: https://bbs.archlinux.org/viewtopic.php?pid=1835891#p1835891
+
