@@ -1,4 +1,0 @@
-
-Don't use stow directly;
-use ./load which will get the correct target directly and show
-additional information.
