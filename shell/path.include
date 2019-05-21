@@ -66,7 +66,13 @@ done
 # because POSIX defines these as equivalent to '.',
 # because POSIX hates you.
 
-# also, despite the manpage saying "use POSIX -E for portability", some versions
+# Also remove duplicate entries if the rust bin is available.
+__pathrc__has_canonicalize_script() {
+    which canonicalize-pathvar >/dev/null 2>&1 || return 1
+    canonicalize-pathvar --remove-empty "a" >/dev/null 2>&1 || return 1
+}
+
+# despite the manpage saying "use POSIX -E for portability", some versions
 # of gnu sed don't support that flag, and you must use -r
 __pathrc__find_sed_E() {
     { echo a | sed -E s/a/a/ >/dev/null 2>/dev/null; } && { echo "-E"; return 0; }
@@ -75,15 +81,32 @@ __pathrc__find_sed_E() {
 }
 
 __pathrc__sed_E=$(__pathrc__find_sed_E) && {
-    __pathrc_strip_empty() { echo "$*" | sed $__pathrc__sed_E -e 's/^:*//' -e 's/:*$//' -e 's/:+/:/g'; }
-    PATH=$(__pathrc_strip_empty "$PATH")
-    LIBRARY_PATH=$(__pathrc_strip_empty "$LIBRARY_PATH")
-    LD_LIBRARY_PATH=$(__pathrc_strip_empty "$LD_LIBRARY_PATH")
-    C_INCLUDE_PATH=$(__pathrc_strip_empty "$C_INCLUDE_PATH")
-    PKG_CONFIG_PATH=$(__pathrc_strip_empty "$PKG_CONFIG_PATH")
-    # NOTE: don't adjust MANPATH, because man interprets an empty entry as meaning to search
-    #       the system man paths. (and without that entry, it will not!)
-    unset -f __pathrc_strip_empty
+    __pathrc__canonicalize() {
+        if __pathrc__has_canonicalize_script; then
+            canonicalize-pathvar --remove-empty -- "$*"
+        else
+            echo "$*" | sed $__pathrc__sed_E -e 's/^:*//' -e 's/:*$//' -e 's/:+/:/g'
+        fi
+    }
+    PATH=$(__pathrc__canonicalize "$PATH")
+    LIBRARY_PATH=$(__pathrc__canonicalize "$LIBRARY_PATH")
+    LD_LIBRARY_PATH=$(__pathrc__canonicalize "$LD_LIBRARY_PATH")
+    C_INCLUDE_PATH=$(__pathrc__canonicalize "$C_INCLUDE_PATH")
+    PKG_CONFIG_PATH=$(__pathrc__canonicalize "$PKG_CONFIG_PATH")
+    unset -f __pathrc__canonicalize
+
+    # For MANPATH, we want to keep empty directories
+    __pathrc__canonicalize() {
+        if __pathrc__has_canonicalize_script; then
+            canonicalize-pathvar -- "$*"
+        else
+            echo "$*"
+        fi
+    }
+    MANPATH=$(__pathrc__canonicalize "$MANPATH")
+    unset -f __pathrc__canonicalize
 }
+unset -f __pathrc__has_canonicalize_script
 unset -f __pathrc__find_sed_E
 unset __pathrc__sed_E
+
