@@ -166,6 +166,10 @@ appear to be worth running:
  * disable-login-sound.sh
  * volume-step-fix.py
 
+There are some rust binaries to build and install in `dotfiles/rust-bin`.
+My dotfiles may rely on these binaries in order to enable certain functionality.
+See the `README.md` in there for more information.
+
 This was the entirety of my .vimrc as of 2016-08-11:
 (again, you will see I sourced files rather than symlinking them,
  apparently so that I could reuse .vimrc on other machines where I did not necessarily
