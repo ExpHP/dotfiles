@@ -106,24 +106,22 @@ doTheSpecialPromptyThing
 # cleanup
 unset -f doTheSpecialPromptyThing
 
-__bashrc__is_bash_ge_3() {
-    [[ ${BASH_VERSION#1.} == $BASH_VERSION ]] && return 1
-    [[ ${BASH_VERSION#2.} == $BASH_VERSION ]] && return 1
-    return 0
-}
-__bashrc__is_bash_ge_4() {
-    __bashrc__is_bash_ge_3 || return 1
-    [[ ${BASH_VERSION#3.} == $BASH_VERSION ]] && return 1
+__bashrc__is_bash_ge() {
+    local maj
+    local arg=$1
+    for maj in $(seq 1 1 $((arg - 1))); do
+        [[ $BASH_VERSION == ${maj}.* ]] && return 1
+    done
     return 0
 }
 
-__bashrc__is_bash_ge_4 && shopt -s globstar
-__bashrc__is_bash_ge_3 && shopt -s extglob
+__bashrc__is_bash_ge 4 && shopt -s globstar
+__bashrc__is_bash_ge 3 && shopt -s extglob
 
-__bashrc__is_bash_ge_4 && shopt -s autocd
+__bashrc__is_bash_ge 4 && shopt -s autocd
 
 # so readline has a vim mode
-__bashrc__is_bash_ge_3 && set -o vi
+__bashrc__is_bash_ge 3 && set -o vi
 
 #------------------------------------------------------
 # replicate zsh's inc_append_history. Or at least, try to.
