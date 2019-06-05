@@ -18,6 +18,8 @@ source /home/lampam/dotfiles/shell/bashrc.include
 source /home/lampam/dotfiles/shell/common.include
 ```
 
+**Important:** If this machine is accessed remotely, KEEP YOUR TERMINAL OPEN and IMMEDIATELY OPEN ANOTHER to verify that you can still log in through ssh.
+
 The following is the **entirety** of my `~/.zshrc`:
 
 ```sh
