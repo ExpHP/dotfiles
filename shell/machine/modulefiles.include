@@ -1,0 +1,9 @@
+# A file meant to be sourced PRIOR to common.include on machines
+# that have Environment Modules installed.
+
+module use $HOME/modulefiles
+
+# setting MANPATH normally hides the default paths, unless there is a empty entry
+# (i.e. trailing/leading colon).  Setting this at the beginning ensures that
+# 'module load' will preserve the empty entry
+export MANPATH=/dummy:

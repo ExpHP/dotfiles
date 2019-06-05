@@ -1,0 +1,45 @@
+
+module load slurm
+
+# ------------ Disabled on 2018-08-20 --------------------
+# ---- I don't even know why this was here.
+# export PATH=/cm/shared/apps/openmpi/pgf90/64/1.6/bin:$PATH
+# export LD_LIBRARY_PATH=/cm/shared/apps/openmpi/pgf90/64/1.6/lib:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/cm/local/apps/openssl/lib64/:$LD_LIBRARY_PATH
+
+# vasp binaries that I can't get working
+#export PATH=/cm/shared/apps/vasp/5.3.3:$PATH
+
+# mentioned in vasp5.slm -- I can't get that one to work
+#module load gcc slurm mkl pgi/11.8
+#export PATH=/cm/shared/apps/openmpi/pgf90/64/1.6/bin:$PATH
+#export LD_LIBRARY_PATH=/cm/shared/apps/openmpi/pgf90/64/1.6/lib:$LD_LIBRARY_PATH
+
+# ------------ Disabled on 2018-08-20 --------------------
+# ---- Interferes with other MPI modules. If I need to use vasp again I should
+# ---- make this more modular, now that I have a better idea how cm works.
+# # for /cm/shared/apps/vasp/5.3.3/mvapich2/{vasp,vasp.g,vasp.SO}
+# # THIS is the vasp to use!
+# source /cm/shared/apps/intel/bin/compilervars.sh intel64
+# export PATH=/cm/shared/apps/mvapich2/intel/64/1.9/bin:$PATH
+# export LD_LIBRARY_PATH=/cm/shared/apps/slurm/2.2.4/lib64:$LD_LIBRARY_PATH
+
+# for scipy
+module load blas/gcc lapack/gcc
+[[ $BLASDIR ]] || echo >&2 "warning: blas module did not set BLASDIR"
+[[ $LAPACK_DIR ]] || echo >&2 "warning: blas module did not set LAPACK_DIR"
+export BLAS_LAPACK_LIB_PATHS=$BLASDIR:$LAPACK_DIR # used by scipy
+export BLAS_LAPACK_LIBS='blas lapack' # used by scipy
+
+# pip keeps trying to make symlinks between /tmp and places outside /tmp,
+# which fail due to being cross filesystems.
+alias pip3='TMPDIR=$(pwd)/.pip-tmp pip3'
+
+alias ls="ls --color=always"
+
+export GOROOT="$HOME/go"
+
+# NOTE: unexpectedly, /home/lampam/bin starts out already in PATH
+export PATH=/home/lampam/syncbin:$PATH
+
+# modularized packages

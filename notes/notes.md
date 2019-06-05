@@ -3833,3 +3833,14 @@ Things tried:
 - Downgrading to `linux-lts` kernel (did not work)
 - This: https://bbs.archlinux.org/viewtopic.php?pid=1835891#p1835891
 
+<!------------------------------->
+
+# Environment modules setup
+
+(2019-06-05)
+
+Keywords: cm, modulefiles, apps, cluster, komodo, matisse
+
+Since around 2018, I've been installing my compiled software on komodo to environment modules (i.e. `mod load`, `mod avail`...).
+
+My setup is hosted at [https://github.com/exphp-share/cm-files](https://github.com/exphp-share/cm-files).
