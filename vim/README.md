@@ -1,3 +1,9 @@
+# Minimal install
+
+On remote systems with poor package availability, please *at the very least* source `./minimal.include` in `.vimrc`.  It contains things that will save you from tragic data loss.
+
+# Full install
+
 Install dependencies necessary for some extensions to build:
 
     sudo apt install ruby

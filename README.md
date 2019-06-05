@@ -39,6 +39,13 @@ Some of the functionality in my shell dotfiles may depend on the rust binaries.
 
 To set up `~/.vim/`, see [`vim/README.md`](vim).
 
+If you can't make it work, then *please, please, PLEASE* at the very least add this to `.vimrc` before continuing any further:
+
+```vim
+" Remove line limit for yanking between files by redefining viminfo without the '<' option
+set viminfo='100,s10,h
+```
+
 ### Miscellaneous dotfiles
 
 Some symlinks are created by `./do-misc-setup`.  This script will check that certain symlinks exist (or that the files in here are at least mentioned).

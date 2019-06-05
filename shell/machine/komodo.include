@@ -43,3 +43,15 @@ export GOROOT="$HOME/go"
 export PATH=/home/lampam/syncbin:$PATH
 
 # modularized packages
+module load rust
+module load gcc
+module load cmake
+module load llvm
+module load clang
+module load libedit
+module load autoconf
+module load automake
+module load binutils
+module load findutils
+module load legacy-install-dir
+
