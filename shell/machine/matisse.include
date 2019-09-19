@@ -2,13 +2,22 @@
 
 module use $HOME/modulefiles
 
+module load autoconf
+module load automake
+module load binutils
+module load openssl
+module load python
 module load gcc
 module load slurm
-module load legacy-install-dir
 
 export RUSTUP_HOME=$HOME/data/.rustup
 export CARGO_HOME=$HOME/data/.cargo
 export PATH=$CARGO_HOME/bin:$PATH
+
+[ "$BASH" ] && {
+    source $HOME/opt/perl5/etc/bashrc
+    perlbrew use perl-5.30.0
+}
 
 . /cm/shared/apps/intel/bin/compilervars.sh intel64
 export PATH=/cm/shared/apps/mvapich2/intel/64/1.9/bin:$PATH
