@@ -2,4 +2,5 @@
 
 members = [
     "canonicalize-pathvar",
+    "strip-stuff-before-cr",
 ]
