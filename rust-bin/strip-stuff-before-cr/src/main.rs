@@ -60,7 +60,17 @@ fn file_is_text(path: impl AsRef<OsStr>) -> bool {
             .stdout(Stdio::piped())
             .output().unwrap().stdout
     };
-    &output[..] == b"text/plain"
+    trim_bstr(&output) == b"text/plain"
+}
+
+fn trim_bstr(bytes: &[u8]) -> &[u8] {
+    match bytes.iter().position(|&b| !b.is_ascii_whitespace()) {
+        None => b"",
+        Some(start) => {
+            let end = 1 + bytes.iter().rposition(|b| !b.is_ascii_whitespace()).unwrap();
+            &bytes[start..end]
+        },
+    }
 }
 
 fn usage() {
