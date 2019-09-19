@@ -1,3 +1,4 @@
 #!/bin/sh
 
 cargo install --path=canonicalize-pathvar
+cargo install --path=strip-stuff-before-cr
