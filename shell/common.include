@@ -73,7 +73,7 @@ alias make='make -j4'
 
 alias min='vim -u NONE'
 
-alias biggest='du -s $(ls -A) | sort -g | tail -n10'
+alias biggest='du -s $(\ls -A) | sort -g | tail -n10'
 
 # 1. Make a replacement for one of the most frequently used
 #    unix commands in existence

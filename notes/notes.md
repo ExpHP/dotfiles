@@ -3397,12 +3397,14 @@ Here's logs of what error messages I had the presence of mind to record:
                                                ^
 ```
 
-**`automake 1.16` needs a newer perl** (resolved by building automake 1.12 instead)
+**`automake 1.16` needs a newer perl**
 ```
 help2man: can't get `--help' info from automake-1.16
 Try `--no-discard-stderr' if option outputs to stderr
 make: *** [doc/automake-1.16.1] Error 2
 ```
+
+Eventually I caved and built Perl 5.28.   On matisse I used `perlbrew` to install perl 5.30.  See `apps/perl5/notes`.
 
 <!------------------------------->
 # Building gcc
