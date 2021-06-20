@@ -34,6 +34,7 @@ doTheSpecialPromptyThing() {
     lampam-ThinkPad-T430\
     arch-t430s\
     dd-arch\
+    dd-win10\
   ; do [[ $HOSTNAME == $tmp ]] && my_machine=1; done
 
   # == STATIC REGION ==
