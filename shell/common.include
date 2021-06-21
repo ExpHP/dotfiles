@@ -38,8 +38,17 @@ alias sudo='sudo env PATH="$PATH"'
 # 'git commit' has trouble using pinentry-tty without this
 export GPG_KEY=$(tty)
 
-callable rg && alias h='history | rg'
-callable rg || alias h='history | grep'
+
+callable rg && _DOTFILE_SEARCHER=rg
+callable rg || _DOTFILE_SEARCHER=grep
+alias h="history | $_DOTFILE_SEARCHER"
+
+callable fzf && {
+    # wean myself off h in cases where a better solution exists
+    alias h='echo "Use Ctrl+R or hs instead" && printf "" --'
+    # keep this around for when we want to use the -C flag
+    alias hs="history | $_DOTFILE_SEARCHER"
+}
 
 callable rlwrap && {
     callable python2 && alias python2='rlwrap python2'

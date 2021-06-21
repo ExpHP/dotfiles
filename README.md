@@ -52,6 +52,18 @@ Some symlinks are created by `./do-misc-setup`.  This script will check that cer
 
 This script could probably do more but I keep forgetting that it exists.
 
+### Other things to install
+
+#### Fuzzy finder on Ctrl+R
+
+```sh
+mkdir -p ~/.local/opt
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.local/opt/fzf
+yes | ~/.local/opt/fzf/install --xdg
+
+edit .bashrc  # move the fzf stuff to be BEFORE things from ~/dotfiles are sourced
+```
+
 ### Rust binaries
 
 There are some rust binaries to build and install in [`dotfiles/rust-bin`](rust-bin).
