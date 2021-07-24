@@ -8,18 +8,20 @@
 
 source $HOME/dotfiles/shell/path.include
 
-# for my lame-ass script that I gave up on
-export VASP_POTCAR_DIR="$HOME/asd/VASP DATA/potentials"
-
-# for pymatgen, written by people who actually know what they're doing
-export VASP_PSP_DIR="$HOME/asd/pymatgen_res"
-
-# this incredibly-descriptively named variable is for phonon
-export ISODATA=/usr/local/phon610/isobyu/
-
 export PYTHONSTARTUP="$HOME/dotfiles/python-startup.py"
 
 #----------------------------------------------
+
+if [ -e $HOME/asd/manage/pyenv ]; then
+  # Disable built-in PS1 modification which is being deprecated. (we'll just replace it with our own)
+  export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+
+  # pyenv startup part 1.  Technically this belongs in .profile and not bashrc,
+  # but frankly so does a lot of other stuff in this .bashrc.
+  export PYENV_ROOT="$HOME/asd/manage/pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init --path)"
+fi
 
 callable() {
 	# NOTE: 'GNU which', as found on arch linux, writes to stderr on failure.
@@ -28,16 +30,11 @@ callable() {
 	which -- "$@" 1>/dev/null 2>/dev/null || alias -- "$@" 1>/dev/null 2>/dev/null
 }
 
-# phonopy
-alias sym-pos='phonopy --sym -c POSCAR > symmetry'
-alias sym-con='phonopy --sym -c CONTCAR > symmetry'
-
 # Let sudo see things in our path.
 alias sudo='sudo env PATH="$PATH"'
 
 # 'git commit' has trouble using pinentry-tty without this
 export GPG_KEY=$(tty)
-
 
 callable rg && _DOTFILE_SEARCHER=rg
 callable rg || _DOTFILE_SEARCHER=grep
@@ -162,9 +159,11 @@ export EDITOR=vim
 # ...it isn't a terrible idea, right?!
 export OMP_NUM_THREADS=4
 
-# lammps-sys
-export RUST_LAMMPS_MAKEFILE=$HOME/dotfiles/lammps-Makefile.omp
-
+if [ -e $HOME/asd/manage/pyenv ]; then
+  # pyenv startup part 2:  The part that actually belongs in .bashrc
+  eval "$(pyenv init -)"
+  eval "$(pyenv virtualenv-init -)"
+fi
 # # Bumper rail.
 # # Limit memory for interactive bash prompts, because thrashing sucks.
 # # To bypass, invoke 'nolimit' from *outside* of a bash process.

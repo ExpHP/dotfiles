@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+which git 1>/dev/null 2>/dev/null || exit 0
+
+. $HOME/dotfiles/shell/colors.include
+. $HOME/dotfiles/shell/gittool.ps1.include  # compute git status into GITTOOL variables
+if [[ $EXPHP_GITTOOL_BRANCH ]]; then
+  echo -n "$none("
+
+  if [[ $EXPHP_GITTOOL_IS_BARE ]]; then
+    echo -n "${cyan}bare"
+  elif [[ $EXPHP_GITTOOL_IS_DIRTY ]]; then
+    echo -n "${yellow}$EXPHP_GITTOOL_BRANCH"
+  else
+    echo -n "${green}$EXPHP_GITTOOL_BRANCH"
+  fi
+
+  echo -n "$none"
+  if   [[ $EXPHP_GITTOOL_UNTRACKED -gt 0 ]]; then
+    echo -n " •$EXPHP_GITTOOL_UNTRACKED"
+  fi
+
+  if [[ $EXPHP_GITTOOL_DELETIONS -gt 0 ]]; then
+    echo -n " ${red}-$EXPHP_GITTOOL_DELETIONS"
+  fi
+  if [[ $EXPHP_GITTOOL_ADDITIONS -gt 0 ]]; then
+    echo -n " ${green}+$EXPHP_GITTOOL_ADDITIONS"
+  fi
+  echo -n "$none) "
+fi

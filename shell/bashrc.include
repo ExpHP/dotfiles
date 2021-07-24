@@ -4,16 +4,8 @@
 
 # Wrap in a function so that `local` can be used.
 # Awkwardly long name to avoid collision.
-doTheSpecialPromptyThing() {
-  local none='\[\033[00m\]'
-  local bold='\[\033[01m\]'
-  local red='\[\033[01;31m\]'
-  local green='\[\033[01;32m\]'
-  local yellow='\[\033[01;33m\]'
-  local blue='\[\033[01;34m\]'
-  local purple='\[\033[01;35m\]'
-  local cyan='\[\033[01;36m\]'
-  local white='\[\033[01;37m\]'
+doTheSpecialPromptyThing() {(  # scope the colors
+  . $HOME/dotfiles/shell/colors.include
 
   local lbrace="$white["
   local rbrace="$white]"
@@ -22,10 +14,6 @@ doTheSpecialPromptyThing() {
     local lbrace="$red[["
     local rbrace="$red]]"
     local midbrace="$red⚡"
-  fi
-  local gitgud=
-  if which git >/dev/null 2>/dev/null; then
-     gitgud=1
   fi
 
   local my_machine
@@ -63,36 +51,10 @@ doTheSpecialPromptyThing() {
   PS1+="fi)"
 
   # == DYNAMIC REGION ==
-  # Git branch
-  if which git >/dev/null 2>/dev/null; then
-    PS1+="\$(
-      . \$HOME/dotfiles/shell/gittool.ps1.include
-      if [[ \$EXPHP_GITTOOL_BRANCH ]]; then
-        echo -n \"$none(\"
-
-        if [[ \$EXPHP_GITTOOL_IS_BARE ]]; then
-          echo -n \"${cyan}bare\"
-        elif [[ \$EXPHP_GITTOOL_IS_DIRTY ]]; then
-          echo -n \"$yellow\$EXPHP_GITTOOL_BRANCH\"
-        else
-          echo -n \"$green\$EXPHP_GITTOOL_BRANCH\"
-        fi
-
-        echo -n \"$none\"
-        if   [[ \$EXPHP_GITTOOL_UNTRACKED -gt 0 ]]; then
-          echo -n \" •\$EXPHP_GITTOOL_UNTRACKED\"
-        fi
-
-        if [[ \$EXPHP_GITTOOL_DELETIONS -gt 0 ]]; then
-          echo -n \" ${red}-\$EXPHP_GITTOOL_DELETIONS\"
-        fi
-        if [[ \$EXPHP_GITTOOL_ADDITIONS -gt 0 ]]; then
-          echo -n \" $green+\$EXPHP_GITTOOL_ADDITIONS\"
-        fi
-        echo -n \"$none) \"
-      fi
+  PS1+="\$(
+    \$HOME/dotfiles/shell/bashrc.prompt.d/pyenv
+    \$HOME/dotfiles/shell/bashrc.prompt.d/git
   )"
-  fi
 
   # Current directory
   PS1+="$green\w$none"
@@ -100,9 +62,10 @@ doTheSpecialPromptyThing() {
   # Prompt on newline
   PS1+="\n"
   PS1+="${white}\\\$${none} "
-}
+  echo "$PS1"  # let it escape the subshell
+)}
 
-doTheSpecialPromptyThing
+PS1=$(doTheSpecialPromptyThing)
 
 # cleanup
 unset -f doTheSpecialPromptyThing
