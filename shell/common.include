@@ -10,6 +10,10 @@ source $HOME/dotfiles/shell/path.include
 
 export PYTHONSTARTUP="$HOME/dotfiles/python-startup.py"
 
+if which wsl.exe 1>/dev/null 2>/dev/null; then
+	__SHELLRC__IS_WSL=1
+fi
+
 #----------------------------------------------
 
 if [ -e $HOME/asd/manage/pyenv ]; then
@@ -29,6 +33,12 @@ callable() {
 	#  in false negatives, which aren't a catastrophe.
 	which -- "$@" 1>/dev/null 2>/dev/null || alias -- "$@" 1>/dev/null 2>/dev/null
 }
+
+if [ "$__SHELLRC__IS_WSL" == 1 -a "$DISPLAY" == "" ]; then
+	# In WSL we need an X server running on the windows side (at least until native X support is
+	# production-ready).  But the windows side has a different IP from localhost!  Find its IP.
+	export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
+fi
 
 # Let sudo see things in our path.
 alias sudo='sudo env PATH="$PATH"'
@@ -164,6 +174,7 @@ if [ -e $HOME/asd/manage/pyenv ]; then
   eval "$(pyenv init -)"
   eval "$(pyenv virtualenv-init -)"
 fi
+
 # # Bumper rail.
 # # Limit memory for interactive bash prompts, because thrashing sucks.
 # # To bypass, invoke 'nolimit' from *outside* of a bash process.
