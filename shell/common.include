@@ -51,6 +51,8 @@ callable rg || _DOTFILE_SEARCHER=grep
 alias h="history | $_DOTFILE_SEARCHER"
 
 callable fzf && {
+    export FZF_DEFAULT_OPTS='--no-mouse'
+
     # wean myself off h in cases where a better solution exists
     alias h='echo "Use Ctrl+R or hs instead" && printf "" --'
     # keep this around for when we want to use the -C flag
