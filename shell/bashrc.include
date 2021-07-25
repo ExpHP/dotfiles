@@ -2,10 +2,18 @@
 
 # To be source'd in .bashrc
 
+# running 'which' can actually get pretty expensive (especially on wsl2) so we cache these
+which git 1>/dev/null 2>/dev/null && __EXPHP_BASH_PROMPT__HAS_GIT=1
+
+# FIXME: this currently always fails due to initialization order (common.include runs after this)
+which pyenv 1>/dev/null 2>/dev/null && __EXPHP_BASH_PROMPT__HAS_PYENV=1
+
 # Wrap in a function so that `local` can be used.
 # Awkwardly long name to avoid collision.
-doTheSpecialPromptyThing() {(  # scope the colors
-  . $HOME/dotfiles/shell/colors.include
+__exphpBashrcPromptCommand() {
+  local __PREV_EXIT_CODE="$?" # This needs to be first
+
+  . $HOME/dotfiles/shell/colors.ps1.include --local
 
   local lbrace="$white["
   local rbrace="$white]"
@@ -25,10 +33,15 @@ doTheSpecialPromptyThing() {(  # scope the colors
     dd-win10\
   ; do [[ $HOSTNAME == $tmp ]] && my_machine=1; done
 
-  # == STATIC REGION ==
-  # no command substitutions may be used before the error indicator,
-  # to ensure that the value of $? is preserved.
+  # == RESET ==
   PS1=""
+
+  # == PYENV ==
+  if [[ $__EXPHP_BASH_PROMPT__HAS_PYENV ]]; then
+    PS1+="$($HOME/dotfiles/shell/bashrc.prompt.d/pyenv)"
+  fi
+
+  # == MAIN STUFF ==
   PS1+="$lbrace "
   if [[ $my_machine ]]; then
     # Username & Time
@@ -46,15 +59,15 @@ doTheSpecialPromptyThing() {(  # scope the colors
   PS1+=" $rbrace "
 
   # == ERROR INDICATOR ==
-  PS1+="\$(if [[ \$? != 0 ]];"
-  PS1+="then echo \"($red!!!$white) \"; "
-  PS1+="fi)"
+  if [[ $__PREV_EXIT_CODE -ne 0  ]]; then
+    PS1+="($red!!!$white) "
+  fi
 
   # == DYNAMIC REGION ==
-  PS1+="\$(
-    \$HOME/dotfiles/shell/bashrc.prompt.d/pyenv
-    \$HOME/dotfiles/shell/bashrc.prompt.d/git
-  )"
+  # Git branch
+  if [[ $__EXPHP_BASH_PROMPT__HAS_GIT ]]; then
+    PS1+="$($HOME/dotfiles/shell/bashrc.prompt.d/git)"
+  fi
 
   # Current directory
   PS1+="$green\w$none"
@@ -62,13 +75,9 @@ doTheSpecialPromptyThing() {(  # scope the colors
   # Prompt on newline
   PS1+="\n"
   PS1+="${white}\\\$${none} "
-  echo "$PS1"  # let it escape the subshell
-)}
+}
 
-PS1=$(doTheSpecialPromptyThing)
-
-# cleanup
-unset -f doTheSpecialPromptyThing
+PROMPT_COMMAND=__exphpBashrcPromptCommand
 
 __bashrc__is_bash_ge() {
     local maj
@@ -105,5 +114,5 @@ else
 
     # Add to the history after each command finishes
     NEWLINE=$'\n'
-    PROMPT_COMMAND="history -a $NEWLINE $PROMPT_COMMAND"
+    PROMPT_COMMAND="$PROMPT_COMMAND $NEWLINE history -a"
 fi

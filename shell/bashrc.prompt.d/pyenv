@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-which pyenv 1>/dev/null 2>/dev/null || exit 0
+. $HOME/dotfiles/shell/colors.ps1.include
 
-. $HOME/dotfiles/shell/colors.include
-
-version=$(pyenv version-name)
-if [[ "$version" != 'system' ]]; then
-    echo -n "(${cyan}$version${none}${bold}) ${none}"
+# DO NOT USE 'pyenv version-name'
+# IT IS SO SLOW
+# YOU WILL MAKE YOUR PROMPT SO SLOW
+version=$PYENV_VERSION
+if [[ $version && "$version" != 'system' ]]; then
+    echo -n "(${cyan}$version${none}) ${none}"
 fi

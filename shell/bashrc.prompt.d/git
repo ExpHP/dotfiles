@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-which git 1>/dev/null 2>/dev/null || exit 0
 
-. $HOME/dotfiles/shell/colors.include
+. $HOME/dotfiles/shell/colors.ps1.include
 . $HOME/dotfiles/shell/gittool.ps1.include  # compute git status into GITTOOL variables
 if [[ $EXPHP_GITTOOL_BRANCH ]]; then
   echo -n "$none("

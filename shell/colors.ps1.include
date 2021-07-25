@@ -1,0 +1,22 @@
+if [[ $1 == "--local" ]]; then
+    # Note:  The \[ and \] are PS1 stuff to fix the positioning when using escape codes.
+    local none='\['$'\033[00m''\]'
+    local bold='\['$'\033[01m''\]'
+    local red='\['$'\033[01;31m''\]'
+    local green='\['$'\033[01;32m''\]'
+    local yellow='\['$'\033[01;33m''\]'
+    local blue='\['$'\033[01;34m''\]'
+    local purple='\['$'\033[01;35m''\]'
+    local cyan='\['$'\033[01;36m''\]'
+    local white='\['$'\033[01;37m''\]'
+else
+    none='\['$'\033[00m''\]'
+    bold='\['$'\033[01m''\]'
+    red='\['$'\033[01;31m''\]'
+    green='\['$'\033[01;32m''\]'
+    yellow='\['$'\033[01;33m''\]'
+    blue='\['$'\033[01;34m''\]'
+    purple='\['$'\033[01;35m''\]'
+    cyan='\['$'\033[01;36m''\]'
+    white='\['$'\033[01;37m''\]'
+fi

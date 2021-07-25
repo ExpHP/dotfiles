@@ -173,7 +173,22 @@ if [ -e $HOME/asd/manage/pyenv ]; then
   # pyenv startup part 2:  The part that actually belongs in .bashrc
   eval "$(pyenv init -)"
   eval "$(pyenv virtualenv-init -)"
+
+  # _pyenv_virtualenv_hook makes the shell absurdly slow so get rid of it
+  # https://github.com/pyenv/pyenv-virtualenv/issues/259
+  #
+  # Warning: unloading the following hook breaks command
+  # `pyenv activate/deactivate`. Please switch to
+  # `pyenv shell env_name`, `pyenv shell --unset` instead.
+  if [[ -n $ZSH_VERSION ]]; then
+    autoload -Uz add-zsh-hook
+    add-zsh-hook -D precmd _pyenv_virtualenv_hook
+  fi
+  if [[ -n $BASH_VERSION ]]; then
+    PROMPT_COMMAND="${PROMPT_COMMAND/_pyenv_virtualenv_hook;/}"
+  fi
 fi
+
 
 # # Bumper rail.
 # # Limit memory for interactive bash prompts, because thrashing sucks.
