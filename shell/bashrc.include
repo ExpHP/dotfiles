@@ -4,9 +4,7 @@
 
 # running 'which' can actually get pretty expensive (especially on wsl2) so we cache these
 which git 1>/dev/null 2>/dev/null && __EXPHP_BASH_PROMPT__HAS_GIT=1
-
-# FIXME: this currently always fails due to initialization order (common.include runs after this)
-which pyenv 1>/dev/null 2>/dev/null && __EXPHP_BASH_PROMPT__HAS_PYENV=1
+[[ -e $HOME/asd/manage/pyenv ]] && __EXPHP_BASH_PROMPT__HAS_PYENV=1
 
 # Wrap in a function so that `local` can be used.
 # Awkwardly long name to avoid collision.
