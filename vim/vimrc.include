@@ -92,7 +92,7 @@ endif
 let s:mdi_mode = 'b'
 
 " Pick between tabs ('t') and spaces ('s')
-let s:tab_mode = 't'
+let s:tab_mode = 's'
 
 " Pylint is both really useful, and REALLY GODDAMN SLOW
 let s:use_pylint = 0

@@ -8,6 +8,9 @@ Add this to `~/.bashrc`:
 
 ```sh
 #-----------------------------------------------------
+# Make absolutely certain that history is preserved even if we mess up bashrc.
+export HISTFILESIZE=
+
 # Stuff specific to this machine
 source /home/lampam/dotfiles/shell/machine/matisse.include
 
