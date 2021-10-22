@@ -179,9 +179,6 @@ if [ -e $HOME/asd/manage/pyenv ]; then
   # _pyenv_virtualenv_hook makes the shell absurdly slow so get rid of it
   # https://github.com/pyenv/pyenv-virtualenv/issues/259
   #
-  # Warning: unloading the following hook breaks command
-  # `pyenv activate/deactivate`. Please switch to
-  # `pyenv shell env_name`, `pyenv shell --unset` instead.
   if [[ -n $ZSH_VERSION ]]; then
     autoload -Uz add-zsh-hook
     add-zsh-hook -D precmd _pyenv_virtualenv_hook
@@ -189,6 +186,11 @@ if [ -e $HOME/asd/manage/pyenv ]; then
   if [[ -n $BASH_VERSION ]]; then
     PROMPT_COMMAND="${PROMPT_COMMAND/_pyenv_virtualenv_hook;/}"
   fi
+
+  # Unloading those hooks broke `pyenv activate/deactivate`. We have a replacement.
+  # (which is basically 'pyenv shell', followed by calling '<env dir>/bin/activate'
+  #    to make sure any scripts from packages (like gpaw) are loaded onto PATH)
+  alias pyenv-use='. _pyenv-use_impl'
 fi
 
 

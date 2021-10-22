@@ -3943,3 +3943,39 @@ get current:   pyenv version-name     -->   echo $PYENV_VERSION
 **A:** idunno lmao.  I think it only sets `PYENV_VERSION`?  For colin-daniels' pyputil I just ran the script as `python -m pyputil.bin.modeplot`.
 
 other keywords: venv
+
+# conda `compiler_compat` issue on CCI
+
+When using the Intel spectrum-mpi compiler on CCI DCS, and trying to use `pip` to install GPAW, I got this error:
+
+```
+...
+    copying gpaw/xc/gllb/nonlocalfunctional.py -> build/lib.linux-ppc64le-3.8/gpaw/xc/gllb
+    copying gpaw/xc/gllb/nonlocalfunctionalfactory.py -> build/lib.linux-ppc64le-3.8/gpaw/xc/gllb
+    running build_ext
+    building '_gpaw' extension
+    creating build/temp.linux-ppc64le-3.8
+    creating build/temp.linux-ppc64le-3.8/c
+    creating build/temp.linux-ppc64le-3.8/c/bmgs
+    creating build/temp.linux-ppc64le-3.8/c/xc
+    mpicc -pthread -B /gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/compiler_compat -Wl,--sysroot=/ -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DNPY_NO_DEPRECATED_API=7 -DGPAW_NO_UNDERSCORE_CBLACS=1 -DGPAW_NO_UNDERSCORE_CSCALAPACK=1 -DGPAW_GITHASH=c7e3c3e0eb0570dd242150e0e71b2b23fb951fca -DPARALLEL=1 -UNDEBUG -I/gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/include/python3.8 -I/gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/lib/python3.8/site-packages/numpy/core/include -c c/_gpaw.c -o build/temp.linux-ppc64le-3.8/c/_gpaw.o -Wall -Wno-unknown-pragmas -std=c99
+    /opt/ibm/xlC/16.1.1/bin/.orig/xlc_r: error: 1501-221 cannot exec program /lib/o/xlCentry - No such file or directory
+    error: command 'mpicc' failed with exit status 255
+    ----------------------------------------
+ERROR: Command errored out with exit status 1: /gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/bin/python -u -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/tmp/pip-req-build-sclxnppf/setup.py'"'"'; __file__='"'"'/tmp/pip-req-build-sclxnppf/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /tmp/pip-record-vdct5vzr/install-record.txt --single-version-externally-managed --compile --install-headers /gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/include/python3.8/gpaw Check the logs for full command output.
+
+failed
+
+CondaEnvException: Pip failed
+```
+
+Googling for `/lib/o/xlCentry` yields basically no results, and grepping for any sizable substring of it in the gpaw source doesn't find anything.
+
+Eventually, after some trial and error, I discovered that the `-B /gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/compiler_compat` was the issue.  This flag is inserted by conda, and is used to force a vendored version of `ld` to be used.
+
+Discussion where some problems were resolved for older GCC: https://github.com/ContinuumIO/anaconda-issues/issues/11152
+
+However!  In our case, simply renaming the `ld` does not resolve the error.  In fact, my best guess currently is that it is a bug in the implementation of `-B` for spectrum MPI (or `xlC_r`) which is causing the flag to clobber some other path.  I say this because **`mpicc -B /any/path/at/all hello-world.c` fails with the exact same error as above.**
+
+**Resolution:** Install openmpi through conda instead of using the system MPI.
+

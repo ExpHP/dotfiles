@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    echo >&2 "${0} should be sourced, not run directly!"
+    exit 1
+fi
+
+___pyenv_use__show_usage() {
+    echo >&2 "usage: pyenv-use ENVNAME"
+    echo >&2 "Personal replacement for 'pyenv activate' which does not require pyenv's laggy prompt hooks."
+}
+[[ $# -ne 1 ]] && { ___pyenv_use__show_usage; return 1; }
+[[ $1 == '--help' || $1 == '-h' ]] && { ___pyenv_use__show_usage; return 0; }
+[[ $1 == -- ]] && shift
+[[ $1 =~ ^-.* ]] && { ___pyenv_use__show_usage; return 1; }
+unset -f ___pyenv_use__show_usage
+
+if ! which pyenv 1>/dev/null 2>/dev/null; then
+    echo >&2 "pyenv is not installed"
+    return 1
+fi
+
+if ! [[ $PYENV_ROOT ]]; then
+    echo >&2 "error: PYENV_ROOT not defined"
+    return 1
+fi
+
+___pyenv_use__matches=( $PYENV_ROOT/versions/*/envs/$1 )
+if [[ "${___pyenv_use__matches[0]}" =~ versions/\*/envs ]]; then
+    echo >&2 "error: env '$1' not found"
+    return 1
+fi
+if [[ "${#___pyenv_use__matches[@]}" -gt 1 ]]; then
+    echo >&2 "error: env '$1' ambiguous (${#___pyenv_use__matches[@]} matches)"
+    return 1
+fi
+
+# This makes all binaries shimmed by pyenv use the appropriate venv (notably 'python3' and 'pip3').
+pyenv shell "$1"
+# This is further necessary to use scripts installed by packages.  (e.g. `gpaw -P4 python`)
+. "${___pyenv_use__matches[0]}/bin/activate"
+unset ___pyenv_use__matches
