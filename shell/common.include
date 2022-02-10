@@ -8,18 +8,24 @@
 
 source $HOME/dotfiles/shell/path.include
 
-# for my lame-ass script that I gave up on
-export VASP_POTCAR_DIR="$HOME/asd/VASP DATA/potentials"
-
-# for pymatgen, written by people who actually know what they're doing
-export VASP_PSP_DIR="$HOME/asd/pymatgen_res"
-
-# this incredibly-descriptively named variable is for phonon
-export ISODATA=/usr/local/phon610/isobyu/
-
 export PYTHONSTARTUP="$HOME/dotfiles/python-startup.py"
 
+if which wsl.exe 1>/dev/null 2>/dev/null; then
+	__SHELLRC__IS_WSL=1
+fi
+
 #----------------------------------------------
+
+if [ -e $HOME/asd/manage/pyenv ]; then
+  # Disable built-in PS1 modification which is being deprecated. (we'll just replace it with our own)
+  export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+
+  # pyenv startup part 1.  Technically this belongs in .profile and not bashrc,
+  # but frankly so does a lot of other stuff in this .bashrc.
+  export PYENV_ROOT="$HOME/asd/manage/pyenv"
+  export PATH="$PYENV_ROOT/bin:$PATH"
+  eval "$(pyenv init --path)"
+fi
 
 callable() {
 	# NOTE: 'GNU which', as found on arch linux, writes to stderr on failure.
@@ -28,9 +34,11 @@ callable() {
 	which -- "$@" 1>/dev/null 2>/dev/null || alias -- "$@" 1>/dev/null 2>/dev/null
 }
 
-# phonopy
-alias sym-pos='phonopy --sym -c POSCAR > symmetry'
-alias sym-con='phonopy --sym -c CONTCAR > symmetry'
+if [ "$__SHELLRC__IS_WSL" == 1 -a "$DISPLAY" == "" ]; then
+	# In WSL we need an X server running on the windows side (at least until native X support is
+	# production-ready).  But the windows side has a different IP from localhost!  Find its IP.
+	export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
+fi
 
 # Let sudo see things in our path.
 alias sudo='sudo env PATH="$PATH"'
@@ -38,8 +46,18 @@ alias sudo='sudo env PATH="$PATH"'
 # 'git commit' has trouble using pinentry-tty without this
 export GPG_KEY=$(tty)
 
-callable rg && alias h='history | rg'
-callable rg || alias h='history | grep'
+callable rg && _DOTFILE_SEARCHER=rg
+callable rg || _DOTFILE_SEARCHER=grep
+alias h="history | $_DOTFILE_SEARCHER"
+
+callable fzf && {
+    export FZF_DEFAULT_OPTS='--no-mouse'
+
+    # wean myself off h in cases where a better solution exists
+    alias h='echo "Use Ctrl+R or hs instead" && printf "" --'
+    # keep this around for when we want to use the -C flag
+    alias hs="history | $_DOTFILE_SEARCHER"
+}
 
 callable rlwrap && {
     callable python2 && alias python2='rlwrap python2'
@@ -153,6 +171,26 @@ export EDITOR=vim
 # ...it isn't a terrible idea, right?!
 export OMP_NUM_THREADS=4
 
-# lammps-sys
-export RUST_LAMMPS_MAKEFILE=$HOME/dotfiles/lammps-Makefile.omp
+if [ -e $HOME/asd/manage/pyenv ]; then
+  # pyenv startup part 2:  The part that actually belongs in .bashrc
+  eval "$(pyenv init -)"
+  eval "$(pyenv virtualenv-init -)"
+
+  # _pyenv_virtualenv_hook makes the shell absurdly slow so get rid of it
+  # https://github.com/pyenv/pyenv-virtualenv/issues/259
+  #
+  if [[ -n $ZSH_VERSION ]]; then
+    autoload -Uz add-zsh-hook
+    add-zsh-hook -D precmd _pyenv_virtualenv_hook
+  fi
+  if [[ -n $BASH_VERSION ]]; then
+    PROMPT_COMMAND="${PROMPT_COMMAND/_pyenv_virtualenv_hook;/}"
+  fi
+
+  # Unloading those hooks broke `pyenv activate/deactivate`. We have a replacement.
+  # (which is basically 'pyenv shell', followed by calling '<env dir>/bin/activate'
+  #    to make sure any scripts from packages (like gpaw) are loaded onto PATH)
+  alias pyenv-use='. _pyenv-use_impl'
+fi
+
 

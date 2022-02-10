@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# the above shebang is only for syntax highlighting; you're supposed to source this, not execute it
+
+# function to wrap whole script body so we can use locals
+_exphp__main_init() {
+
+
+local node_type
+case $(hostname) in
+  blp*) node_type=landing-pad;;  # machine for connecting to clusters
+  ???fen*) node_type=cluster;;  # machine where jobs are submitted
+  dcs[:digit:]*) node_type=node;;  # machine that runs a job
+  *) echo >&2 "Unable to classify node type of '$(hostname)'. Update cci.include in dotfiles.";;
+esac
+
+# Enables access to github, gitlab, pypi, many other whitelisted servers
+export http_proxy=http://proxy:8888
+export https_proxy=$http_proxy
+
+if [[ $node_type == cluster ]]; then
+  module use $HOME/public/cm/modulefiles
+
+  local arch=$(uname -m)
+  local pkg_dir=$HOME/public/pkg/$arch  # directory for installing package managers (unfit for modulefiles)
+  # export RUSTUP_HOME=$HOME/data/.rustup
+  # export CARGO_HOME=$HOME/data/.cargo
+  # export PATH=$CARGO_HOME/bin:$PATH
+
+  # Load the right conda install for this architecture
+  local conda_sh=$HOME/public/pkg/$arch/conda/4.10.3/etc/profile.d/conda.sh
+  [[ -e $conda_sh ]] && source $conda_sh
+fi
+
+export PATH=/home/lampam/bin:$PATH
+
+}
+_exphp__main_init
+unset -f _exphp__main_init

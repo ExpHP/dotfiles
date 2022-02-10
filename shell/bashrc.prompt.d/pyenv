@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+. $HOME/dotfiles/shell/colors.ps1.include
+
+# DO NOT USE 'pyenv version-name'
+# IT IS SO SLOW
+# YOU WILL MAKE YOUR PROMPT SO SLOW
+version=$PYENV_VERSION
+if [[ $version && "$version" != 'system' ]]; then
+    echo -n "(${cyan}$version${none}) ${none}"
+fi

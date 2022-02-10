@@ -8,6 +8,9 @@ Add this to `~/.bashrc`:
 
 ```sh
 #-----------------------------------------------------
+# Make absolutely certain that history is preserved even if we mess up bashrc.
+export HISTFILESIZE=
+
 # Stuff specific to this machine
 source /home/lampam/dotfiles/shell/machine/matisse.include
 
@@ -51,6 +54,18 @@ set viminfo='100,s10,h
 Some symlinks are created by `./do-misc-setup`.  This script will check that certain symlinks exist (or that the files in here are at least mentioned).
 
 This script could probably do more but I keep forgetting that it exists.
+
+### Other things to install
+
+#### Fuzzy finder on Ctrl+R
+
+```sh
+mkdir -p ~/.local/opt
+git clone --depth 1 https://github.com/junegunn/fzf.git ~/.local/opt/fzf
+yes | ~/.local/opt/fzf/install --xdg
+
+edit .bashrc  # move the fzf stuff to be BEFORE things from ~/dotfiles are sourced
+```
 
 ### Rust binaries
 

@@ -10,12 +10,12 @@ to find out what I did.
 
 It also has various random other nonsense.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Words I keep forgetting
 
 - **2017-08-14:** pathological
 
-<!------------------------------->
+<!-- ----------------------------->
 # Critical things to do after installing Ubuntu
 
 **Last update: 2016-08-11**
@@ -86,7 +86,7 @@ libgstreamer-plugins-base0.10-dev
 (FIXME I forget why I wrote that here, but notice the version differs subtly
  from the above apt-get command, so it was probably about some mistake that's easy to make)
 
-<!------------------------------->
+<!-- ----------------------------->
 # It's lxc, dude
 
 > Ohhhhh what was the name of that thing I used to use when I was
@@ -98,7 +98,7 @@ It's lxc.
 sudo lxc-create -t ubuntu -n my32bitbox -- --bindhome $LOGNAME -a i386 --release trusty
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # CTAGS and the tagbar
 
 **Installing CTAGS:** get package `exuberant-ctags`
@@ -120,7 +120,7 @@ let g:tagbar_left = 1
 let g:tagbar_sort = 0
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # Backups
 
 (**As of 2016-08-11**)
@@ -168,8 +168,8 @@ sudo rsync -a --link-dest=../daily.0 daily.0/ eternal.USEFUL-NAME-HERE
 (note: locations of trailing slashes very important. Also, for some absolutely
  bizarre fucking reason, --link-dest is relative to the destination)
 
-<!------------------------------->
-# flashplugin installer
+<!-- ----------------------------->
+# flashplugin installer (OUTDATED)
 
 (**As of 2016-08-11**)
 
@@ -180,7 +180,11 @@ In brief:
  * Now, an official package DOES exist; you now use `adobe-flashplugin`,
    from the `partner` repo.
 
-<!------------------------------->
+(**As of 2021-07-24**)
+
+lmao rip flash
+
+<!-- ----------------------------->
 # Other vim plugins and config (OUTDATED)
 
 (**As of 2014-09-30**)
@@ -199,7 +203,7 @@ To symlink all of the .vim files:
 ln -s -t ~/.vim/plugin/ ~/scripts/setup-notes/downloads/*.vim
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # RPI VPN
 
 **packages:** `openconnect vpnc-scripts`
@@ -221,7 +225,7 @@ sudo openconnect --script=/etc/vpnc/vpnc-script vpn.net.rpi.edu
 This script does not appear to exist at this location in Ubuntu,
 and specifying its location no longer appears necessary.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Deleting to trash
 
 **packages:** `trash-cli`
@@ -235,7 +239,7 @@ is already suspended (or something like that).
 
 Create a symlink to `scripts/data/50_E1000E_FIX` in `/etc/pm`.
 
-<!------------------------------->
+<!-- ----------------------------->
 # 32-bit and 64-bit libs
 
 (2014-12)
@@ -264,8 +268,11 @@ To make the system search these directories for libraries at linking and runtime
 /usr/local/lib64
 ```
 
-<!------------------------------->
-# Building GLC
+<!-- ----------------------------->
+# Building GLC (OUTDATED)
+
+<details>
+<summary>Old contents</summary>
 
 (**section added Dec 2014**)
 
@@ -381,7 +388,11 @@ UPDATE:  So it turns out glc can be built in 64 bit perfectly fine.  I had feare
    glc-capture is another story, since it hooks directly into your game, and
     so you must use the version corresponding to the game's architecture)
 
-<!------------------------------->
+</details>
+
+(UPDATE 2021-07-24): why would you ever use anything other than OBS lol
+
+<!-- ----------------------------->
 # trying to get smooth video
 
 **(2015-01-13)**
@@ -417,7 +428,7 @@ you've just convinced yourself they are.
    Thus, it could also be these "recovered" config files that solved the
    issue.  Not sure, don't really care.
 
-<!------------------------------->
+<!-- ----------------------------->
 # (`unity`) Disable overlay scrollbar
 
 - This disables the overlay scrollbar from popping up
@@ -431,14 +442,14 @@ you've just convinced yourself they are.
 gsettings set com.canonical.desktop.interface scrollbar-mode 'overlay-touch'
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # Re-enabling sysreq stuff (reisub, etc.)
 
 Edit `/etc/sysctl.d/10-magic-sysrq.conf`. Instructions are there.
 
 I chose the value 502 to enable all but memory dumps.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Downmixing stereo to mono (pulseaudio)
 
 To prevent myself from going insane from listening to recordings with no right channel, or where everything is panned 100% to different sides for some ungodly reason. (I'm looking at you, 419 Eater).  (no, really, what do you think this is, the freakin nineties?)
@@ -455,7 +466,7 @@ From StackOverflow: (with some edits)
 
   or add the argument to pacmd to `/etc/pulse/default.pa` (NOTE: "argument to pacmd" as in "everything after pacmd in the command"), to have it run at startup. Then in Sound Preferences choose "Mono" as the output but remember to reduce volumes by half, since two channels are getting mixed into one, or else you'll have distortion. To test, run : `speaker-test -c 2 -t sine`.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Attempt to disable vsync
 
 Latest attempt to disable vsync
@@ -479,7 +490,7 @@ Computer had to be hard reset.
 
 Balls to it.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Running `pcsx2`
 
 * Found it easier to just download the prebuilt binary than to
@@ -507,7 +518,7 @@ Balls to it.
 
   (so I technically haven't confirmed it can play!)
 
-<!------------------------------->
+<!-- ----------------------------->
 # (OUTDATED) Installing numpy and scipy
 
 ## Symptom
@@ -530,7 +541,7 @@ individual file is compiled).
 **NOTE:** For some reason it was ignoring the BLAS and LAPACK variables
 on my ubuntu system
 
-<!------------------------------->
+<!-- ----------------------------->
 # Installing numpy and scipy on matisse CORRECTLY!!
 
 **(2015-05-27)**
@@ -865,7 +876,7 @@ pip3 install . --upgrade
 ```
 Collecting bottleneck
   Downloading https://files.pythonhosted.org/packages/05/ae/cedf5323f398ab4e4ff92d6c431a3e1c6a186f9b41ab3e8258dff786a290/Bottleneck-1.2.1.tar.gz (105kB)
-    100% |████████████████████████████████| 112kB 3.0MB/s 
+    100% |████████████████████████████████| 112kB 3.0MB/s
     Complete output from command python setup.py egg_info:
     Download error on https://pypi.python.org/simple/numpy/: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1045) -- Some packages may not be found!
     Couldn't find index page for 'numpy' (maybe misspelled?)
@@ -903,7 +914,7 @@ attempt to install `h5py` ends with
 
 and it is at this point I said "fuck it"
 
-<!------------------------------->
+<!-- ----------------------------->
 # VIM CommandT plugin
 
 For searching files
@@ -933,7 +944,7 @@ keybind.  The solution was to explicitly map something to `<Plug>TaskList`
 in `~/.vimrc` (`:TaskList<CR>` won't do), as `TaskList` only sets its own
 default keybinds when the user hasn't set one.
 
-<!------------------------------->
+<!-- ----------------------------->
 # INPUT/OUTPUT ERROR (bad blocks)
 
 (**2015-05-24**)
@@ -1035,7 +1046,7 @@ ERROR: home/lampam/dd-vaspruns/true-relax/WHAT-IS-WRONG/Damped-0.4-1e-5-1e-4-0/1
 
 Interesting how two of the paths are so similar.  Not sure what to make of it... pure coincidence?
 
-<!------------------------------->
+<!-- ----------------------------->
 # Installing git on komodo
 
 (**2015-05-26**)
@@ -1109,7 +1120,7 @@ against the one in `/cm/local/apps/openssl/lib64/` from the start.
 But even with that modification, the steps above still don't produce
 a working copy of `git`.  I give up.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Laptop not entering sleep mode
 
 **(2015-06-11)**
@@ -1128,7 +1139,7 @@ I found it is sufficient to simply restart it.  I.e.
 
 **NOTE TO SELF:** Don't just write documentation.  **_Use it!!!_**
 
-<!------------------------------->
+<!-- ----------------------------->
 # `unison` version antics
 
 **(2015-08-03)**
@@ -1205,7 +1216,7 @@ attempting to connect to the PC remotely with unison. I haven't the slightest id
 though, because it works just fine on the supercomputers (maybe they have a setting that
 causes .bashrc to get sourced whereas my desktop pc doesnt?)
 
-<!------------------------------->
+<!-- ----------------------------->
 # ssh hosts
 
 **(2015-08-03)**
@@ -1218,7 +1229,7 @@ For reliably connecting to computers on the local network, give them static IPs.
 (while you CAN just use their hostnames under certain (unknown) conditions, I found that it is
  possible for the hostname to instead resolve to the router's outward, internet-facing IP)
 
-<!------------------------------->
+<!-- ----------------------------->
 # Setting a static IP
 
 **(2016-01-20)**
@@ -1246,7 +1257,7 @@ to give contradictory descriptions). I left it in its default state (which was u
 NOTE: Even using DHCP, websites that test IPv6 connectivity report that I am unable to use IPV6,
 regardless of the state of this checkbox. No idea what's up with that.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Static IPs through DHCP
 
 **(2016-02-01)**
@@ -1266,7 +1277,7 @@ On the FiOS ActionTec router, one can configure a static connection through DHCP
    other than the one currently active, hit Apply anyways then click the Edit button
    again; after doing so, it will be possible to edit the IP field)
 
-<!------------------------------->
+<!-- ----------------------------->
 # DNS notes
 
 **(2015-09-05)**
@@ -1277,7 +1288,7 @@ I decided to do it in the Edit Connections window.  Edit the connection
 for your SSID, go to IPv4, change mode to "DHCP (Addresses only)", and
 set DNS servers "8.8.8.8,4.4.4.4".
 
-<!------------------------------->
+<!-- ----------------------------->
 # Passwordless login to servers
 
 **(2015-09-10)**
@@ -1292,7 +1303,7 @@ Greatest thing ever.
 **NOTE:** This works for github as well.
 Just make sure your remotes use "ssh://git@github.com" instead of "https://github.com".
 
-<!------------------------------->
+<!-- ----------------------------->
 # Hibernation
 
 **(2015-09-23)**
@@ -1343,7 +1354,7 @@ When it is ON, it ignores 'percentage-action' and uses 'time-action' instead.
       --prefix=/opt/vim-py3
     sudo update-alternatives --install /usr/bin/vim vim /opt/vim-py3/bin/vim 100
 
-<!------------------------------->
+<!-- ----------------------------->
 # Compiling vasp: BGQ edition
 
 **(2015-10-30)**
@@ -1390,7 +1401,7 @@ such quirks cause changes in behavior which DO get compiled...)
  a step near the end where xl_r causes problems again and you can do the rest with xl.  But I
  might be getting it confused with the vasp 5.4 build process...)
 
-<!------------------------------->
+<!-- ----------------------------->
 # Interactive plots in matplotlib
 
 **(2015-09-13)**
@@ -1435,7 +1446,7 @@ and there's probably a config file somewhere you can modify to change the defaul
 
 Copy it to `~/.config/matplotlib/matplotlibrc`, fix the backend line to TkAgg, done.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Vesta crashes on poscar file
 
 **(2015-10-22)**
@@ -1455,7 +1466,7 @@ This is for two reasons:
 For now I have a wrapper script for vesta which checks for this mistake and
 refuses to run.
 
-<!------------------------------->
+<!-- ----------------------------->
 # aptitude flat list
 
 **(2016-01-14)**
@@ -1470,7 +1481,7 @@ Just today I realized that there is a setting under `Options >> Preferences`
 
 Greatest thing ever.
 
-<!------------------------------->
+<!-- ----------------------------->
 # My desktop PC and langauge packs
 
 **(2016-01-18)**
@@ -1492,7 +1503,7 @@ This time, I'll record my findings:
 * In other words, my computer is stuck in Japanese pending me finding the
   installation disk and reinstalling the OS in English.  Fun.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Fuck multiarch on ubuntu
 
 **(2016-01-19)**
@@ -1626,7 +1637,7 @@ it was completely unplayable.
 
 ...back to Windows it is, I suppose...
 
-<!------------------------------->
+<!-- ----------------------------->
 # GRUB CONFIGURATION FROZE, AAHHHHHHH!!!!
 
 **(2016-01-25)**
@@ -1701,7 +1712,7 @@ to use the keyboard in grub-emu, which sucks because AFAICT the only proper way 
 to 'c' for a command line and type 'reboot'.  It also is unresponsive to SIGTERM, so I had to
 `kill -9` it.  Ick...
 
-<!------------------------------->
+<!-- ----------------------------->
 # SSHD more securely
 
 **(2016-01-28)**
@@ -1718,7 +1729,7 @@ Then edit `/etc/ssh/sshd_config` and add the lines:
 
 Now no other devices than yours can ssh in, even if the password is known.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Notes on actiontec config
 
 **(2016-02-01)**
@@ -1742,7 +1753,7 @@ If our internet connection suddenly improves from this day onward, we'll know I 
  In this day and age, the only reason I can think of that a feature like IPv6 would be disabled
  by default would be because they're still working out the bugs!)
 
-<!------------------------------->
+<!-- ----------------------------->
 # desmume
 
 **(2016-02-09)**
@@ -1812,7 +1823,7 @@ Remaining issues:
   ~/Pictures/desmume-screenshot-0.png, (then -1.png and so on), **overwriting
   any existing snapshots with those numbers from previous runs.**
 
-<!------------------------------->
+<!-- ----------------------------->
 # ??? (something about cross compilation) ???
 
 Wasn't sure what to do with this terribly formatted section
@@ -1896,7 +1907,7 @@ but my eyes just glaze over when I try to look at it.
      (and rightfully so; we never cross compiled the c++ std libraries)
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # cmake not finding FFTW3F
 
 **TODO:** quote error message
@@ -1911,7 +1922,7 @@ libraries. All failed
 Andrew says that after building his own copy of fftw3 manually (and, presumably,
 installing it to his home directory), cmake found it just fine.
 
-<!------------------------------->
+<!-- ----------------------------->
 # ibus misbehaving
 
 **(2016-05-25)**
@@ -1931,7 +1942,7 @@ While the bug is still open, there is the following workaround:
 
     gsettings set org.gnome.desktop.background show-desktop-icons true
 
-<!------------------------------->
+<!-- ----------------------------->
 # `rpi_wpa2` certificate authority trouble
 
 **(2016-06-14)**
@@ -1964,7 +1975,7 @@ UPDATE: Yeah that didn't last long.
   Back to no wifi under PEAP when I returned to the union.
   Using LEAP from now on because it works.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Compiling GHC
 
 **(2016-07-05)**
@@ -2019,7 +2030,7 @@ which appeared to occur during the creation of
 
 At this point I just gave up and added the hvr bin directories to `PATH`.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Compiling rust for musl
 
 **(2016-08-10)**
@@ -2037,7 +2048,7 @@ Feels like the last time I did that was just yesterday...
 
 https://gist.github.com/ExpHP/f2aad25aa885988a9245759d9d70f318
 
-<!------------------------------->
+<!-- ----------------------------->
 # Color/font settings
 
 **(2016-08-13)**
@@ -2065,7 +2076,7 @@ dconf key `org.gnome.terminal.legacy.profiles:.:<UUID>.palette`:
      'rgb(138,226,52)', 'rgb(252,233,79)', 'rgb(114,159,207)',
      'rgb(173,127,168)', 'rgb(52,226,226)', 'rgb(238,238,236)']
 
-<!------------------------------->
+<!-- ----------------------------->
 # latexmk bugs
 
 **(2016-08-17)**
@@ -2081,7 +2092,7 @@ Q: LATEXMK IS DROPPING JUNK ALL OVER THIS DIRECTORY DESPITE
 
 A: I said latexmk 4.41 is broken!!! Upgrade it, already!
 
-<!------------------------------->
+<!-- ----------------------------->
 # Missing Linux Terminal
 
 **(2016-08-17)**
@@ -2103,7 +2114,7 @@ nouveau and proprietary drivers?
 
 I should try installing nvidia drivers again (without nomodeset) and see.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Installing Mathematica
 
 **(2016-08-22)**
@@ -2129,7 +2140,7 @@ which is several GB large.
 6. Note that in addition to the directories you specified it will also
    have put some stuff in /usr/share/Mathematica.
 
-<!------------------------------->
+<!-- ----------------------------->
 # That emulator chip was using
 
 **(2016-11-21)**
@@ -2145,7 +2156,7 @@ He was using it with Mednafen as the core, which sounds like a
 nice idea, as I don't recall Mednafen having much in the way of
 a frontend on linux.
 
-<!------------------------------->
+<!-- ----------------------------->
 # leanemacs
 
 **(2016-10-16)**
@@ -2200,7 +2211,7 @@ In particular I needed to add all of this to .emacs:
 It was also necessary to install ninja (`sudo apt install ninja`)
 and copy the binary from `/usr/sbin` to `/usr/local/bin`
 
-<!------------------------------->
+<!-- ----------------------------->
 # Mendeley
 
 **(2016-10-24)**
@@ -2234,7 +2245,7 @@ messages for consecutive crashes. (Note: tracked in
     lastRunVersion=1.17.1
     lastStartTime=1477329538
 
-<!------------------------------->
+<!-- ----------------------------->
 # WiFi issues after suspend
 
 After the 16.04 update I frequently find my laptop shows the icon for
@@ -2254,7 +2265,7 @@ To prevent the issue from recurring,
 I created the service script given in the top answer;
 if this section doesn't get updated, then it probably worked.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Linux kernel 4.8.0
 
 **(2016-12-12)**
@@ -2269,7 +2280,7 @@ I'll be sticking with it for too long...
 
 (search tag: FPS)
 
-<!------------------------------->
+<!-- ----------------------------->
 # WiFi on desktop in arch
 
 **(2017-02-26)**
@@ -2336,7 +2347,7 @@ INSTALL ALL OF THE WIFI TOOLS!!!!
 
     pacman -S iw wpa_supplicant dhclient
 
-<!------------------------------->
+<!-- ----------------------------->
 # ARCH SETUP TODO LIST
 
 **(2017-02-27)**
@@ -2763,7 +2774,7 @@ once you're bored of using wpa_supplicant manually, enable some services:
 and then e.g. Plasma already has a network management widget that should
 appear in the tray.
 
-<!------------------------------->
+<!-- ----------------------------->
 # LaTeX on arch
 
 **(2017-05-16)**
@@ -2796,7 +2807,7 @@ updmap --enable Map fourier.map
 sudo updmap-sys --enable Map fourier.map
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # nolimit on arch
 
 **(2017-04-21)** (updated **2022-02-10**)
@@ -2839,7 +2850,7 @@ to die horrible, painful deaths unless run through the `unlimited` wrapper.
     $ unlimited code .
     $ unlimited chromium
 
-<!------------------------------->
+<!-- ----------------------------->
 # Android Development and debugging
 
 **(2017-07-03)**
@@ -2867,7 +2878,7 @@ to die horrible, painful deaths unless run through the `unlimited` wrapper.
    - You can ignore "Building Android" and onwards if you're just using
      android-studio and adb.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Windows 7 os-prober troubles
 
 Three words.
@@ -2881,7 +2892,7 @@ You will see it print "Found Windows 7 on /dev/sda1" as one of its lines when
 Specifically *mount the one with the bootloader!*  On my desktop it's called
 "System Reserved" and if you mount it you might find a file "/bootmgr".
 
-<!------------------------------->
+<!-- ----------------------------->
 # Can't create ExFAT in gparted
 
 **(2017-07-27)**
@@ -2890,7 +2901,7 @@ Specifically *mount the one with the bootloader!*  On my desktop it's called
 [You can't.](http://gparted.org/features.php)
 Just use mkfs.exfat instead.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Can't log into CCI
 
 **(2017-07-05)**
@@ -2906,7 +2917,7 @@ Just use mkfs.exfat instead.
 Resolution: After emailing support, the account was reactivated.
             It was disabled due to inactivity.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Colin's IDE
 
 **(2017-07-10)**
@@ -2916,7 +2927,7 @@ On startup, choose "Custom cmake: /usr/bin/cmake".
 (note: when not doing this, I got a segfault in the middle of some
 random looking rule for building lammps)
 
-<!------------------------------->
+<!-- ----------------------------->
 # Note on the laptop SSD remounting as read-only
 
 **(2017-08-27)**
@@ -2950,7 +2961,7 @@ that causes this issue to arise:
   - It is very quiet.  My face must be right next to the system to hear it.
     I've never even noticed it until now.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Cabal linker errors
 
 **(2017-09-01)**
@@ -3046,7 +3057,7 @@ I disabled some files that have no business existing:
 
 I renamed their extensions from `.desktop` to `.fucking-retarded`.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Rust on blue gene Q
 
 **(2017-09-14)**
@@ -3062,7 +3073,7 @@ and a subcommand 'cargo vendor' exists to help manage dependencies.
 
 Tags: BGQ
 
-<!------------------------------->
+<!-- ----------------------------->
 # lammps-sys crate on matisse
 
 **(2018-01-19)**
@@ -3081,7 +3092,7 @@ It appears this is because the version of libclang available to me was old.
 bindgen has a workaround for this (`trust_clang_mangling(false)`).
 I added this to `lammps_sys`.
 
-<!------------------------------->
+<!-- ----------------------------->
 # building lammps with kolmogorov-crespi-z
 
 **(2018-01-26)**
@@ -3099,7 +3110,7 @@ make yes-user   # WRONG! that will get ALL the user packages, which will require
 make yes-lib    # WRONG! that way lies sorrow, much much sorrow, death is inevitable
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # adaptive PGP pinentry
 
 **(2018-02-24)**
@@ -3113,7 +3124,7 @@ It needs to be manually set up:
 echo 'pinentry-program /home/exp/dotfiles/bin/pinentry-exphp' >>~/.gnupg/gpg-agent.conf
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # HP 2055dn printer
 
 **(2018-04-25)**
@@ -3130,7 +3141,7 @@ In short, I still haven't gotten this to work
 * Colin was able to connect with a socket URL and IP: `socket://128.113.x.y`.  Note: He used the KDE tools instead of the CUPS administration page.
 * For some reason right now my machine can resolve an IP for the address `icmp2055dn.phys.rpi.edu` but I was unable to use it in a socket URL.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Transferring files to/from Android
 
 **(2018-04-28)**
@@ -3151,7 +3162,7 @@ Here's what to do about it:
    simple-mtpfs --device 1 ~/mnt
    ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # GIMX
 
 **(2018-06-03)**
@@ -3264,7 +3275,7 @@ Unfortunately, after having done this, you will find that Matheiu had reasons (n
 
 I don't actually know what the solution to this problem is.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Building old rust versions
 
 **(2018-06-13)**
@@ -3281,7 +3292,7 @@ When I tried to build rust from a commit circa December 2016, bootstrapping fail
   ```
   and it will appear in the `rustup` toolchain list.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Simulating a slow hard drive
 
 **(2018-06-14)**
@@ -3310,7 +3321,7 @@ journalctl -f --unit nbd
 sudo nbd-client -N test  127.0.0.1   /dev/nbd0
 
 # connect and format
-sudo mkfs /dev/nbd0 
+sudo mkfs /dev/nbd0
 sudo mkdir /mnt/nbd
 # sync option is important to not allow the kernel to cheat!
 sudo mount -o sync /dev/nbd0 /mnt/nbd
@@ -3326,7 +3337,7 @@ sudo nbd-client -N test  127.0.0.1 /dev/nbd0
 sudo mount -o sync /dev/nbd0 /mnt/nbd
 ```
 
-<!------------------------------->
+<!-- ----------------------------->
 # When I open my laptop and see a blank screen
 
 **(2018-07-19)**
@@ -3407,7 +3418,7 @@ Here's logs of what error messages I had the presence of mind to record:
      generic_def_path_iterator() = default;
      ^
 /home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp: In member function ‘llvm::iterator_range<{anonymous}::ClobberWalker::generic_def_path_iterator<{anonymous}::ClobberWalker::DefPath, {anonymous}::ClobberWalker> > {anonymous}::ClobberWalker::def_path({anonymous}::ClobberWalker::ListIndex)’:
-/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:622:72: note: synthesized method ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = {anonymous}::ClobberWalker::DefPath; Walker = {anonymous}::ClobberWalker]’ first required here 
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:622:72: note: synthesized method ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = {anonymous}::ClobberWalker::DefPath; Walker = {anonymous}::ClobberWalker]’ first required here
      return make_range(def_path_iterator(this, From), def_path_iterator());
                                                                         ^
 /home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp: In constructor ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = const {anonymous}::ClobberWalker::DefPath; Walker = const {anonymous}::ClobberWalker]’:
@@ -3415,7 +3426,7 @@ Here's logs of what error messages I had the presence of mind to record:
      generic_def_path_iterator() = default;
      ^
 /home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp: In member function ‘llvm::iterator_range<{anonymous}::ClobberWalker::generic_def_path_iterator<const {anonymous}::ClobberWalker::DefPath, const {anonymous}::ClobberWalker> > {anonymous}::ClobberWalker::const_def_path({anonymous}::ClobberWalker::ListIndex) const’:
-/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:627:47: note: synthesized method ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = const {anonymous}::ClobberWalker::DefPath; Walker = const {anonymous}::ClobberWalker]’ first required here 
+/home/lampam/build/llvm/lib/Analysis/MemorySSA.cpp:627:47: note: synthesized method ‘{anonymous}::ClobberWalker::generic_def_path_iterator<T, Walker>::generic_def_path_iterator() [with T = const {anonymous}::ClobberWalker::DefPath; Walker = const {anonymous}::ClobberWalker]’ first required here
                        const_def_path_iterator());
                                                ^
 ```
@@ -3429,7 +3440,7 @@ make: *** [doc/automake-1.16.1] Error 2
 
 Eventually I caved and built Perl 5.28.   On matisse I used `perlbrew` to install perl 5.30.  See `apps/perl5/notes`.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Building gcc
 
 **(2018-08-18)**
@@ -3457,7 +3468,7 @@ contrib/download_dependencies
 **NOTE:** On my first attempt I ran with `--enable-languages=all` and had `make -j4`.  This gave a weird error about "no rule for `(something-i-forget).h.in`" which persisted on repeated attempts to run `make`, even without `-j4`.  So I wiped everything clean (`rm -rf` all but `.git` and `git reset --hard`) and used the command written above.  I decided to ctrl-C and add back the `-j4` after a couple of minutes when it looked like the dependencies were all done being built.
 
 
-<!------------------------------->
+<!-- ----------------------------->
 # debugging on komodo (or: why you can't just yet)
 
 (2018-08-23)
@@ -3471,7 +3482,7 @@ contrib/download_dependencies
 * I've built Python3 3 times on this machine, and don't particularly feel like building Python2
   right now.
 
-<!------------------------------->
+<!-- ----------------------------->
 # lockfiles and slurm
 
 (2018-08-24)
@@ -3581,7 +3592,7 @@ This option of `xargs` can be used to simulate a semaphore, and it works far mor
 
 Newer versions of `xargs` also have `--process-slot-var=VARNAME` which will assign unique integers to a variable for each of the running commands
 
-<!------------------------------->
+<!-- ----------------------------->
 # `no space left on device` while building scipy
 
 **(2018-08-26)**
@@ -3613,7 +3624,7 @@ oh, and also.  I highly doubt I'll ever run into this again, but:
 
 apparently the cython on Arch does not yet have the fix for 3.7 compatibility? (cython 28.5).  I decided to just install scipy directly through `pacman` instead.
 
-<!------------------------------->
+<!-- ----------------------------->
 # Bash 4.x on komodo
 
 I built it, but don't know what to do with it.
@@ -3655,7 +3666,7 @@ I tried this, but discovered that my `sbatch` scripts no longer knew about the `
 
 Just don't.  I moved the module to a `DO-NOT-USE` directory.
 
-<!------------------------------->
+<!-- ----------------------------->
 # clion "Mark Directory as..." workaround
 
 **Problem:** Rust projects in clion lack a "Mark Directory as..." option because they aren't CMake projects.  This leads clion to, of course, assume that EVERYTHING is project source files, and so it indexes way more than it needs to.
@@ -3680,7 +3691,7 @@ And there you go; right clicking on the directory tree in clion should now have 
 
 
 
-<!------------------------------->
+<!-- ----------------------------->
 # More garbage with komodo
 
 (2018-09-21)
@@ -3689,7 +3700,7 @@ You can't do `srun -N1 some-mpi-app` on komodo where `some-mpi-app` was built ag
 
 I'm now working around this with an `sstep` helper script that runs an sbatch script as a job step synchronously, something that cannot easily be done in Slurm 2.2.4 which lacks `sbatch --wait`.
 
-<!------------------------------->
+<!-- ----------------------------->
 
 # `vagrant` test cluster for `slurm`
 
@@ -3818,7 +3829,7 @@ E.g.:
 
 One other thing:  You can't just pack a `qcow2` image directly from `/var/lib/libvirt/images`, because it is stored as a diff against another image.  (check `qemu-img info`, you'll see what I mean).  **Use `qemu-img convert` to convert it into `raw` format, then back into `qcow2` to normalize it.**
 
-<!------------------------------->
+<!-- ----------------------------->
 
 # CLion not finding python modules nested under subdir
 
@@ -3845,7 +3856,7 @@ What is a source root?  It's a folder "Marked as Source" in the project tree. Un
 * Unmark `rsp2/src` as source.
 * Mark every subdirectory of `rsp2/src` (including `rsp2/src/python`) as source.
 
-<!------------------------------->
+<!-- ----------------------------->
 
 # Laptop failing to suspend
 
@@ -3858,7 +3869,7 @@ Things tried:
 - Downgrading to `linux-lts` kernel (did not work)
 - This: https://bbs.archlinux.org/viewtopic.php?pid=1835891#p1835891
 
-<!------------------------------->
+<!-- ----------------------------->
 
 # Environment modules setup
 
@@ -3869,3 +3880,125 @@ Keywords: cm, modulefiles, apps, cluster, komodo, matisse
 Since around 2018, I've been installing my compiled software on komodo to environment modules (i.e. `mod load`, `mod avail`...).
 
 My setup is hosted at [https://github.com/exphp-share/cm-files](https://github.com/exphp-share/cm-files).
+
+<!-- ----------------------------->
+
+# WSL 1 and WSL 2
+
+(2021-07-21)
+
+To get both WSL 1 and WSL 2 I just installed two versions of Ubuntu from the windows store, and did the WSL 2 upgrade steps on one of them.
+
+CAREFUL! The WSL 2 upgrade process appears to make a temporary copy of everything in your WSL install. (and not just `/home` but also `/usr`, etc.)  So ideally, for the fastest upgrade, **you should upgrade that distro to WSL 2 before doing/installing anything in it.**
+
+# X server and chromedriver in WSL
+
+(2021-07-21)
+
+I needed these for testing web applications through Selenium `webdriver`.
+
+Windows is currently working on an integrated X/Wayland server, but it's not ready for the general public yet.
+
+So I installed `VcXsrv.exe`.
+
+* I primarily followed this: https://www.gregbrisebois.com/posts/chromedriver-in-wsl2/
+* I also took some tips from here, most importantly that **you need to set change a Compatibility setting on Xlaunch for it to even appear**. https://www.shogan.co.uk/how-tos/wsl2-gui-x-server-using-vcxsrv/ (for some reason this person also installs a desktop manager, lol)
+* **You must disable access control in VcXsrv** (a checkbox you have to change on the last page in xlaunch.exe)
+* **You also must let VcXsrv through the firewall on both private AND PUBLIC networks!**  WSL 2 counts as a public network!!!
+
+Setting DISPLAY is already done in the uploaded dotfiles.
+
+**Note:** For some weird reason, on the first day I installed VcXsrv it worked, even though I hadn't enabled VcXsrv on public networks.  Then after a reboot it stopped working (all X applications would just hang forever with no output) until I fixed the firewall rules.
+
+## Chrome
+
+Pretty sure I downloaded the `.deb` and `sudo apt install ./google-chrome-stable_current_amd64.deb`.
+
+If you need to mess with the install, note that the package is called `google-chrome-stable`.
+
+## Chromedriver
+
+Most people put `chromedriver` in `/usr/bin`, which I would describe as "reckless" (except maybe in CI).  If you do that, it is apparently important to `chown root:root` the file. :person_shrugging:
+
+I just placed it in my personal `~/bin` and had no trouble.
+
+# pyenv
+
+(2021-07-24)
+
+I've finally had the last straw with arch updating my python version and orphaning all of my installed packages.
+
+### Preparation
+
+BEFORE USING `pyenv` TO INSTALL ANY PYTHON VERSIONS: Get dev headers for optional python build dependencies!
+
+* `libsqlite3-dev`
+* `libreadline-dev`
+* `libssl-dev`
+* `libbz2-dev`
+* maybe `liblzma-dev` (`_lzma` is mentioned earlier in this file)? I didn't have it though and the `lzma` module works fine.
+
+If you don't get these first it will gladly build python without them and waste your time.
+
+### Install
+
+```sh
+export PYENV_HOME=$HOME/asd/manage/pyenv
+curl https://pyenv.run | bash
+```
+
+My dotfiles depend on this precise location.  `~/asd/manage` is my new place for hiding away the dot-directories of the hundreds of naughty package-managery applications that don't use `.config`/`.local`/`.cache`.
+
+### Virtual environments
+
+My bashrc currently deliberately breaks `pyenv activate`/`pyenv deactivate` and lots of other commands, as well as `.python_version` files, because the pyenv hook that makes these work makes your shell *so ridiculously slow.*  Do the following instead:
+
+```
+               old way                      new way
+  to create:   pyenv virtualenv NAME  -->   pyenv virtualenv NAME   (unchanged)
+                                            python3 -m pip install wheel
+   to enter:   pyenv activate NAME    -->   pyenv shell NAME
+   to leave:   pyenv deactivate       -->   shell --unset
+get current:   pyenv version-name     -->   echo $PYENV_VERSION
+```
+
+**Q:** `pyenv shell` doesn't add the virtualenv's `bin/` to my `PATH`
+**A:** idunno lmao.  I think it only sets `PYENV_VERSION`?  For colin-daniels' pyputil I just ran the script as `python -m pyputil.bin.modeplot`.
+
+other keywords: venv
+
+# conda `compiler_compat` issue on CCI
+
+When using the Intel spectrum-mpi compiler on CCI DCS, and trying to use `pip` to install GPAW, I got this error:
+
+```
+...
+    copying gpaw/xc/gllb/nonlocalfunctional.py -> build/lib.linux-ppc64le-3.8/gpaw/xc/gllb
+    copying gpaw/xc/gllb/nonlocalfunctionalfactory.py -> build/lib.linux-ppc64le-3.8/gpaw/xc/gllb
+    running build_ext
+    building '_gpaw' extension
+    creating build/temp.linux-ppc64le-3.8
+    creating build/temp.linux-ppc64le-3.8/c
+    creating build/temp.linux-ppc64le-3.8/c/bmgs
+    creating build/temp.linux-ppc64le-3.8/c/xc
+    mpicc -pthread -B /gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/compiler_compat -Wl,--sysroot=/ -Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -Wstrict-prototypes -fPIC -DNPY_NO_DEPRECATED_API=7 -DGPAW_NO_UNDERSCORE_CBLACS=1 -DGPAW_NO_UNDERSCORE_CSCALAPACK=1 -DGPAW_GITHASH=c7e3c3e0eb0570dd242150e0e71b2b23fb951fca -DPARALLEL=1 -UNDEBUG -I/gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/include/python3.8 -I/gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/lib/python3.8/site-packages/numpy/core/include -c c/_gpaw.c -o build/temp.linux-ppc64le-3.8/c/_gpaw.o -Wall -Wno-unknown-pragmas -std=c99
+    /opt/ibm/xlC/16.1.1/bin/.orig/xlc_r: error: 1501-221 cannot exec program /lib/o/xlCentry - No such file or directory
+    error: command 'mpicc' failed with exit status 255
+    ----------------------------------------
+ERROR: Command errored out with exit status 1: /gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/bin/python -u -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/tmp/pip-req-build-sclxnppf/setup.py'"'"'; __file__='"'"'/tmp/pip-req-build-sclxnppf/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' install --record /tmp/pip-record-vdct5vzr/install-record.txt --single-version-externally-managed --compile --install-headers /gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/include/python3.8/gpaw Check the logs for full command output.
+
+failed
+
+CondaEnvException: Pip failed
+```
+
+Googling for `/lib/o/xlCentry` yields basically no results, and grepping for any sizable substring of it in the gpaw source doesn't find anything.
+
+Eventually, after some trial and error, I discovered that the `-B /gpfs/u/barn/CMND/shared/lampam/pkg/ppc64le/conda/4.10.3/envs/gpaw-raman-script/compiler_compat` was the issue.  This flag is inserted by conda, and is used to force a vendored version of `ld` to be used.
+
+Discussion where some problems were resolved for older GCC: https://github.com/ContinuumIO/anaconda-issues/issues/11152
+
+However!  In our case, simply renaming the `ld` does not resolve the error.  In fact, my best guess currently is that it is a bug in the implementation of `-B` for spectrum MPI (or `xlC_r`) which is causing the flag to clobber some other path.  I say this because **`mpicc -B /any/path/at/all hello-world.c` fails with the exact same error as above.**
+
+**Resolution:** Install openmpi through conda instead of using the system MPI.
+
