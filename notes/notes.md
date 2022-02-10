@@ -3924,6 +3924,14 @@ I just placed it in my personal `~/bin` and had no trouble.
 
 # pyenv
 
+(update **2022-02-10**)
+
+I quickly decided that pyenv is shit and switched to conda, which (a) doesn't make WSL 2 prompts 1000x slower,
+and (b) is better at handling reproducible builds.
+
+<details>
+<summary>old contents</summary>
+
 (2021-07-24)
 
 I've finally had the last straw with arch updating my python version and orphaning all of my installed packages.
@@ -3966,6 +3974,8 @@ get current:   pyenv version-name     -->   echo $PYENV_VERSION
 **A:** idunno lmao.  I think it only sets `PYENV_VERSION`?  For colin-daniels' pyputil I just ran the script as `python -m pyputil.bin.modeplot`.
 
 other keywords: venv
+
+</details>
 
 # conda `compiler_compat` issue on CCI
 
