@@ -2799,22 +2799,45 @@ sudo updmap-sys --enable Map fourier.map
 <!------------------------------->
 # nolimit on arch
 
-**(2017-04-21)**
+**(2017-04-21)** (updated **2022-02-10**)
 
-I now set memory limits in /etc/security/limits.conf instead of bashrc.
+For many years, I have kept a virtual memory limit as a bumper rail against disk
+thrashing in times when I accidentally eat all of my memory with a python script.
 
-    lampam           hard    as              8000000
+I currently set these memory limits in /etc/security/limits.conf.
+(this used to be done in .bashrc, but reasonable limits are machine-dependent)
 
-With this, bypassing ulimit---for as infrequently as I need to do it---
-can be easily accomplished with a series of `su`s:
+    lampam           soft    as              8000000
 
-    $ sudo su
-    # ulimit -v unlimited
-    # sudo su lampam
+There is an executable in `<dotfiles>/bin` called `unlimited` for bypassing this limit
+for a single program (it simply does `ulimit -Sv unlimited` in a subshell).
+
     $ ulimit -v
+    8000000
+    $ unlimited ulimit -v
     unlimited
 
-> It's login shells all the way down, son!
+(formerly, I had to do `su; ulimit -v unlimited; su lampam;` but that was because I had naively
+ set a hard limit instead of a soft limit)
+
+Unfortunately, in mid 2020, a new version of electron was released which maps *absurd* amounts
+of virtual memory that it does not commit to physical memory.  This causes numerous programs
+to die horrible, painful deaths unless run through the `unlimited` wrapper.
+
+    $ code .
+    /usr/bin/code: line 53:  1446 Trace/breakpoint trap   (core dumped) ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" "$@"
+    $ chromium
+    <lots of log garbage omitted>
+    #
+    # Fatal error in , line 0
+    # Fatal process out of memory: Failed to reserve memory for new V8 Isolate
+    #
+    #
+    #
+    #FailureMessage Object: 0x7ffc28000ad0#0 0x5642b147235a <unknown>
+    <lots of log garbage omitted>
+    $ unlimited code .
+    $ unlimited chromium
 
 <!------------------------------->
 # Android Development and debugging

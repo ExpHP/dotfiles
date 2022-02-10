@@ -156,19 +156,3 @@ export OMP_NUM_THREADS=4
 # lammps-sys
 export RUST_LAMMPS_MAKEFILE=$HOME/dotfiles/lammps-Makefile.omp
 
-# # Bumper rail.
-# # Limit memory for interactive bash prompts, because thrashing sucks.
-# # To bypass, invoke 'nolimit' from *outside* of a bash process.
-#if [[ -z "$NOLIMIT_JUST_IN_TIME" ]]; then
-#	# use percents so we can do integer math, which doesn't require bc
-#	MAX_RAM_PERCENT=50
-#	TOTAL_RAM=$(free -kt | sed -n '2p' | awk '{ print $2 }')
-#	MAX_OK=$((MAX_RAM_PERCENT * TOTAL_RAM / 100))
-#	# just a sanity check. Maybe the output format of free changed... idunno,
-#	# and i don't care, because a silly and pointless check is better than never
-#	# being able to use a terminal again!
-#	if [[ $MAX_OK -ge 10000 ]]; then
-#		ulimit -v $MAX_OK
-#		export NOLIMIT_TOO_LATE=1
-#	fi
-#fi
