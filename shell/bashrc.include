@@ -113,6 +113,29 @@ else
     # Add to the history after each command finishes
     NEWLINE=$'\n'
     PROMPT_COMMAND="$PROMPT_COMMAND $NEWLINE history -a"
+
+    # absolutely guarantee i never lose my bash history ever again ever ever
+    __bashrc__history_backup_counter=0
+    __bashrc__MAKE_ABSOLUTELY_SURE_THAT_FUCKING_HISTORY_IS_SAVED() {
+        local backup=$HISTFILE.bak
+        # Only perform backups once every few commands.
+        # (This will make it easier to see whether the wc -l's here are a problem)
+        local interval=5
+
+        __bashrc__history_backup_counter=$((__bashrc__history_backup_counter + 1))
+        if [[ $__bashrc__history_backup_counter -eq $interval ]]; then
+            local new_count=$(cat "$HISTFILE" 2>/dev/null | wc -l)
+            local old_count=$(cat "$backup" 2>/dev/null | wc -l)
+            if [[ $new_count -lt $old_count ]]; then
+                echo >&2 "WARNING: Detected loss of lines in $HISTFILE ($old_count -> $new_count lines), history from this session will not be backed up"
+                cp -a $backup $HISTFILE
+            else
+                cp -a $HISTFILE $backup
+            fi
+            __bashrc__history_backup_counter=0
+        fi
+    }
+    PROMPT_COMMAND="$PROMPT_COMMAND $NEWLINE __bashrc__MAKE_ABSOLUTELY_SURE_THAT_FUCKING_HISTORY_IS_SAVED"
 fi
 
 #------------------------------------------------------
@@ -142,3 +165,4 @@ if [ -e $HOME/anaconda3 ]; then
         # <<< conda initialize <<<
     }
 fi
+
