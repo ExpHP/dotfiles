@@ -22,14 +22,12 @@ __exphpBashrcPromptCommand() {
     local midbrace="$red⚡"
   fi
 
+  # Only put fancy prompts on my own machines.
   local my_machine
   local tmp
-  for tmp in \
-    lampam-ThinkPad-T430\
-    arch-t430s\
-    dd-arch\
-    dd-win10\
-  ; do [[ $HOSTNAME == $tmp ]] && my_machine=1; done
+  for tmp in $(cat "$HOME/dotfiles/shell/my_machines"); do
+    [[ $HOSTNAME == $tmp ]] && my_machine=1;
+  done
 
   # == RESET ==
   PS1=""
@@ -128,9 +126,9 @@ else
             local old_count=$(cat "$backup" 2>/dev/null | wc -l)
             if [[ $new_count -lt $old_count ]]; then
                 echo >&2 "WARNING: Detected loss of lines in $HISTFILE ($old_count -> $new_count lines), history from this session will not be backed up"
-                cp -a $backup $HISTFILE
+                \cp -a $backup $HISTFILE
             else
-                cp -a $HISTFILE $backup
+                \cp -a $HISTFILE $backup
             fi
             __bashrc__history_backup_counter=0
         fi

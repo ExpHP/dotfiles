@@ -167,9 +167,10 @@ callable pacman && alias arch-orphans='pacman -Qtdq'
 # sudoedit uses this
 export EDITOR=vim
 
-# I don't think setting this in bashrc is a terrible idea.
-# ...it isn't a terrible idea, right?!
-export OMP_NUM_THREADS=4
+if [ -e $HOME/pkg/deno ]; then
+  export DENO_INSTALL=$HOME/pkg/deno
+  export PATH=$DENO_INSTALL/bin:$PATH
+fi
 
 if [ -e $HOME/asd/manage/pyenv ]; then
   # pyenv startup part 2:  The part that actually belongs in .bashrc
