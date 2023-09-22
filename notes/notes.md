@@ -4012,3 +4012,90 @@ However!  In our case, simply renaming the `ld` does not resolve the error.  In 
 
 **Resolution:** Install openmpi through conda instead of using the system MPI.
 
+# Running stable-diffusion locally
+
+The CompVis stable-diffusion requires about 10GB VRAM, more than my GeForce GTX 1070 has.
+
+There is a fork with optimized VRAM usage:
+
+https://github.com/basujindal/stable-diffusion
+
+I used it at commit f6cfebffa752.  I had trouble initially running the docker container for the browser page, and the documentation on the repo is a bit unclear on how to run the other scripts.
+
+## Summary of issues
+
+### Pip timeout
+
+When running `docker-compose up --build`, I got this during the installation of `pip` dependencies during conda environment creation:
+
+```
+Error: HTTPSConnectionPool(host='pypi.python.org', port=443): Read timed out.
+```
+
+The solution of this, somewhat surprisingly, is to increase the timeout (by adding a `conda config` line to the Dockerfile, as included in the diff below). (even though the default timeout suffices when creating the conda environment outside of a container).
+
+### Can't find output files from other scripts
+
+If you open a shell on the container and try to do img2img or inpainting, you won't be able to find the output images on your PC.  That's because the Dockerfile and docker-compose.yml only link a volume to `./outputs/txt2img-samples` rather than to `./outputs`.
+
+### Other scripts use other ports
+
+The docker-compose.yml only forwards port 7860, but if you want to do inpainting you need 7861 as well.
+
+### Fixes
+
+```diff
+diff --git a/Dockerfile b/Dockerfile
+index 1d17162..a496211 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -15,6 +15,7 @@ COPY . /root/stable-diffusion
+ RUN eval "$($HOME/miniconda/bin/conda shell.bash hook)" \
+  && cd /root/stable-diffusion \
+  && conda env create -f environment.yaml \
++ && conda config --set remote_read_timeout_secs 10000 \
+  && conda activate ldm \
+  && pip install gradio==3.1.7
+
+@@ -28,8 +29,7 @@ ENV GRADIO_SERVER_PORT=7860
+ EXPOSE 7860
+
+ RUN ln -s /data /root/stable-diffusion/models/ldm/stable-diffusion-v1 \
+- && mkdir -p /output /root/stable-diffusion/outputs \
+- && ln -s /output /root/stable-diffusion/outputs/txt2img-samples
++ && ln -s /output /root/stable-diffusion/outputs
+
+ WORKDIR /root/stable-diffusion
+
+diff --git a/docker-compose.yml b/docker-compose.yml
+index a16ab5a..d5bbc1b 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -4,6 +4,7 @@ services:
+     build: .
+     ports:
+       - "7860:7860"
++      - "7861:7861"  # used by inpaint_gradio
+     volumes:
+       - ../sd-data:/data
+       - ../sd-output:/output
+```
+
+### How to do inpainting
+
+If you haven't done `docker-compose up --build` yet, do that first.  This will create the `stable-diffusion_sd_1` container.
+
+Then:
+
+```bash
+# in one shell
+docker start stable-diffusion_sd_1
+
+# in another shell
+docker exec -it stable-diffusion_sd_1 bash
+
+# inside that bash shell on the container
+conda activate ldm
+python optimizedSD/inpaint_gradio.py
+```
+
