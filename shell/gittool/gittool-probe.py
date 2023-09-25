@@ -46,8 +46,16 @@ def main():
             probe_dir=Path(args.probe_dir),
         )
         print(output.to_bash())
-    except Exception as e:
+
+    except ApplicationError as e:
+        # User-facing error
         print(FailureOutput(error=str(e)).to_bash())
+
+    except Exception as e:
+        # Bug; give debugging info
+        import traceback
+        error = '{}\n{}'.format(traceback.format_exc(), str(e))
+        print(FailureOutput(error=error).to_bash())
 
 # ------------------------------------------------------
 
@@ -57,17 +65,19 @@ def main_impl(probe_dir: Path) -> "SuccessOutput":
 
     git = GitCommands(probe_dir)
 
-    branch = git.get_branch()
-    if branch is None:
+    root = git.get_root()
+    if root is None:
         return SuccessOutput.new_non_repo()
+    root = root.resolve()
 
+    branch = git.get_branch()
     is_bare = git.is_bare()
     if is_bare:
-        return SuccessOutput.new_bare(branch=branch)
+        return SuccessOutput.new_bare(root=root, branch=branch)
 
     stats = git.count_stats()
-
     return SuccessOutput(
+        root=root,
         branch=branch,
         is_bare=is_bare,
         is_dirty=stats.is_dirty,
@@ -105,8 +115,12 @@ class GitCommands:
             stderr=subprocess.DEVNULL,
         ).returncode == 0
 
-    def get_branch(self) -> tp.Optional[str]:
-        stdout = self.try_git_stdout(['rev-parse', '--abbrev-ref', 'HEAD'])
+    def get_root(self) -> tp.Optional[Path]:
+        stdout = self.try_git_stdout(['rev-parse', '--show-toplevel'])
+        return None if stdout is None else Path(stdout.strip())
+
+    def get_branch(self) -> str:
+        stdout = self.git_stdout(['rev-parse', '--abbrev-ref', 'HEAD'])
         return stdout.strip()
 
     def is_bare(self) -> bool:
@@ -171,6 +185,7 @@ class FailureOutput:
 class SuccessOutput:
     def __init__(
             self,
+            root: tp.Optional[str],
             branch: tp.Optional[str],
             is_bare: bool,
             is_dirty: bool,
@@ -178,6 +193,7 @@ class SuccessOutput:
             delete_count: int,
             untracked_count: int,
     ):
+        self.root = root
         self.branch = branch
         self.is_bare = is_bare
         self.is_dirty = is_dirty
@@ -188,6 +204,7 @@ class SuccessOutput:
     @classmethod
     def new_non_repo(cls):
         return cls(
+            root=None,
             branch=None,
             is_bare=False,
             is_dirty=False,
@@ -197,8 +214,9 @@ class SuccessOutput:
         )
 
     @classmethod
-    def new_bare(cls, branch):
+    def new_bare(cls, root: Path, branch: str):
         return cls(
+            root=root,
             branch=branch,
             is_bare=True,
             is_dirty=False,
@@ -209,6 +227,7 @@ class SuccessOutput:
 
     def to_bash(self):
         return "\n".join([
+            "{}_ROOT={}".format(ENV_PREFIX, shlex.quote(str(self.root))),
             "{}_BRANCH={}".format(ENV_PREFIX, shlex.quote(self.branch)),
             "{}_IS_BARE={}".format(ENV_PREFIX, bool_to_bash(self.is_bare)),
             "{}_IS_DIRTY={}".format(ENV_PREFIX, bool_to_bash(self.is_dirty)),
@@ -219,6 +238,12 @@ class SuccessOutput:
 
 def bool_to_bash(b: bool):
     return '1' if b else ''
+
+# ------------------------------------------------------
+
+# Used for user-facing error messages.
+class ApplicationError(RuntimeError):
+    pass
 
 # ------------------------------------------------------
 
