@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 
+
+if ! which python3 >/dev/null 2>/dev/null; then
+  # Cannot run
+  return 0
+fi
+
 . $HOME/dotfiles/shell/colors.ps1.include
-. $HOME/dotfiles/shell/gittool.ps1.include  # compute git status into GITTOOL variables
+. <($HOME/dotfiles/shell/gittool/gittool-probe.py)  # compute git status into GITTOOL variables
 if [[ $EXPHP_GITTOOL_BRANCH ]]; then
   echo -n "$none("
 
