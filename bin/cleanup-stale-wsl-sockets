@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+dead_count=0
+ss_output="$(ss -elx)"
+
+for socket in /run/WSL/*; do
+   if ! (echo "$ss_output" | grep -q "$socket"); then
+      rm $socket 
+      ((dead_count=dead_count+1))
+   fi
+done
+
+echo "$dead_count sockets removed"

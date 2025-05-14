@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# the above shebang is only for syntax highlighting; you're supposed to source this, not execute it
+
+# don't set CARGO_HOME/RUSTUP_HOME, it makes working with IntelliJ in WSL difficult
+
+# n works by caching versions in $N_PREFIX/n/versions (ew, why not $N_PREFIX/share/n/versions?)
+# and copying them to $N_PREFIX/bin etc.  Therefore, .local seems best for it.
+export N_PREFIX=$HOME/.local

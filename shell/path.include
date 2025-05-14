@@ -19,6 +19,13 @@ PATH=$HOME/bin:$PATH
 # Sometimes rustup adds this, sometimes it has other things on its mind
 PATH=$HOME/.cargo/bin:$PATH
 
+# 'gem install --user' bin path. Bleh.
+# Don't know how to parse the version from 'ruby --version'.
+# Not sure what's the worst of several evils.
+# I could use --install-dir $HOME/.local instead of --user, but that would add
+# a bunch more directories to .local that are only used by gem...
+PATH=$HOME/.gem/ruby/2.7.0/bin:$PATH
+
 # ayup
 PATH=$HOME/.local/bin:$PATH
 LIBRARY_PATH=$HOME/.local/lib:$LIBRARY_PATH
