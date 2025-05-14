@@ -69,6 +69,12 @@ edit .bashrc  # move the fzf stuff to be BEFORE things from ~/dotfiles are sourc
 
 ### Rust binaries
 
+Get rust.
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
 There are some rust binaries to build and install in [`dotfiles/rust-bin`](rust-bin).
 
 ### Gnu stow packages
