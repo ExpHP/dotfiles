@@ -40,7 +40,9 @@ Some of the functionality in my shell dotfiles may depend on the rust binaries.
 
 ### Vim
 
-To set up `~/.vim/`, see [`vim/README.md`](vim).
+~~To set up `~/.vim/`, see [`vim/README.md`](vim).~~
+
+(**Update 5/2025:** It doesn't look like I ever set vim up on WSL Ubuntu 2020.04.  I seem to be living fine without the config.)
 
 If you can't make it work, then *please, please, PLEASE* at the very least add this to `.vimrc` before continuing any further:
 
